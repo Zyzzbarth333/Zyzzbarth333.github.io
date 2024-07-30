@@ -1,31 +1,49 @@
+<!-- home.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" charset="UTF-8" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
     <title>My Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/2e6c318d27.js" crossorigin="anonymous"></script>
+    <link href='https://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet'>
 </head>
 <body>
     <header>
-        <h1>Isaac Johan Ziebarth</h1>
+        <nav class="navigation-home">
+            <!-- Navigation links here -->
+            <ul class="nav-links">
+                <li class="{{ 'active' if request.path == '/' else '' }}"><a href="/">Home</a></li>
+                <li class="{{ 'active' if request.path == '/projects' else '' }}"><a href="/projects">Projects</a></li>
+                <li class="{{ 'active' if request.path == '/contact' else '' }}"><a href="/contact">Contact</a></li>
+            </ul>
+            <div class="header-title">
+                <span><a href="/">{{ title }}</a></span>
+            </div>
+            <ul class="social-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank"><i class="fa-brands fa-linkedin-in" style="font-size:28px"></i></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank"><i class="fa-brands fa-github" style="font-size:28px;color:#FFFFFF"></i></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank"><i class="fa-solid fa-link" style="font-size:28px;color:#FFFFFF"></i></a></li>
+            </ul>
+        </nav>
     </header>
+
     <main>
-        <section id="about">
+        <section class="profile">
+            <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="Profile Picture" class="profile-pic">
+            <p>Welcome to My Portfolio!</p>
+            <a href="/projects">Projects</a>
+            <a href="/contact">Contact</a>
+        </section>
+        <section class="about-me">
             <h2>About Me</h2>
-            <p>Write a brief introduction about yourself here.</p>
-        </section>
-        <section id="projects">
-            <h2>Projects</h2>
-            <p>Showcase your projects here.</p>
-        </section>
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>Provide your contact information here.</p>
+            <!-- Your about me content here -->
+            <p>Experienced and highly motivated General Labourer with a demonstrated history of working in the trade industry. Skilled in Analytical Skills, Communication, Forklift Operation, Teamwork, English and valuable leadership skills. Currently holds a Responsible Service of Alcohol (RSA), Responsible Service of Gaming (RSG) and a Construction Induction (White Card). Currently studying a Bachelor of Engineering (Honours) and Master of Engineering specialising in Mechatronic and Aerospace Engineering from The University of Queensland. Always willing to take on new challenges and eager to learn new skills.</p>
         </section>
     </main>
+
     <footer>
-        <p>&copy; 2024 Isaac Johan Ziebarth</p>
+        <!-- Footer content -->
     </footer>
 </body>
 </html>
