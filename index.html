@@ -5,10 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Portfolio</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://kit.fontawesome.com/2e6c318d27.js" crossorigin="anonymous"></script>
+    <link href='https://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet'>
 </head>
 <body>
     <header>
-        <h1>Isaac Johan Ziebarth</h1>
+        <nav class="navigation-home">
+            <!-- Navigation links here -->
+            <ul class="nav-links">
+                <li class="{{ 'active' if request.path == '/' else '' }}"><a href="/">Home</a></li>
+                <li class="{{ 'active' if request.path == '/projects' else '' }}"><a href="/projects">Projects</a></li>
+                <li class="{{ 'active' if request.path == '/contact' else '' }}"><a href="/contact">Contact</a></li>
+            </ul>
+            <h1>Isaac Johan Ziebarth</h1>
+            <ul class="social-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank"><i class="fa-brands fa-linkedin-in" style="font-size:28px"></i></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank"><i class="fa-brands fa-github" style="font-size:28px;color:#FFFFFF"></i></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank"><i class="fa-solid fa-link" style="font-size:28px;color:#FFFFFF"></i></a></li>
+            </ul>
+        </nav>
     </header>
     <main>
         <section id="about">
@@ -17,7 +32,12 @@
         </section>
         <section id="projects">
             <h2>Projects</h2>
-            <p>Showcase your projects here.</p>
+            <div class="project">
+                <h3>Project Title</h3>
+                <img src="path_to_image" alt="Project Image">
+                <p>Project description goes here.</p>
+                <a href="link_to_project" target="_blank">View Project</a>
+            </div>
         </section>
         <section id="contact">
             <h2>Contact</h2>
