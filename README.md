@@ -51,5 +51,5 @@ a project's own pages:
 
 ## Licence
 
-Code is released under the MIT Licence ([`LICENSE`](LICENSE)). Site text and
-images are personal content and are not covered by that licence.
+Copyright (c) Isaac Johan Ziebarth. All rights reserved. The code and content of
+this site are not licensed for reuse.
