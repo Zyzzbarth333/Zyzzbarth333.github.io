@@ -3,22 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+    <title>Isaac Johan Ziebarth</title>
     <meta name="description" content="Portfolio of Isaac Johan Ziebarth, an Engineering student with experience in mechatronics and aerospace.">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://kit.fontawesome.com/2e6c318d27.js" crossorigin="anonymous"></script>
-    <link href='https://fonts.googleapis.com/css?family=Sanchez|Dapifer' rel='stylesheet'>
-    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href='https://fonts.googleapis.com/css?family=Sanchez' rel='stylesheet'>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'GA_TRACKING_ID');
-    </script>
+    <!-- To add Google Analytics (GA4), paste the gtag.js snippet here with your Measurement ID. -->
 </head>
 <body id="home">
     <header role="banner">
@@ -32,9 +24,9 @@
                 <span><a href="#home">Isaac Johan Ziebarth</a></span>
             </div>
             <ul class="social-links">
-                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank"><i class="fa-brands fa-linkedin-in" style="font-size:20px"></i></a></li>
-                <li><a href="https://github.com/Zyzzbarth333" target="_blank"><i class="fa-brands fa-github" style="font-size:20px;color:#FFFFFF"></i></a></li>
-                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank"><i class="fa-solid fa-link" style="font-size:20px;color:#FFFFFF"></i></a></li>
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in" style="font-size:20px"></i></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener"><i class="fa-brands fa-github" style="font-size:20px;color:#FFFFFF"></i></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener"><i class="fa-solid fa-link" style="font-size:20px;color:#FFFFFF"></i></a></li>
             </ul>
         </nav>
     </header>
@@ -51,33 +43,25 @@
                 <div class="project">
                     <img src="assets/img/eufycam.jpg" alt="3D printed ball joint and mount for Eufy security camera">
                     <h3>Design and manufacture a ball joint and mount for a Residential Security Camera</h3>
-                    <p>Due to wear and tear, the ball joint attachment and the screw mount on an Anker eufyCam 2C Pro Wireless Home Security Add-on Camera. 
-                       Through Fusion360 and a Fused Deposition Modelling (FDM) 3D printer, a replacement was manufactured.</p>
-                    <a href="link_to_project" target="_blank">View Project</a>
+                    <p>Due to wear and tear, the ball joint attachment and the screw mount on an Anker eufyCam 2C Pro Wireless Home Security Add-on Camera failed. Through Fusion 360 and a Fused Deposition Modelling (FDM) 3D printer, a replacement was manufactured.</p>
                 </div>
+                <!-- Copy this block to add a project:
                 <div class="project">
-                    <img src="path_to_image" alt="Project Two Image">
-                    <h3>Project Two</h3>
-                    <p>Description of Project Two.</p>
-                    <a href="link_to_project" target="_blank">View Project</a>
+                    <img src="assets/img/PROJECT.jpg" alt="Short description of the image">
+                    <h3>Project title</h3>
+                    <p>One or two sentences on the project.</p>
+                    <a href="https://github.com/Zyzzbarth333/REPO" target="_blank" rel="noopener">View Project</a>
                 </div>
-                <div class="project">
-                    <img src="path_to_image" alt="Project Three Image">
-                    <h3>Project Three</h3>
-                    <p>Description of Project Three.</p>
-                    <a href="link_to_project" target="_blank">View Project</a>
-                </div>
-                <div class="project">
-                    <img src="path_to_image" alt="Project Four Image">
-                    <h3>Project Four</h3>
-                    <p>Description of Project Four.</p>
-                    <a href="link_to_project" target="_blank">View Project</a>
-                </div>
+                -->
             </div>
         </section>
         <section id="contact" class="contact">
             <h2>Contact</h2>
-            <form action="https://formspree.io/your-email" method="POST">
+            <p>Email me at <a href="mailto:IJZiebarth@outlook.com.au">IJZiebarth@outlook.com.au</a>.</p>
+            <!--
+            To use a contact form instead, sign up at https://formspree.io, create a
+            form, and set the action to your own endpoint:
+            <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
                 <label for="email">Email:</label>
@@ -86,14 +70,15 @@
                 <textarea id="message" name="message" rows="5" required></textarea>
                 <button type="submit">Send</button>
             </form>
+            -->
         </section>
     </main>
     <footer role="contentinfo" class="container">
         <p>&copy; 2024 Isaac Johan Ziebarth</p>
         <ul class="footer-social-links">
-            <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank">LinkedIn</a></li>
-            <li><a href="https://github.com/Zyzzbarth333" target="_blank">GitHub</a></li>
-            <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank">Printables</a></li>
+            <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener">Printables</a></li>
         </ul>
     </footer>
 </body>
