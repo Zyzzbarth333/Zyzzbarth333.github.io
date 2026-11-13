@@ -80,7 +80,7 @@ th { color: var(--muted); }
   </details>
 </div>
 <script type="module">
-import * as A from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/esm/astronomy.js";
+import * as A from "../vendor/astronomy-engine-2.1.19/astronomy.min.js";
 import { porkchopGrid, transferBetween, range } from "./orrery/porkchop.js";
 import { propagate } from "./orrery/orbital.js";
 
@@ -305,7 +305,7 @@ function drawWins() {
     const b = document.createElement("button");
     b.type = "button"; b.className = "link"; b.textContent = `${monthYear(w.depMs)} ${w.totalDv.toFixed(2)}`;
     b.setAttribute("aria-pressed", String(w.depMs === selWin));
-    b.setAttribute("aria-label", `Leave ${fmt(new Date(w.depMs))}: ${w.tofDays.toFixed(0)} days, ${w.totalDv.toFixed(2)} km/s${w === low ? ", the lowest" : ""}`);
+    b.setAttribute("aria-label", `${monthYear(w.depMs)} ${w.totalDv.toFixed(2)} km/s: leave ${fmt(new Date(w.depMs))}, ${w.tofDays.toFixed(0)} days${w === low ? ", the lowest" : ""}`);
     b.addEventListener("click", () => run(key, w));
     box.appendChild(b);
     if (w === low) add(" (lowest)");
