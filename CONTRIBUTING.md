@@ -5,25 +5,28 @@ consistent.
 
 ## Working locally
 
-    python -m http.server 8000
+    python3 -m http.server 8000
 
-Open `http://localhost:8000` and edit `index.html` and `assets/css/style.css`
-directly. There is no build step or framework.
+Open `http://localhost:8000`. There is no build step on Pages.
 
 ## Conventions
 
-- Plain, dependency-light HTML and CSS. Keep external scripts to a minimum.
-- Keep `<meta charset="UTF-8">` and the viewport meta in the head.
-- Navigation is anchor-based within `index.html`; mark the active nav `<li>`
-  with `class="active"`.
+- Plain, dependency-light HTML, CSS and JavaScript. Keep external scripts to a
+  minimum.
+- Keep `<meta charset="UTF-8">` and the viewport meta in every page's head.
+- Colours, fonts and spacing come from the tokens at the top of
+  `assets/css/style.css`. Body text stays at WCAG AA contrast (4.5:1) on its
+  background.
+- Motion is optional: every animation has a `prefers-reduced-motion` fallback,
+  and content never depends on JavaScript to become visible.
 - External links use `target="_blank"` with `rel="noopener"`.
 - Text files are LF (enforced by `.gitattributes`).
 
 ## Adding a project
 
-Copy the commented `.project` block in the Projects section of `index.html` and
-put its image in `assets/img/`. To embed a whole repository, add it as a
-submodule (see the README).
+Give it a page in `projects/` on the shared template, a card on the home page and
+an icon in `assets/img/projects/`. Strip all metadata from photos before adding
+them. Every claim on a page should be one the author has checked.
 
 ## Publishing
 

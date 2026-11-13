@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Camera mount, 3D</title>
+<!-- three.js (MIT License, Copyright 2010-2023 three.js authors), loaded from jsDelivr at a pinned version. -->
+<style>
+  @font-face { font-family: "Sanchez"; src: url("../fonts/sanchez-400-latin.woff2") format("woff2"); font-display: swap; }
+  :root { --paper: #fbfbfa; --ink: #2E1499; --muted: #6b6690; --line: #e4e2ee; color-scheme: light; }
+  html, body { margin: 0; background: transparent; }
+  body { font: 13px/1.5 "Sanchez", Georgia, serif; color: var(--muted); }
+  .card { position: relative; background: var(--paper); border-radius: 12px; overflow: hidden; }
+  .stage { position: relative; aspect-ratio: 4 / 3; outline: none; touch-action: pan-y; cursor: grab; }
+  .stage:active { cursor: grabbing; }
+  .stage:focus-visible { box-shadow: inset 0 0 0 3px var(--ink); border-radius: 12px; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .corner { position: absolute; font-size: 12.5px; pointer-events: none; }
+  .bl { bottom: 12px; left: 16px; }
+  .br { bottom: 12px; right: 16px; color: var(--ink); }
+  .fallback { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 24px; font-family: "Sanchez", Georgia, serif; font-size: 15px; color: var(--ink); }
+  .fallback img { max-width: 100%; max-height: 80%; display: block; margin: 0 auto 12px; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="card">
+  <div class="stage" tabindex="0" role="img" aria-label="3D model of the two printed parts of the camera mount: the slotted ball joint and the threaded base. Drag, or use the arrow keys, to turn it.">
+    <div class="fallback"><div><img src="../img/projects/camera-mount-render.jpg" alt="Render of the two printed parts">This browser can't show the 3D model, so here is a render.</div></div>
+  </div>
+  <span class="corner bl">Drag or arrow keys to turn</span>
+  <span class="corner br" data-readout>Ball joint · threaded base</span>
+</div>
+<script type="module">
+import * as THREE from "three";
+import { STLLoader } from "three/addons/loaders/STLLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const stage = document.querySelector(".stage");
+const still = matchMedia("(prefers-reduced-motion: reduce)");
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+} catch (e) {
+  stage.querySelector(".fallback").style.display = "grid";
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 4 / 3, 1, 2000);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d4ea, 1.6));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(80, 140, 120); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffffff, 0.5); rim.position.set(-120, 60, -80); scene.add(rim);
+
+const group = new THREE.Group();
+group.rotation.x = -Math.PI / 2;            // STL is z-up; three.js is y-up
+scene.add(group);
+
+const parts = [
+  { file: "../models/ball-joint-attachment.stl", color: 0xFF5102, name: "Ball joint" },
+  { file: "../models/threaded-mount.stl", color: 0x2E1499, name: "Threaded base" },
+];
+const loader = new STLLoader();
+const loaded = await Promise.all(parts.map((p) => loader.loadAsync(p.file).then((geo) => ({ ...p, geo }))));
+for (const p of loaded) {
+  p.geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(p.geo, new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.62, metalness: 0.05 }));
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(p.geo, 28), new THREE.LineBasicMaterial({ color: 0x1b0d5c, transparent: true, opacity: 0.35 }));
+  group.add(mesh, edges);
+}
+// centre the pair and frame it
+const box = new THREE.Box3().setFromObject(group);
+const centre = box.getCenter(new THREE.Vector3());
+group.position.sub(centre);
+const size = box.getSize(new THREE.Vector3()).length();
+camera.position.set(size * 0.95, size * 0.75, size * 1.15);
+camera.lookAt(0, 0, 0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enableZoom = false;                 // never hijack the page's scroll
+controls.enablePan = false;
+controls.autoRotate = !still.matches;
+controls.autoRotateSpeed = 0.8;
+
+let visible = false, frame = 0, idleTimer = 0;
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  draw();
+}
+function draw() { renderer.render(scene, camera); }
+function loop() {
+  const moved = controls.update();
+  draw();
+  frame = visible && (moved || controls.autoRotate) ? requestAnimationFrame(loop) : 0;
+}
+function run() { if (!frame && visible) frame = requestAnimationFrame(loop); }
+function holdTour() {
+  controls.autoRotate = false;
+  clearTimeout(idleTimer);
+  if (!still.matches) idleTimer = setTimeout(() => { controls.autoRotate = true; run(); }, 6000);
+}
+controls.addEventListener("start", () => { holdTour(); run(); });
+controls.addEventListener("change", run);
+stage.addEventListener("keydown", (ev) => {
+  const step = (ev.shiftKey ? 45 : 15) * Math.PI / 180;
+  if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") {
+    const sign = ev.key === "ArrowLeft" ? 1 : -1;
+    const offset = camera.position.clone().sub(controls.target);
+    offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), sign * step);
+    camera.position.copy(controls.target).add(offset);
+  } else if (ev.key === "ArrowUp" || ev.key === "ArrowDown") {
+    const offset = camera.position.clone().sub(controls.target);
+    const axis = new THREE.Vector3().crossVectors(offset, new THREE.Vector3(0, 1, 0)).normalize();
+    const tilted = offset.clone().applyAxisAngle(axis, (ev.key === "ArrowUp" ? 1 : -1) * step);
+    if (Math.abs(tilted.clone().normalize().y) < 0.97) camera.position.copy(controls.target).add(tilted);
+  } else return;
+  ev.preventDefault(); holdTour(); run();
+});
+still.addEventListener?.("change", () => { controls.autoRotate = !still.matches; run(); });
+new ResizeObserver(resize).observe(stage);
+new IntersectionObserver((e) => { visible = e[e.length - 1].isIntersecting; if (visible) run(); }, { rootMargin: "80px 0px" }).observe(stage);
+resize();
+</script>
+</body>
+</html>

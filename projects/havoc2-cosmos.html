@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth</title>
+    <meta name="description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed CRC.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth">
+    <meta property="og:description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed CRC.">
+    <meta property="og:url" content="https://zyzzbarth333.github.io/projects/havoc2-cosmos.html">
+    <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
+    <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="#BB0700">
+    <link rel="icon" href="../favicon.ico" sizes="48x48">
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../assets/css/style.css?v=9526eb32">
+    <script>
+        // Hide .reveal content only once JS runs; if site.js never loads, show everything.
+        document.documentElement.classList.add('js');
+        setTimeout(function () { if (!window.revealReady) document.documentElement.classList.remove('js'); }, 2500);
+    </script>
+</head>
+<body id="top">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <div class="header-inner">
+            <nav class="main-nav" aria-label="Main">
+                <ul class="nav-links">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../index.html#projects" class="is-current">Projects</a></li>
+                    <li><a href="../index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a class="site-title" href="../index.html">Isaac Johan Ziebarth</a>
+            <ul class="social-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg class="icon-social" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener" aria-label="Printables" title="Printables"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.678 4.8 12 9.6v9.6l8.322-4.8V4.8L12 0ZM12 19.2l-8.322-4.8V24Z"/></svg></a></li>
+                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener" aria-label="MakerWorld" title="MakerWorld"><svg class="icon-social" viewBox="0 0 23.7708 24.001" aria-hidden="true" focusable="false"><path d="M17.3515 0L11.8854 2.1609L6.41929 0L0 2.53822V21.4628L6.41929 24.001L11.8854 21.8401L17.3515 24.001L23.7708 21.4628V2.53822L17.3515 0ZM17.3515 1.03184L22.8176 3.19274V11.0018L17.3515 8.84192V1.03184ZM17.3515 9.87471L22.7307 12.001L17.3515 14.1272L11.9723 12.001L17.3515 9.87471ZM6.41929 1.03184L11.8854 3.19274V11.0018L6.41929 8.84192V1.03184ZM6.41929 9.87471L11.7975 12.001L6.41835 14.1272L1.04011 12.001L6.41929 9.87471ZM0.953201 20.8073V12.9982L6.41929 15.1581V22.9682L0.953201 20.8073ZM11.8854 20.8073V12.9982L17.3515 15.1581V22.9682L11.8854 20.8073Z"/></svg></a></li>
+            </ul>
+        </div>
+    </header>
+    <main id="main" class="project-page">
+        <a class="back" href="../index.html#projects">&larr; All projects</a>
+        <header class="project-head">
+            <h1>HAVOC-2 firmware and COSMOS ground station</h1>
+            <p class="meta">Team project · UQ Space · 2026</p>
+            <p class="outcome">Flight firmware for UQ Space&#x27;s HAVOC-2 flight computer, and COSMOS, the ground station the team runs at launches. On HAVOC-2&#x27;s first flight, to about <strong>540 m</strong>, every logged frame passed CRC, and every intact radio frame matched the SD card byte for byte.</p>
+        </header>
+        <dl class="facts">
+            <div><dt>My role</dt><dd>Developed HAVOC-2's C++ flight firmware from June to November 2026, when the team moved to a consolidated flight computer (all 24 firmware commits). Built COSMOS; no other person has committed to it</dd></div>
+            <div><dt>Team</dt><dd>UQ Space avionics team; teammates designed the HAVOC-2 board</dd></div>
+            <div><dt>When</dt><dd>May 2026 – present</dd></div>
+            <div><dt>Tools</dt><dd>C++, Teensy 4.1, RFD900 radio, Python, React, WebSockets</dd></div>
+            <div><dt>Code</dt><dd>Private: UQ Space team repositories</dd></div>
+        </dl>
+        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
+        <figure class="figure figure-embed wide">
+            <iframe src="../assets/figures/havoc2-flight.html?v=9f076f84" title="Interactive plots of HAVOC-2 first flight from its logs: altitude, ground track and boost acceleration, with a linked cursor" loading="lazy" style="--ratio:2.2"></iframe>
+            <figcaption>HAVOC-2&#x27;s first flight (QRS, 12 July 2026), from the cleaned flight logs. Point at the altitude plot, or use its arrow keys, to read any moment; the ground track and acceleration follow. Solid lines are measured and dashed lines modelled: the ascent track comes from the IMU, the top of the descent from GPS, and the rest of the descent&#x27;s horizontal path from a wind-drift model. About 9 s went unlogged while the board rebooted after the ejection brownout, so the descent&#x27;s timing is approximate. Positions are relative to the pad.</figcaption>
+        </figure>
+        <div class="prose">
+            <h2 id="the-problem">The problem</h2>
+            <p>The team needed a flight computer that logs a rocket's flight and streams it to the ground reliably, and a ground station that shows the flight live and keeps a record that can be checked afterwards.</p>
+            <h2 id="what-i-did">What I did</h2>
+            <h3>HAVOC-2 firmware</h3>
+            <ul>
+                <li><strong>Sensing and logging:</strong> it read an IMU, a high-g accelerometer, a barometer, 2 magnetometers and GPS, logged the IMU at 50 Hz to SD, and streamed CRC-checked packets to the ground over an RFD900 radio.</li>
+                <li><strong>New velocity estimator:</strong> the first flight showed the onboard estimate reading about 5 times too low, so I compared 3 replacement designs in replay and chose a complementary filter that blends the barometer with the IMU.</li>
+                <li><strong>Flash stall:</strong> erasing the onboard flash stalled the clock for 225 ms every 5 s, so I changed the firmware to write flash only on the ground.</li>
+                <li><strong>Dead I2C bus:</strong> a shorted magnetometer breakout had taken down the I2C bus and hidden the IMU, and I tracked it down.</li>
+            </ul>
+            <h3>COSMOS ground station</h3>
+            <ul>
+                <li><strong>One process per device:</strong> the radio, the flight computer on USB, a GPS tracker and the weather station each get their own Python process, which parses its stream and feeds a React page over WebSockets.</li>
+                <li><strong>Live display:</strong> flight state, altitude and position, alarms and spoken flight callouts. The same parser drives a terminal view for launch day.</li>
+                <li><strong>Verifiable record:</strong> every session goes into a hash-chained log (each entry is tied to the one before, so any change shows) that can be verified and replayed afterwards.</li>
+                <li><strong>Safe commands:</strong> operator commands are rate limited, the ones that change settings need confirmation, and the tests run in CI on every push.</li>
+            </ul>
+        </div>
+        <figure class="figure figure-embed">
+            <iframe src="../assets/figures/havoc2-flight3d.html?v=80f26b6e" title="The same flight in 3D at true scale: drag or use the arrow keys to turn it, and replay it" loading="lazy" style="--ratio:1.15"></iframe>
+            <figcaption>The same flight in 3D, at true scale and relative to the pad, drawn from the same logs and with the same rules: solid lines are measured and dashed lines modelled, with the climb in ink and the descent in orange. The faint line on the grid is its track over the ground. Drag, or use the arrow keys, to turn it, and replay it to follow the rocket at 4 times real speed.</figcaption>
+        </figure>
+        <figure class="figure wide reveal">
+            <a class="fig-link" href="../assets/diagrams/cosmos-ground-station.html" target="_blank" rel="noopener" aria-label="Architecture diagram of COSMOS: device servers, the React page, the sim service and the hash-chained session log (opens the interactive diagram)"><img src="../assets/img/projects/cosmos-architecture.webp" alt="Architecture diagram of COSMOS: device servers, the React page, the sim service and the hash-chained session log" width="2000" height="1472" loading="lazy" decoding="async"></a>
+            <figcaption>How COSMOS is put together, as the code stands: one server process per device, one WebSocket per server for telemetry and commands, and a hash-chained session log that can be verified and replayed. <a class="fig-open" href="../assets/diagrams/cosmos-ground-station.html" target="_blank" rel="noopener">Open the interactive diagram</a></figcaption>
+        </figure>
+        <figure class="figure figure-embed">
+            <iframe src="../assets/figures/cosmos-replay.html?v=c5f70e36" title="Live replica of the COSMOS header, flight phases and altitude chart, replaying its synthetic demo flight" loading="lazy" style="--ratio:1.75"></iframe>
+            <figcaption>A small live replica of COSMOS&#x27;s status pills, flight phases, altitude chart and event log, rebuilt for this page in COSMOS&#x27;s own style. It replays COSMOS&#x27;s built-in synthetic demo flight: made-up physics, not a real rocket. Pause it, change the speed or drag the slider.</figcaption>
+        </figure>
+        <div class="prose">
+            <h2 id="result">Result</h2>
+            <ul>
+                <li><strong>First flight, July 2026:</strong> HAVOC-2 flew as the data recorder on a sub-scale rocket that reached about 540 m after an 11.7 g boost. Every frame on the log passed CRC, and every intact frame COSMOS received over the radio matched the same frame on the SD card byte for byte.</li>
+                <li><strong>Estimator replay:</strong> on the replayed flight log, false speed on the pad fell from a peak of 137 m/s to 0.37 m/s. With sensor faults injected, the new estimator never called apogee early.</li>
+                <li><strong>AURC 2026:</strong> COSMOS recorded flight computer data from the launch rail and ran a 512-run OpenRocket ensemble from the weather station&#x27;s pressure and wind before launch.</li>
+            </ul>
+            <h2 id="what-went-wrong">What went wrong</h2>
+            <ul>
+                <li><strong>Brownout:</strong> HAVOC-2 browned out at ejection on the first flight. Logging resumed, but about 9 s of the descent went unrecorded while it rebooted.</li>
+                <li><strong>Velocity estimate:</strong> on the first flight the onboard velocity estimate read about 5 times too low.</li>
+                <li><strong>Flash erase:</strong> erasing the onboard flash stalled the clock for 225 ms every 5 s.</li>
+                <li><strong>Magnetometer short:</strong> a shorted magnetometer breakout took down the I2C bus and hid the IMU behind it.</li>
+                <li><strong>No flight data yet:</strong> the new estimator sat on the launch rail at the 2026 competition, but the rocket broke up 2.8 s into the flight and the nosecone holding the recorders has not been found.</li>
+            </ul>
+            <h2 id="credits">Credits</h2>
+            <p>HAVOC-2&#x27;s board was designed by teammates in the UQ Space avionics team; this page covers its firmware and the ground station.</p>
+        </div>
+        <nav class="page-nav" aria-label="More projects">
+            <a class="pill pill-outline" href="../index.html#projects">&larr; All projects</a>
+            <a class="pill" href="osiris.html">Next: OSIRIS flight computer &rarr;</a>
+        </nav>
+    </main>
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p class="footer-name">Isaac Johan Ziebarth</p>
+            <ul class="footer-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener">LinkedIn</a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener">GitHub</a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener">Printables</a></li>
+                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener">MakerWorld</a></li>
+            </ul>
+        </div>
+        <p class="footer-bar">&copy; 2026 Isaac Johan Ziebarth. All rights reserved.</p>
+    </footer>
+    <script src="../assets/js/site.js?v=d1da8cbe" defer></script>
+</body>
+</html>
