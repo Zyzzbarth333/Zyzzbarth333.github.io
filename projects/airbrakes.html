@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Airbrake control simulation · Isaac Johan Ziebarth</title>
+    <meta name="description" content="Four apogee controllers flown on 200 simulated flights of UQ Space&#x27;s Hera rocket, after fixing the rocket model they fly on.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Airbrake control simulation · Isaac Johan Ziebarth">
+    <meta property="og:description" content="Four apogee controllers flown on 200 simulated flights of UQ Space&#x27;s Hera rocket, after fixing the rocket model they fly on.">
+    <meta property="og:url" content="https://zyzzbarth333.github.io/projects/airbrakes.html">
+    <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
+    <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="#BB0700">
+    <link rel="icon" href="../favicon.ico" sizes="48x48">
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../assets/css/style.css?v=3bcbf27b">
+    <script>
+        // Hide .reveal content only once JS runs; if site.js never loads, show everything.
+        document.documentElement.classList.add('js');
+        setTimeout(function () { if (!window.revealReady) document.documentElement.classList.remove('js'); }, 2500);
+    </script>
+</head>
+<body id="top">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <div class="header-inner">
+            <nav class="main-nav" aria-label="Main">
+                <ul class="nav-links">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../index.html#projects" class="is-current">Projects</a></li>
+                    <li><a href="../index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <a class="site-title" href="../index.html">Isaac Johan Ziebarth</a>
+            <ul class="social-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener" aria-label="LinkedIn (opens in a new tab)" title="LinkedIn"><svg class="icon-social" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener" aria-label="GitHub (opens in a new tab)" title="GitHub"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener" aria-label="Printables (opens in a new tab)" title="Printables"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.678 4.8 12 9.6v9.6l8.322-4.8V4.8L12 0ZM12 19.2l-8.322-4.8V24Z"/></svg></a></li>
+                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener" aria-label="MakerWorld (opens in a new tab)" title="MakerWorld"><svg class="icon-social" viewBox="0 0 23.7708 24.001" aria-hidden="true" focusable="false"><path d="M17.3515 0L11.8854 2.1609L6.41929 0L0 2.53822V21.4628L6.41929 24.001L11.8854 21.8401L17.3515 24.001L23.7708 21.4628V2.53822L17.3515 0ZM17.3515 1.03184L22.8176 3.19274V11.0018L17.3515 8.84192V1.03184ZM17.3515 9.87471L22.7307 12.001L17.3515 14.1272L11.9723 12.001L17.3515 9.87471ZM6.41929 1.03184L11.8854 3.19274V11.0018L6.41929 8.84192V1.03184ZM6.41929 9.87471L11.7975 12.001L6.41835 14.1272L1.04011 12.001L6.41929 9.87471ZM0.953201 20.8073V12.9982L6.41929 15.1581V22.9682L0.953201 20.8073ZM11.8854 20.8073V12.9982L17.3515 15.1581V22.9682L11.8854 20.8073Z"/></svg></a></li>
+            </ul>
+        </div>
+    </header>
+    <main id="main" class="project-page">
+        <a class="back" href="../index.html#projects">&larr; All projects</a>
+        <header class="project-head">
+            <h1>Airbrake control simulation</h1>
+            <p class="meta">UQ Space · simulation study · 2026</p>
+            <p class="outcome">A Python simulation for airbrakes that trim a rocket&#x27;s apogee to a target, built for UQ Space. On the 177 of 200 simulated flights of the team&#x27;s Hera rocket where a 2,900 m target was reachable, three of the four controllers missed it by about <strong>4 m RMS</strong> with perfect state knowledge. Everything is simulation: no airbrake has been built.</p>
+        </header>
+        <dl class="facts">
+            <div><dt>My role</dt><dd>Wrote the simulation and the controllers, and reviewed the team's original rocket model</dd></div>
+            <div><dt>When</dt><dd>Oct 2026 – present</dd></div>
+            <div><dt>Tools</dt><dd>Python, RocketPy, OpenRocket, 6-DOF Monte Carlo simulation</dd></div>
+            <div><dt>Code</dt><dd>Not published</dd></div>
+        </dl>
+        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
+        <figure class="figure figure-embed">
+            <iframe src="../assets/figures/airbrakes-controllers.html?v=fb8bc1dd" title="Apogee miss for each of four controllers on the 177 reachable simulated flights, one dot per flight" loading="lazy" style="--ratio:1.75"></iframe>
+            <figcaption>Each controller flew the same 200 randomised 6-DOF flights of Hera to a 2,900 m target. Each dot is one of the 177 flights where the target was reachable: 22 fell short even with the brakes shut, and 1 overshot with them fully open. Point at a dot to see that flight under all four controllers. The controllers had perfect state knowledge and the brake drag is an assumed model, so this compares controllers; it doesn&#x27;t predict a real flight.</figcaption>
+        </figure>
+        <div class="prose">
+            <h2 id="the-problem">The problem</h2>
+            <p>Airbrakes let a rocket shed speed during its coast so it reaches a target apogee instead of overshooting it. Before building any hardware, the team needed to know which controller to fly and what it would take to fly it well.</p>
+            <h2 id="what-i-did">What I did</h2>
+            <ul>
+                <li>I fixed the model first: the team&#x27;s RocketPy model of Hera matched OpenRocket only because several of its errors cancelled. After my fixes it agrees with OpenRocket to within 0.3% on three reference cases. That is model against model, not against a flight.</li>
+                <li>I wrote four controllers, target solve, PI, bang-bang and model predictive control, and flew each on the same 200 randomised 6-DOF flights at 10 Hz, with actuator lag and the competition&#x27;s deployment rules.</li>
+                <li>213 test functions in 12 files cover the model and the controllers.</li>
+            </ul>
+        </div>
+        <div class="prose">
+            <h2 id="result">Result</h2>
+            <p>Over the 177 flights where the target was reachable, with the controllers given perfect state knowledge, the RMS miss was 3.7 m for PI, 3.9 m for target solve, 4.0 m for MPC and 21.4 m for bang-bang. The top three are within 0.25 m of each other, so tuning mattered more than the choice of controller.</p>
+            <h2 id="what-went-wrong">What went wrong</h2>
+            <ul>
+                <li><strong>No brake data yet:</strong> the brake drag is an assumed flat-plate model, because there is no wind-tunnel or CFD data, so the brakes&#x27; real authority is uncertain.</li>
+                <li><strong>The model flies low:</strong> real flights of the team&#x27;s rockets went 2.6 to 5.8% higher than their simulations, so the model needs correcting against flight data before it can predict one.</li>
+            </ul>
+            <h2 id="credits">Credits</h2>
+            <p>Hera&#x27;s original RocketPy model and the team&#x27;s earlier airbrake hardware are teammates&#x27; work. The card shows FHC-1, the airbrake module chosen for the team, which has not been built. This page covers the simulation and controllers I wrote.</p>
+        </div>
+        <nav class="page-nav" aria-label="More projects">
+            <a class="pill pill-outline" href="../index.html#projects">&larr; All projects</a>
+            <a class="pill" href="digital-orrery.html">Next: Digital orrery and transfer planner &rarr;</a>
+        </nav>
+    </main>
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p class="footer-name">Isaac Johan Ziebarth</p>
+            <ul class="footer-links">
+                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener">LinkedIn<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener">Printables<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener">MakerWorld<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+            </ul>
+        </div>
+        <p class="footer-bar">&copy; 2026 Isaac Johan Ziebarth. All rights reserved. <a href="https://github.com/Zyzzbarth333/Zyzzbarth333.github.io" target="_blank" rel="noopener">Site source<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+    </footer>
+    <script src="../assets/js/site.js?v=d1da8cbe" defer></script>
+</body>
+</html>
