@@ -52,7 +52,7 @@ html, body { margin: 0; background: transparent; }
 .ro span { display: block; font: 0.7rem/1 var(--mono); color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
 .ro b { display: block; font: 700 1.15rem/1.3 var(--mono); }
 .ro b small { font-size: 0.7rem; color: var(--text2); font-weight: 400; margin-left: 4px; }
-.log { background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; font: 0.72rem/1.55 var(--mono); color: var(--text2); min-height: 92px; }
+.log { background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; font: 0.8rem/1.55 var(--mono); color: var(--text2); min-height: 92px; }
 .log div b { color: var(--text); font-weight: 700; }
 .log .h { font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
 .controls { display: flex; align-items: center; gap: 10px; padding: 0 14px 12px; }
@@ -60,8 +60,8 @@ html, body { margin: 0; background: transparent; }
                    border: 1px solid var(--line2); border-radius: 4px; padding: 7px 10px; cursor: pointer; }
 .controls button[aria-pressed="true"] { background: var(--aqua); color: #000; border-color: var(--aqua); }
 .controls button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.controls input { flex: 1; accent-color: var(--aqua); }
-.note { padding: 0 14px 10px; font: 0.72rem/1.4 var(--mono); color: var(--text3); }
+.controls input { flex: 1; accent-color: var(--aqua); height: 28px; margin: 0; cursor: pointer; }   /* a taller hit area for touch; the track stays thin */
+.note { padding: 0 14px 10px; font: 0.8rem/1.4 var(--mono); color: var(--text3); }
 @media (max-width: 620px) { .main { grid-template-columns: 1fr; } .side { grid-template-columns: 1fr 1fr; } .log { grid-column: 1 / -1; } .clock { margin-left: 0; } }
 </style>
 </head>
@@ -91,7 +91,7 @@ html, body { margin: 0; background: transparent; }
   </div>
   <div class="controls">
     <button type="button" id="play" aria-pressed="false">Play</button>
-    <button type="button" id="speed" aria-label="Replay speed">2&times;</button>
+    <button type="button" id="speed" aria-label="2× replay speed">2&times;</button>
     <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay position">
   </div>
   <div class="note">Synthetic demo flight from COSMOS's own test data: made-up physics, not a measurement of any rocket.</div>
@@ -178,7 +178,7 @@ var D = {"state":[[0.0,"IDLE",-0.2,0.0,1.0,0.0],[0.2,"IDLE",-0.0,0.0,1.0,0.0],[0
     if (on) { if (t >= END) t = 0; raf = requestAnimationFrame(tick); }
   }
   $('play').addEventListener('click', function () { setPlay(!playing); });
-  $('speed').addEventListener('click', function () { speed = speed === 2 ? 6 : speed === 6 ? 1 : 2; this.textContent = speed + '\u00d7'; });
+  $('speed').addEventListener('click', function () { speed = speed === 2 ? 6 : speed === 6 ? 1 : 2; this.textContent = speed + '\u00d7'; this.setAttribute('aria-label', speed + '\u00d7 replay speed'); });
   $('scrub').addEventListener('input', function () { t = END * this.value / 1000; render(t); });
   // start a little before liftoff so the pad wait doesn't drag
   t = still ? END : LIFT - 3;

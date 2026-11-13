@@ -59,6 +59,12 @@ h1, h2, h3 {
 
 a { color: inherit; text-underline-offset: 0.18em; }
 
+/* Browser-drawn details in the palette: selection, carets, native controls, figures in tables */
+:root { accent-color: var(--indigo); caret-color: var(--indigo); }
+::selection { background: var(--indigo); color: var(--white); }
+.site-header ::selection, .hero ::selection, .band-red ::selection, .footer-bar ::selection { background: var(--yellow); color: var(--indigo); }
+table, .facts dd, .experience .when { font-variant-numeric: tabular-nums; }
+
 p, li, figcaption { text-wrap: pretty; }
 
 :focus-visible {
@@ -223,9 +229,9 @@ p, li, figcaption { text-wrap: pretty; }
 }
 
 .project-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+    container-type: inline-size;
     gap: clamp(16px, 2.5vw, 28px);
     max-width: 1100px;
     margin: 0 auto;
@@ -234,8 +240,6 @@ p, li, figcaption { text-wrap: pretty; }
 }
 
 .card {
-    flex: 1 1 290px;
-    max-width: 352px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -291,6 +295,33 @@ p, li, figcaption { text-wrap: pretty; }
 a.pill-light:hover { background: var(--yellow); color: var(--indigo); }
 .pill-outline { background: transparent; color: var(--indigo); box-shadow: inset 0 0 0 2px var(--indigo); }
 a.pill-outline:hover { background: var(--indigo); color: var(--white); }
+
+/* The first project is the feature: one wide card above two rows of three, so seven cards leave no orphan. */
+.card-wide { grid-column: 1 / -1; }
+@container (min-width: 600px) {
+    .card-wide {
+        display: grid;
+        grid-template-columns: min(38%, 248px) minmax(0, 34rem);
+        justify-content: center;
+        grid-template-rows: 1fr auto auto auto auto 1fr;
+        column-gap: clamp(1.5rem, 4vw, 3.25rem);
+        align-items: start;
+        text-align: left;
+        padding: clamp(1.6rem, 3vw, 2.4rem) clamp(1.6rem, 4vw, 3rem);
+    }
+    .card-wide .icon { grid-column: 1; grid-row: 1 / -1; align-self: center; margin: 0; }
+    .card-wide h3 { grid-column: 2; grid-row: 2; font-size: clamp(1.45rem, 2.6vw, 1.8rem); text-wrap: balance; }
+    .card-wide .meta { grid-column: 2; grid-row: 3; }
+    .card-wide .summary { grid-column: 2; grid-row: 4; font-size: 1.05rem; max-width: 46ch; }
+    .card-wide .pill { grid-column: 2; grid-row: 5; justify-self: start; margin-top: 0; }
+}
+
+/* Phones: smaller icons, so seven cards stay a short scroll */
+@media (max-width: 600px) {
+    .card { padding: 1.4rem 1.25rem 1.4rem; }
+    .card .icon { width: min(56%, 176px); margin-bottom: 0.9rem; }
+    .card p.summary { margin-bottom: 1.1rem; }
+}
 
 /* Meta line under a title: who, where, when, in plain text (no eyebrow above the heading) */
 .meta { margin: -0.15rem 0 0.9rem; font-size: 0.95rem; line-height: 1.4; }
@@ -503,11 +534,11 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
 .figure.wide img { border: 2px solid var(--indigo); border-radius: 12px; }
 .fig-link { display: block; border-radius: 12px; }
 .fig-link:hover img { border-color: var(--red); }
-.fig-open { white-space: nowrap; font-weight: 400; color: var(--red-dark); }
+.fig-open { white-space: nowrap; font-weight: 400; color: inherit; }   /* Ink Rule: link text stays indigo */
 
 .prose h2 { font-size: clamp(1.5rem, 3.4vw, 1.9rem); margin-top: 2.2rem; }
 .prose h3 { font-size: 1.2rem; margin: 1.4rem 0 0.4rem; }
-.prose li strong { font-weight: 400; color: var(--red-dark); }   /* 5.5:1 on yellow */
+.prose li strong { font-family: var(--font-head); font-weight: 900; color: inherit; }   /* lead-ins: weight, not colour (Ink Rule) */
 .prose p, .prose ul { max-width: var(--measure); }
 .prose ul { padding-left: 1.2em; }
 .prose li { margin-bottom: 0.45em; }
