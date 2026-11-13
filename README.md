@@ -16,7 +16,8 @@ little JavaScript, with no framework and nothing to build on Pages.
 | `assets/img/` | Profile photo, favicon and the card icons and figures under `projects/` |
 | `assets/figures/` | Interactive figures (standalone pages), embedded in project pages |
 | `assets/fonts/` | Self-hosted Fraunces and Sanchez, with their licences |
-| `assets/vendor/` | Self-hosted three.js and Astronomy Engine, with their licences |
+| `assets/vendor/` | Self-hosted three.js, Astronomy Engine and KiCanvas, with their licences |
+| `assets/kicad/` | KiCad files shown by the KiCanvas viewer |
 | `assets/models/` | STL files for the 3D viewer |
 | `.nojekyll` | Tells Pages to serve the files as they are |
 
@@ -63,6 +64,11 @@ Third-party parts keep their own licences:
   `assets/figures/havoc2-flight3d.html`.
 - `assets/vendor/astronomy-engine-2.1.19/`: Astronomy Engine (MIT License, `LICENSE` beside it),
   used by the orrery page and its porkchop figure.
+- `assets/vendor/kicanvas/`: KiCanvas (MIT License, `LICENSE.md` beside it), the KiCad viewer on the OSIRIS
+  page, from kicanvas.org. This copy points its font stylesheet at `fonts/`, self-hosted: Material Symbols
+  Outlined cut down to the icons KiCanvas uses (Apache License 2.0) and Nunito (SIL Open Font License), each
+  with its licence.
+- `assets/kicad/osiris-v0/`: the OSIRIS V0 KiCad project, board and schematic sheets, shown by that viewer.
 - The site loads nothing from other servers: fonts and libraries are all served from this repo.
 - Fonts in `assets/fonts/`: Fraunces and Sanchez, under the SIL Open Font License (the
   licence texts are beside them).

@@ -1,0 +1,230 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "32cce822-e8df-424e-b915-88665afa29d7")
+	(paper "A4")
+	(title_block
+		(title "${BOARD}")
+		(date "2026-06-04")
+		(rev "${REV}")
+		(company "${AUTHOR}")
+	)
+	(lib_symbols)
+	(sheet
+		(at 49.53 100.33)
+		(size 35.56 27.94)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "433d096b-5fcb-4061-9f99-c2cd62cd45bf")
+		(property "Sheetname" "MCU"
+			(at 49.53 99.6184 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "mcu.kicad_sch"
+			(at 49.53 128.8546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "osiris-v0"
+				(path "/32cce822-e8df-424e-b915-88665afa29d7"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 106.68 49.53)
+		(size 34.29 33.02)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "53aa405b-a67d-48db-839a-38c6c7500170")
+		(property "Sheetname" "Sensors"
+			(at 106.68 48.8184 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sensors.kicad_sch"
+			(at 106.68 83.1346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "osiris-v0"
+				(path "/32cce822-e8df-424e-b915-88665afa29d7"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 49.53 143.51)
+		(size 36.83 29.21)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "708ed37b-f797-4754-8521-9926ec3775b9")
+		(property "Sheetname" "Diagnostics"
+			(at 49.53 142.7984 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "diagnostics.kicad_sch"
+			(at 49.53 173.3046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "osiris-v0"
+				(path "/32cce822-e8df-424e-b915-88665afa29d7"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 48.26 49.53)
+		(size 35.56 31.75)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "ed0f9572-446a-4dc2-9c77-57c7f9c28246")
+		(property "Sheetname" "Power"
+			(at 48.26 48.8184 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 48.26 81.8646 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "osiris-v0"
+				(path "/32cce822-e8df-424e-b915-88665afa29d7"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 106.68 100.33)
+		(size 34.29 27.94)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "f92347d9-7a13-426f-9ee4-c8e45e392d6c")
+		(property "Sheetname" "Storage & IO"
+			(at 106.68 99.6184 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "storage_io.kicad_sch"
+			(at 106.68 128.8546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "osiris-v0"
+				(path "/32cce822-e8df-424e-b915-88665afa29d7"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
