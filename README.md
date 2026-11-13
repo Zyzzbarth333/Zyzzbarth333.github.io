@@ -69,7 +69,10 @@ Third-party parts keep their own licences:
   Outlined cut down to the icons KiCanvas uses (Apache License 2.0) and Nunito (SIL Open Font License), each
   with its licence.
 - `assets/kicad/osiris-v0/`: the OSIRIS V0 KiCad project, board and schematic sheets, shown by that viewer.
-- The site loads nothing from other servers: fonts and libraries are all served from this repo.
+- Fonts and libraries are all served from this repo. The one outside request is the visitor count:
+  GoatCounter's counter script (`gc.zgo.at/count.js`) sends each page view to
+  `zyzzbarth333.goatcounter.com`, with no cookies and no personal data stored. Embedded figures are not
+  counted, and local previews are not counted either.
 - Fonts in `assets/fonts/`: Fraunces and Sanchez, under the SIL Open Font License (the
   licence texts are beside them).
 - Header icons: GitHub and Printables marks from Simple Icons (CC0); LinkedIn mark
