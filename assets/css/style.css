@@ -177,6 +177,7 @@ p, li, figcaption { text-wrap: pretty; }
     max-width: 40rem;
 }
 
+.tagline .tl { display: inline-block; }   /* break at the dot, not mid-phrase */
 .hero h2 { font-size: clamp(2rem, 5vw, 2.6rem); }
 .hero .pill { margin-top: 0.5rem; }
 
