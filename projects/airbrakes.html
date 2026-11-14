@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=fe36ac2c">
+    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -53,12 +53,12 @@
         <header class="project-head">
             <h1>Airbrake control simulation</h1>
             <p class="meta">UQ Space · simulation study · 2026</p>
-            <p class="outcome">A Python simulation for airbrakes that trim a rocket&#x27;s apogee to a target, built for UQ Space. On the 177 of 200 simulated flights of the team&#x27;s Hera rocket where a 2,900 m target was reachable, three of the four controllers missed it by about <strong>4 m RMS</strong> with perfect state knowledge. Everything is simulation: no airbrake has been built.</p>
+            <p class="outcome">A Python simulation for airbrakes that trim a rocket&#x27;s apogee to a target, built for UQ Space. On the 177 of 200 simulated flights of the team&#x27;s Hera rocket where a 2,900 m target was reachable, three of the four controllers missed it by about <strong>4 m RMS</strong> (root mean square) with perfect state knowledge. Everything is simulation: no airbrake has been built.</p>
         </header>
         <dl class="facts">
             <div><dt>My role</dt><dd>Wrote the simulation and the controllers, and reviewed the team's original rocket model</dd></div>
             <div><dt>When</dt><dd>Oct 2026 – present</dd></div>
-            <div><dt>Tools</dt><dd>Python, RocketPy, OpenRocket, 6-DOF Monte Carlo simulation</dd></div>
+            <div><dt>Tools</dt><dd>Python, RocketPy, OpenRocket, six-degree-of-freedom (6-DOF) Monte Carlo simulation</dd></div>
             <div><dt>Code</dt><dd>Not published</dd></div>
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
@@ -72,7 +72,7 @@
             <h2 id="what-i-did">What I did</h2>
             <ul>
                 <li>I fixed the model first: the team&#x27;s RocketPy model of Hera matched OpenRocket only because several of its errors cancelled. After my fixes it agrees with OpenRocket to within 0.3% on three reference cases. That is model against model, not against a flight.</li>
-                <li>I wrote four controllers, target solve, PI, bang-bang and model predictive control, and flew each on the same 200 randomised 6-DOF flights at 10 Hz, with actuator lag and the competition&#x27;s deployment rules.</li>
+                <li>I wrote four controllers, target solve, PI (proportional-integral), bang-bang and model predictive control (MPC), and flew each on the same 200 randomised 6-DOF flights at 10 Hz, with actuator lag and the competition&#x27;s deployment rules.</li>
                 <li>213 test functions in 12 files cover the model and the controllers.</li>
             </ul>
         </div>
@@ -81,7 +81,7 @@
             <p>Over the 177 flights where the target was reachable, with the controllers given perfect state knowledge, the RMS miss was 3.7 m for PI, 3.9 m for target solve, 4.0 m for MPC and 21.4 m for bang-bang. The top three are within 0.25 m of each other, so tuning mattered more than the choice of controller.</p>
             <h2 id="what-went-wrong">What went wrong</h2>
             <ul>
-                <li><strong>No brake data yet:</strong> the brake drag is an assumed flat-plate model, because there is no wind-tunnel or CFD data, so the brakes&#x27; real authority is uncertain.</li>
+                <li><strong>No brake data yet:</strong> the brake drag is an assumed flat-plate model, because there is no wind-tunnel or computational fluid dynamics (CFD) data, so the brakes&#x27; real authority is uncertain.</li>
                 <li><strong>The model flies low:</strong> real flights of the team&#x27;s rockets went 2.6 to 5.8% higher than their simulations, so the model needs correcting against flight data before it can predict one.</li>
             </ul>
             <h2 id="credits">Credits</h2>

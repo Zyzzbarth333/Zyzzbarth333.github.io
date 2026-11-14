@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>OSIRIS flight computer · Isaac Johan Ziebarth</title>
-    <meta name="description" content="My own flight computer design in KiCad. The V0 bench board passes ERC and DRC with 0 violations; firmware comes next.">
+    <meta name="description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="OSIRIS flight computer · Isaac Johan Ziebarth">
-    <meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board passes ERC and DRC with 0 violations; firmware comes next.">
+    <meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
     <meta property="og:url" content="https://zyzzbarth333.github.io/projects/osiris.html">
     <link rel="canonical" href="https://zyzzbarth333.github.io/projects/osiris.html">
-    <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-iso.jpg">
+    <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-top.jpg">
     <meta name="twitter:card" content="summary">
     <meta name="theme-color" content="#BB0700">
     <link rel="icon" href="../favicon.ico" sizes="48x48">
@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=fe36ac2c">
+    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -53,7 +53,7 @@
         <header class="project-head">
             <h1>OSIRIS flight computer</h1>
             <p class="meta">Personal project · 2026</p>
-            <p class="outcome">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes ERC and whose layout passes DRC with <strong>0 violations</strong>.</p>
+            <p class="outcome">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes KiCad&#x27;s electrical rules check (ERC) and whose layout passes its design rules check (DRC) with <strong>0 violations</strong>.</p>
         </header>
         <dl class="facts">
             <div><dt>My role</dt><dd>Sole designer</dd></div>
@@ -61,11 +61,17 @@
             <div><dt>Tools</dt><dd>KiCad, STM32F411, ISM330IS, BMP581, INA228</dd></div>
             <div><dt>Code</dt><dd>Private repository for now</dd></div>
         </dl>
-        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-built">What I built</a></li><li><a href="#specifications">Specifications</a></li><li><a href="#meet-the-board">Meet the board</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#what-s-next">What&#x27;s next</a></li></ul></nav>
-        <figure class="figure">
-            <img src="../assets/img/projects/osiris-v0-iso.jpg" alt="KiCad 3D render of the OSIRIS V0 board: two long header rows for the plug-in module, a buzzer, sensors and a yellow battery connector" width="1600" height="1262" fetchpriority="high" decoding="async">
-            <figcaption>OSIRIS V0, a bench model carrier for a plug-in STM32F411 module (KiCad 3D render).</figcaption>
-        </figure>
+        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#meet-the-board">Meet the board</a></li><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-built">What I built</a></li><li><a href="#specifications">Specifications</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#what-s-next">What&#x27;s next</a></li></ul></nav>
+        <div class="prose">
+            <h2 id="meet-the-board">Meet the board</h2>
+            <p>Point at a part, or tab through the list, to find it on V0. Number 7 sits on the underside.</p>
+        </div>
+        <div class="board-map reveal">
+            <div class="bm-figure"><img src="../assets/img/projects/osiris-v0-top.jpg" alt="Top view of the OSIRIS V0 board with numbered markers on its main parts" width="1504" height="1568" fetchpriority="high" decoding="async"><button type="button" class="bm-mark" data-part="1" style="left:67.71%;top:46.54%" aria-label="1. IMU: ISM330IS six-axis IMU">1</button><button type="button" class="bm-mark" data-part="2" style="left:34.46%;top:46.34%" aria-label="2. Barometer: BMP581 pressure sensor">2</button><button type="button" class="bm-mark" data-part="3" style="left:55.82%;top:54.28%" aria-label="3. Power monitor: INA228 current and voltage monitor">3</button><button type="button" class="bm-mark" data-part="4" style="left:46.47%;top:24.99%" aria-label="4. 3.3 V buck: TPS54302 regulator with a 4.7 µH inductor">4</button><button type="button" class="bm-mark" data-part="5" style="left:51.23%;top:78.78%" aria-label="5. Battery input: XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET">5</button><button type="button" class="bm-mark" data-part="6" style="left:40.77%;top:49.99%" aria-label="6. Module sockets: Two 20-pin rows for the plug-in STM32F411 module">6</button><button type="button" class="bm-mark bm-under" data-part="7" style="left:58.29%;top:28.55%" aria-label="7. microSD: Hirose socket on the underside">7</button></div>
+            <ol class="bm-list"><li class="bm-card" data-part="1" tabindex="0"><span class="bm-num">1</span><span class="bm-name">IMU</span><span class="bm-detail">ISM330IS six-axis IMU</span></li><li class="bm-card" data-part="2" tabindex="0"><span class="bm-num">2</span><span class="bm-name">Barometer</span><span class="bm-detail">BMP581 pressure sensor</span></li><li class="bm-card" data-part="3" tabindex="0"><span class="bm-num">3</span><span class="bm-name">Power monitor</span><span class="bm-detail">INA228 current and voltage monitor</span></li><li class="bm-card" data-part="4" tabindex="0"><span class="bm-num">4</span><span class="bm-name">3.3 V buck</span><span class="bm-detail">TPS54302 regulator with a 4.7 µH inductor</span></li><li class="bm-card" data-part="5" tabindex="0"><span class="bm-num">5</span><span class="bm-name">Battery input</span><span class="bm-detail">XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET</span></li><li class="bm-card" data-part="6" tabindex="0"><span class="bm-num">6</span><span class="bm-name">Module sockets</span><span class="bm-detail">Two 20-pin rows for the plug-in STM32F411 module</span></li><li class="bm-card" data-part="7" tabindex="0"><span class="bm-num">7</span><span class="bm-name">microSD</span><span class="bm-detail">Hirose socket on the underside</span></li></ol>
+        </div>
+        <div class="prose">
+        </div>
         <div class="prose">
             <h2 id="the-problem">The problem</h2>
             <p>I wanted to learn flight computer design from the ground up, on a board of my own.</p>
@@ -78,14 +84,6 @@
             </ul>
             <h2 id="specifications">Specifications</h2>
             <table class="spec"><tr><th scope="row">Board</th><td>63 × 74 mm, 4 layers (V0)</td></tr><tr><th scope="row">Controller</th><td>Plug-in STM32F411 module</td></tr><tr><th scope="row">Sensors</th><td>ISM330IS IMU, BMP581 barometer</td></tr><tr><th scope="row">Power</th><td>INA228 monitor, 3.3 V buck, 2S–4S input with fuse, TVS and reverse-polarity FET</td></tr><tr><th scope="row">Storage</th><td>microSD</td></tr><tr><th scope="row">Parts</th><td>70 placed: 52 on top, 18 underneath</td></tr></table>
-            <h2 id="meet-the-board">Meet the board</h2>
-            <p>Point at a part, or tab through the list, to find it on V0. Number 7 sits on the underside.</p>
-        </div>
-        <div class="board-map reveal">
-            <div class="bm-figure"><img src="../assets/img/projects/osiris-v0-top.jpg" alt="Top view of the OSIRIS V0 board with numbered markers on its main parts" width="1504" height="1568" loading="lazy" decoding="async"><button type="button" class="bm-mark" data-part="1" style="left:67.71%;top:46.54%" aria-label="1. IMU: ISM330IS six-axis IMU">1</button><button type="button" class="bm-mark" data-part="2" style="left:34.46%;top:46.34%" aria-label="2. Barometer: BMP581 pressure sensor">2</button><button type="button" class="bm-mark" data-part="3" style="left:55.82%;top:54.28%" aria-label="3. Power monitor: INA228 current and voltage monitor">3</button><button type="button" class="bm-mark" data-part="4" style="left:46.47%;top:24.99%" aria-label="4. 3.3 V buck: TPS54302 regulator with a 4.7 µH inductor">4</button><button type="button" class="bm-mark" data-part="5" style="left:51.23%;top:78.78%" aria-label="5. Battery input: XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET">5</button><button type="button" class="bm-mark" data-part="6" style="left:40.77%;top:49.99%" aria-label="6. Module sockets: Two 20-pin rows for the plug-in STM32F411 module">6</button><button type="button" class="bm-mark bm-under" data-part="7" style="left:58.29%;top:28.55%" aria-label="7. microSD: Hirose socket on the underside">7</button></div>
-            <ol class="bm-list"><li class="bm-card" data-part="1" tabindex="0"><span class="bm-num">1</span><span class="bm-name">IMU</span><span class="bm-detail">ISM330IS six-axis IMU</span></li><li class="bm-card" data-part="2" tabindex="0"><span class="bm-num">2</span><span class="bm-name">Barometer</span><span class="bm-detail">BMP581 pressure sensor</span></li><li class="bm-card" data-part="3" tabindex="0"><span class="bm-num">3</span><span class="bm-name">Power monitor</span><span class="bm-detail">INA228 current and voltage monitor</span></li><li class="bm-card" data-part="4" tabindex="0"><span class="bm-num">4</span><span class="bm-name">3.3 V buck</span><span class="bm-detail">TPS54302 regulator with a 4.7 µH inductor</span></li><li class="bm-card" data-part="5" tabindex="0"><span class="bm-num">5</span><span class="bm-name">Battery input</span><span class="bm-detail">XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET</span></li><li class="bm-card" data-part="6" tabindex="0"><span class="bm-num">6</span><span class="bm-name">Module sockets</span><span class="bm-detail">Two 20-pin rows for the plug-in STM32F411 module</span></li><li class="bm-card" data-part="7" tabindex="0"><span class="bm-num">7</span><span class="bm-name">microSD</span><span class="bm-detail">Hirose socket on the underside</span></li></ol>
-        </div>
-        <div class="prose">
         </div>
         <figure class="figure figure-embed wide" data-desktop-only>
             <iframe data-src="../assets/figures/osiris-v0-ibom.html?v=822f71c7" title="Interactive bill of materials for OSIRIS V0: hover a part in the list to light it on the board" loading="lazy" style="--ratio:1.6" data-fixed></iframe>
@@ -93,12 +91,12 @@
             <figcaption>Interactive bill of materials (BoM) for V0, generated with my eng-tools kit: hover or click a row to light that part on the board, front and back. 70 parts on 45 BoM lines. <a class="fig-open" href="../assets/figures/osiris-v0-ibom.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></figcaption>
         </figure>
         <figure class="figure figure-embed">
-            <iframe src="../assets/figures/osiris-v0-kicad.html?v=ea338212" title="OSIRIS V0 board and schematic in KiCanvas: open either to pan, zoom and select parts" loading="lazy" style="--ratio:1.5"></iframe>
+            <iframe src="../assets/figures/osiris-v0-kicad.html?v=4330ff61" title="OSIRIS V0 board and schematic in KiCanvas: open either to pan, zoom and select parts" loading="lazy" style="--ratio:1.5"></iframe>
             <figcaption>V0&#x27;s KiCad files, the board and its six schematic sheets, opened in your browser with KiCanvas. Open the board or the schematic to pan, zoom and select parts and nets. The viewer and the files load only when you open one.</figcaption>
         </figure>
         <div class="prose">
             <h2 id="result">Result</h2>
-            <p>V0's schematic passes ERC and its layout passes DRC with 0 violations. The second board's schematic passes ERC; its routing is unfinished.</p>
+            <p>The second board's schematic passes ERC as well; its routing is unfinished.</p>
             <h2 id="what-went-wrong">What went wrong</h2>
             <p>A design review found that the USB and battery supplies could fight each other on V0. I work around it with a bench rule for now, and the fix is planned for the next revision.</p>
             <h2 id="what-s-next">What's next</h2>

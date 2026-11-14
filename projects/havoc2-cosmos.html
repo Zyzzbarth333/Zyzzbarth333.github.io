@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth</title>
-    <meta name="description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed CRC.">
+    <meta name="description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed its checksum.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth">
-    <meta property="og:description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed CRC.">
+    <meta property="og:description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed its checksum.">
     <meta property="og:url" content="https://zyzzbarth333.github.io/projects/havoc2-cosmos.html">
     <link rel="canonical" href="https://zyzzbarth333.github.io/projects/havoc2-cosmos.html">
     <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=fe36ac2c">
+    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -101,7 +101,7 @@
         <div class="prose">
             <h2 id="result">Result</h2>
             <ul>
-                <li>On its first flight, in July 2026, HAVOC-2 flew as the data recorder on a sub-scale rocket that reached about 540 m after an 11.7 g boost. Every frame on the log passed CRC, and every intact frame COSMOS received over the radio matched the same frame on the SD card byte for byte.</li>
+                <li>On its first flight, in July 2026, HAVOC-2 flew as the data recorder on a sub-scale rocket that reached about 540 m after an 11.7 g boost.</li>
                 <li>On the replayed flight log, the new estimator cut false speed on the pad from a peak of 137 m/s to 0.37 m/s, and with sensor faults injected it never called apogee early.</li>
                 <li>At the 2026 Australian Universities Rocket Competition, COSMOS recorded flight computer data from the launch rail and, before launch, ran a 512-run OpenRocket ensemble from the weather station&#x27;s pressure and wind.</li>
             </ul>
