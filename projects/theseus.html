@@ -65,7 +65,7 @@
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
         <figure class="figure figure-embed">
-            <iframe src="../assets/figures/theseus-map.html?v=570fcc7c" title="Top-down LiDAR map of the competition arena with the rover&#x27;s autonomous path and the 2 cubes it detected" loading="lazy" style="--ratio:1.12"></iframe>
+            <iframe src="../assets/figures/theseus-map.html?v=aeac30dd" title="Top-down LiDAR map of the competition arena with the rover&#x27;s autonomous path and the 2 cubes it detected" loading="lazy" style="--ratio:1.12"></iframe>
             <figcaption>The rover&#x27;s own LiDAR map of the 2026 Australian Rover Challenge (ARCh) arena from above: 150,000 points of its FAST-LIO2 map, darker where the ground is higher, with the autonomous run&#x27;s path and the 2 cubes it detected. The path joins the run&#x27;s 6 SLAM keyposes with straight lines, so it is simplified. The map is placed on the arena by matching its crater rims to a ground-truth scan.</figcaption>
         </figure>
         <div class="prose">
@@ -88,7 +88,7 @@
             <figcaption>How the autonomy stack I wrote fits together, as its code stands: odometry and KISS-SLAM&#x27;s map feed exploration, the supervisor sends goals to Nav2, and Nav2&#x27;s velocity passes the geofence and a gate on the rover server before it reaches the drive Pico. The red line is the placard detections, which did not reach the supervisor at ARCh 2026 (see What went wrong).</figcaption>
         </figure>
         <figure class="figure figure-embed">
-            <iframe src="../assets/figures/theseus-arena.html?v=cd0b4f90" title="Live replica of the Theseus GCS arena map and autonomy controls, drawn from the real ARCh 2026 arena configuration" loading="lazy" style="--ratio:1.45"></iframe>
+            <iframe src="../assets/figures/theseus-arena.html?v=2b07c807" title="Live replica of the Theseus GCS arena map and autonomy controls, drawn from the real ARCh 2026 arena configuration" loading="lazy" style="--ratio:1.45"></iframe>
             <figcaption>A live replica of Theseus GCS&#x27;s arena map and autonomy controls, drawn from the arena configuration its Arena Config Builder wrote for ARCh 2026: the e-stop edge, the geofence slow zone, the planner&#x27;s bounds, the five ArUco placards, 28 known obstacles and the start pose. Point at anything for its position, switch layers off, and step through Send config, Launch stack and Auto (simulation only).</figcaption>
         </figure>
         <div class="prose">

@@ -138,11 +138,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); out
   sizeLabels(); new ResizeObserver(sizeLabels).observe(msvg);
   function pill(id, s, text) { var p = $(id); p.dataset.s = s; p.lastElementChild.textContent = text; }
   $('b-cfg').addEventListener('click', function () {
-    pill('p-cfg', 'ok', 'Config sent'); this.classList.add('done'); $('b-stack').disabled = false;
+    pill('p-cfg', 'ok', 'Config sent'); this.classList.add('done'); this.textContent = '✓ Config sent'; $('b-stack').disabled = false;   // confirmed where the reader clicked
   });
   $('b-stack').addEventListener('click', function () {
     var b = this; b.disabled = true; pill('p-stack', 'warn', 'Starting\u2026');
-    setTimeout(function () { pill('p-stack', 'ok', 'Stack up'); b.classList.add('done'); $('b-auto').disabled = false; }, 900);
+    b.textContent = 'Starting…';
+    setTimeout(function () { pill('p-stack', 'ok', 'Stack up'); b.classList.add('done'); b.textContent = '✓ Stack up'; $('b-auto').disabled = false; }, 900);
   });
   function mode(auto) {
     $('b-auto').setAttribute('aria-pressed', auto); $('b-tele').setAttribute('aria-pressed', !auto);
