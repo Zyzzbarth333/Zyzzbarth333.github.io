@@ -90,10 +90,22 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enableZoom = false;                 // never hijack the page's scroll
 controls.enablePan = false;
-controls.autoRotate = !still.matches;
-controls.autoRotateSpeed = 0.8;
+renderer.domElement.style.touchAction = "pan-y";   // OrbitControls sets none, which stopped a finger scrolling past the figure
 
-let visible = false, frame = 0, idleTimer = 0;
+// One eased half-turn the first time the figure is half in view, then still. Any input stops it for good,
+// as in the weather station's tour; reduced motion skips it.
+const TURN = Math.PI, TURN_S = 4.5, up = new THREE.Vector3(0, 1, 0);
+let visible = false, frame = 0, tour = null, toured = false, turned = 0;
+const ease = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+function stepTour() {
+  if (tour === null) return false;
+  const k = Math.min(1, (performance.now() - tour) / 1000 / TURN_S), a = TURN * ease(k);
+  const offset = camera.position.clone().sub(controls.target).applyAxisAngle(up, a - turned);
+  camera.position.copy(controls.target).add(offset); turned = a;
+  if (k >= 1) tour = null;
+  return true;
+}
+function stopTour() { tour = null; toured = true; }
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
   renderer.setSize(w, h, false);
@@ -102,17 +114,15 @@ function resize() {
 }
 function draw() { renderer.render(scene, camera); }
 function loop() {
+  const touring = stepTour();
   const moved = controls.update();
   draw();
-  frame = visible && (moved || controls.autoRotate) ? requestAnimationFrame(loop) : 0;
+  frame = visible && (moved || touring) ? requestAnimationFrame(loop) : 0;
 }
 function run() { if (!frame && visible) frame = requestAnimationFrame(loop); }
-function holdTour() {
-  controls.autoRotate = false;
-  clearTimeout(idleTimer);
-  if (!still.matches) idleTimer = setTimeout(() => { controls.autoRotate = true; run(); }, 6000);
-}
+function holdTour() { stopTour(); }
 controls.addEventListener("start", () => { holdTour(); run(); });
+stage.addEventListener("pointerdown", holdTour);
 controls.addEventListener("change", run);
 stage.addEventListener("keydown", (ev) => {
   const step = (ev.shiftKey ? 45 : 15) * Math.PI / 180;
@@ -129,7 +139,13 @@ stage.addEventListener("keydown", (ev) => {
   } else return;
   ev.preventDefault(); holdTour(); run();
 });
-still.addEventListener?.("change", () => { controls.autoRotate = !still.matches; run(); });
+still.addEventListener?.("change", () => { if (still.matches) stopTour(); });
+new IntersectionObserver((e, seen) => {
+  if (!e.some((x) => x.isIntersecting && x.intersectionRatio >= 0.5)) return;
+  seen.disconnect();
+  if (toured || still.matches) return;
+  toured = true; tour = performance.now(); turned = 0; run();
+}, { threshold: 0.5 }).observe(stage);
 new ResizeObserver(resize).observe(stage);
 new IntersectionObserver((e) => { visible = e[e.length - 1].isIntersecting; if (visible) run(); }, { rootMargin: "80px 0px" }).observe(stage);
 resize();
