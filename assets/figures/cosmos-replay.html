@@ -109,16 +109,21 @@ var D = {"state":[[0.0,"IDLE",-0.2,0.0,1.0,0.0],[0.2,"IDLE",-0.0,0.0,1.0,0.0],[0
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $ = function (id) { return document.getElementById(id); };
   // chart geometry
-  var W = 560, H = 250, L = 44, R = 10, T = 14, B = 26, YMAX = 650;
+  // The chart's width in SVG units follows its width on screen (260 to 560), so its 10-unit text stays about 10 px
+  // instead of shrinking to 5 px in a narrow column. A resize that changes that a lot redraws the page.
+  var fitW = function () { return Math.round(Math.min(560, Math.max(260, $('svg').getBoundingClientRect().width))); };
+  var W = fitW(), narrow = W < 450, H = narrow ? 230 : 250, L = narrow ? 40 : 44, R = 10, T = 14, B = 26, YMAX = 650;
+  var rz = 0; addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { if (Math.abs(fitW() - W) > 0.2 * W) location.reload(); }, 300); });
   var X = function (t) { return L + (t / END) * (W - L - R); };
   var Y = function (a) { return T + (1 - Math.max(-20, a) / YMAX) * (H - T - B); };
   var ns = 'http://www.w3.org/2000/svg', svg = $('svg');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
   function el(tag, attrs, parent) { var e = document.createElementNS(ns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; }
   var grid = el('g', { 'class': 'grid' }), axis = el('g', { 'class': 'axis' });
   [0, 200, 400, 600].forEach(function (a) { el('line', { x1: L, x2: W - R, y1: Y(a), y2: Y(a) }, grid); el('text', { x: L - 6, y: Y(a) + 3, 'text-anchor': 'end' }, axis).textContent = a + ' m'; });
-  for (var d = -20; LIFT + d <= END; d += 20) { var s = LIFT + d; if (s < 0) continue; el('line', { x1: X(s), x2: X(s), y1: T, y2: H - B }, grid); el('text', { x: X(s), y: H - 8, 'text-anchor': 'middle' }, axis).textContent = d === 0 ? 'liftoff' : 'T' + (d > 0 ? '+' : '\u2212') + Math.abs(d) + ' s'; }
+  for (var d = narrow ? 0 : -20; LIFT + d <= END; d += narrow ? 40 : 20) { var s = LIFT + d; if (s < 0) continue; el('line', { x1: X(s), x2: X(s), y1: T, y2: H - B }, grid); el('text', { x: X(s), y: H - 8, 'text-anchor': 'middle' }, axis).textContent = d === 0 ? 'liftoff' : 'T' + (d > 0 ? '+' : '\u2212') + Math.abs(d) + ' s'; }
   el('line', { 'class': 'callout', x1: L, x2: W - R, y1: Y(300), y2: Y(300) });
-  el('text', { 'class': 'callout-t', x: L + 6, y: Y(300) - 4 }).textContent = 'descent callout 300 m';
+  el('text', { 'class': 'callout-t', x: W - R - 4, y: Y(300) - 4, 'text-anchor': 'end' })   /* the right end is clear of the trace */.textContent = 'descent callout 300 m';
   var full = S.map(function (r) { return X(r[0]).toFixed(1) + ',' + Y(r[2]).toFixed(1); });
   el('polyline', { 'class': 'ghost', points: full.join(' ') });
   var evg = el('g', { 'class': 'ev' });

@@ -159,6 +159,8 @@ const radius = box.getSize(new THREE.Vector3()).length() / 2;
 const dir = new THREE.Vector3(-0.85, 0.42, 1).normalize();
 const controls = new OrbitControls(camera, stage);
 controls.enablePan = false; controls.enableDamping = false;
+controls.enableZoom = false;   // the wheel scrolls the page, as on the camera mount; drag still turns the view
+stage.style.touchAction = "pan-y";   // OrbitControls sets none, which stopped a finger scrolling past the figure
 controls.minPolarAngle = 0.2; controls.maxPolarAngle = Math.PI / 2 - 0.02;
 controls.target.copy(centre);
 function frame() {
@@ -220,13 +222,17 @@ function show(t) {
   ro.textContent = `T${t < 0 ? "−" : "+"}${Math.abs(t).toFixed(1)} s · ${logged ? Math.round(p.y) + " m" : "not logged"} · ${phase(t)}`;
   render();
 }
-let playing = false;
-document.getElementById("replay").addEventListener("click", () => {
+// Replay reads Stop while it plays; pressing it again stops the flight where it is.
+const rb = document.getElementById("replay");
+let playing = false, raf = 0, hideTimer = 0;
+function stopReplay() { if (raf) cancelAnimationFrame(raf); raf = 0; playing = false; rb.textContent = "Replay the flight"; }
+rb.addEventListener("click", () => {
+  if (playing) { stopReplay(); return; }
   if (still) { show(E.apogee_t); return; }
-  if (playing) return;
-  playing = true; let t = T0, last = 0;
-  const step = (now) => { const dt = last ? (now - last) / 1000 : 0; last = now; t += dt * 4; show(Math.min(t, T1)); if (t < T1) requestAnimationFrame(step); else { playing = false; setTimeout(() => show(null), 1500); } };
-  requestAnimationFrame(step);
+  clearTimeout(hideTimer); playing = true; rb.textContent = "Stop"; let t = T0, last = 0;
+  const step = (now) => { const dt = last ? (now - last) / 1000 : 0; last = now; t += dt * 4; show(Math.min(t, T1));
+    if (t < T1) raf = requestAnimationFrame(step); else { stopReplay(); hideTimer = setTimeout(() => show(null), 1500); } };
+  raf = requestAnimationFrame(step);
 });
 </script>
 </body>

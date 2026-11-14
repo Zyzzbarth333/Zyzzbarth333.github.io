@@ -4426,6 +4426,11 @@ window.matchMedia("print").addListener(resizeAll);
 
 ///////////////////////////////////////////////
   </script>
+<style>/* Added for the portfolio site (not part of InteractiveHtmlBom): iBoM removes the focus ring from its buttons,
+   so keyboard users could not see where they were. Re-add it after any regeneration. */
+button:focus-visible { outline: 2px solid currentColor !important; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
 
 <body>

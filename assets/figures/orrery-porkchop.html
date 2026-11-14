@@ -24,6 +24,7 @@ svg { display: block; width: 100%; height: auto; overflow: visible; }
 .cross { stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.35; }
 .ring { fill: none; stroke: var(--pick); stroke-width: 2; }
 .hit { fill: transparent; cursor: crosshair; }
+#plot { touch-action: pan-y; }   /* a finger scrolls the page up and down; a tap or sideways drag picks a transfer */
 #plot:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .below { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 24px; align-items: center; }
 .orbit { fill: none; stroke: #D9D3F0; stroke-width: 1.5; }
@@ -193,11 +194,13 @@ function draw() {
     ring: el("circle", { class: "ring", r: 5.5 }, plot),
   };
   const hit = el("rect", { class: "hit", x: L, y: T, width: geo.pw, height: geo.ph }, plot);
-  hit.addEventListener("pointermove", (ev) => {
+  const pickAt = (ev) => {
     const b = plot.getBoundingClientRect(), x = (ev.clientX - b.left) / b.width * W, y = (ev.clientY - b.top) / b.height * H;
     show({ iDep: Math.max(0, Math.min(G.nDep - 1, Math.round((x - L) / geo.pw * (G.nDep - 1)))), iTof: Math.max(0, Math.min(G.nTof - 1, Math.round((T + geo.ph - y) / geo.ph * (G.nTof - 1)))) });
-  });
-  hit.addEventListener("pointerleave", () => show({ iDep: m.iDep, iTof: m.iTof }));
+  };
+  hit.addEventListener("pointermove", pickAt);
+  hit.addEventListener("pointerdown", pickAt);   // a tap fires no pointermove on most phones
+  hit.addEventListener("pointerleave", (ev) => { if (ev.pointerType === "mouse") show({ iDep: m.iDep, iTof: m.iTof }); });   // a tapped transfer stays
   show(pick || { iDep: m.iDep, iTof: m.iTof });
 }
 
@@ -276,7 +279,7 @@ function run(k, win) {
     window.__porkchop = { dest: k, ms: Math.round(performance.now() - t0), cells: G.nDep * G.nTof, best: { dv: BEST.dv, dep: dateAt(BEST.iDep).toISOString().slice(0, 10), tof: tofDays[BEST.iTof] } };
     plot.setAttribute("aria-label", `Porkchop plot of total delta-v for Earth to ${C.name} departures from ${fmt(depStart)} over ${C.span} days and flight times of ${C.tof[0]} to ${C.tof[1]} days, worked out live. The cheapest transfer needs ${BEST.dv.toFixed(2)} km/s. Point at it, or use the arrow keys, to pick a transfer.`);
     drawOrbits(); draw(); drawWins();
-    setText("hint", "Point at the plot, or use its arrow keys, to pick a departure date and flight time. The dot marks the cheapest transfer on the plot; pick a launch window above to move to it.");
+    setText("hint", "Point at or tap the plot, or use its arrow keys, to pick a departure date and flight time. The dot marks the cheapest transfer on the plot; pick a launch window above to move to it.");
   }, 30);
 }
 

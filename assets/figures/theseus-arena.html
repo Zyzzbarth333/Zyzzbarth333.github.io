@@ -125,6 +125,17 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); out
     });
     el.addEventListener('mouseleave', function () { tip.style.opacity = 0; });
   });
+  // Map text is sized in metres, so on a phone it shrank to 4 to 6 px. Keep placard and axis labels at 10 px or more;
+  // LANDER has to fit inside its 2.4 m box, so where it would be under 8 px it is hidden (the obstacle stays).
+  var msvg = map.querySelector('svg');
+  function sizeLabels() {
+    var ppm = msvg.getBoundingClientRect().width / msvg.viewBox.baseVal.width; if (!ppm) return;
+    msvg.querySelectorAll('.pl text').forEach(function (t) { t.style.fontSize = Math.max(0.6, 10 / ppm) + 'px'; });
+    msvg.querySelectorAll('.ax-t').forEach(function (t) { t.style.fontSize = Math.max(0.55, 10 / ppm) + 'px'; });
+    var lf = Math.min(0.57, Math.max(0.45, 9 / ppm));
+    msvg.querySelectorAll('.lander text').forEach(function (t) { t.style.fontSize = lf + 'px'; t.style.display = lf * ppm < 8 ? 'none' : ''; });
+  }
+  sizeLabels(); new ResizeObserver(sizeLabels).observe(msvg);
   function pill(id, s, text) { var p = $(id); p.dataset.s = s; p.lastElementChild.textContent = text; }
   $('b-cfg').addEventListener('click', function () {
     pill('p-cfg', 'ok', 'Config sent'); this.classList.add('done'); $('b-stack').disabled = false;
