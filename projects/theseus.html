@@ -73,7 +73,7 @@
             <h2 id="what-i-did">What I did</h2>
             <h3>Autonomy stack</h3>
             <ul>
-                <li>The stack is 9 ROS 2 packages on two computers. An Orange Pi 5 Plus runs Nav2 and FAST-LIO2 LiDAR-inertial odometry from a Livox MID-360 LiDAR, plus KISS-SLAM, which closes loops on FAST-LIO2&#x27;s output and builds the map. A Jetson Xavier NX runs YOLO and ArUco detection on the cameras.</li>
+                <li>The stack is 9 ROS 2 packages on two computers. An Orange Pi 5 Plus runs Nav2, FAST-LIO2 LiDAR-inertial odometry from a Livox MID-360 LiDAR, and KISS-SLAM, which turns FAST-LIO2&#x27;s output into the 2D occupancy map that exploration works from. A Jetson Xavier NX runs YOLO and ArUco detection on the cameras.</li>
                 <li>A frontier detector picks the next goal, and a 10-state supervisor runs the mission.</li>
                 <li>For safety I wrote 4 costmap layers in C++ (the maps Nav2 plans around) and a 4-layer geofence that slows, then stops, the rover near the arena boundary.</li>
                 <li>I built a Gazebo arena with placards and randomly placed cubes, so I could run the whole stack in simulation before the hardware was ready.</li>
