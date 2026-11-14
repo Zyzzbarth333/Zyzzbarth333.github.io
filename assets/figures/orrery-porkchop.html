@@ -48,7 +48,8 @@ details { font-size: 13px; }
 summary { cursor: pointer; color: var(--muted); }
 table { border-collapse: collapse; margin-top: 6px; }
 th, td { text-align: left; padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); font-weight: 400; font-variant-numeric: tabular-nums; }
-th:nth-child(n+3), td:nth-child(n+3) { text-align: right; }   /* numbers line up; their units are in the headers */
+th:nth-child(n+3), td:nth-child(n+3) { text-align: right; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* numbers line up; their units are in the headers */
 th { color: var(--muted); }
 @media (max-width: 600px) { .wrap { padding: 10px; } .below { grid-template-columns: 1fr; gap: 10px; } .below svg { max-width: 300px; margin: 0 auto; } }
 .below h3 { margin-bottom: 6px; }
@@ -63,7 +64,7 @@ th { color: var(--muted); }
       <button type="button" class="link" data-dest="jupiter" aria-pressed="false">Jupiter</button></p>
     <p class="wins" id="wins" aria-live="polite">Launch windows 2026–2040, found by the orrery's search: <span class="muted">searching…</span></p>
     <h3 id="head">Total Δv from a 200 km Earth orbit to a 400 km orbit of Mars</h3>
-    <svg id="plot" tabindex="0" role="img"></svg>
+    <svg id="plot" tabindex="0" role="group" aria-roledescription="porkchop plot"></svg><p class="sr" id="say" aria-live="polite"></p>
   </div>
   <div class="below">
     <div><h3>The picked transfer, seen from above the Sun</h3><svg id="orbits" viewBox="-265 -265 530 530" role="img" aria-label="Top-down view of Earth's and the destination's orbits with the picked transfer arc"></svg></div>
@@ -202,6 +203,7 @@ function draw() {
   hit.addEventListener("pointermove", pickAt);
   hit.addEventListener("pointerdown", pickAt);   // a tap fires no pointermove on most phones
   hit.addEventListener("pointerleave", (ev) => { if (ev.pointerType === "mouse") show({ iDep: m.iDep, iTof: m.iTof }); });   // a tapped transfer stays
+  [...plot.children].forEach((c) => c.setAttribute("aria-hidden", "true"));   // its aria-label and the readout carry the content
   show(pick || { iDep: m.iDep, iTof: m.iTof });
 }
 
@@ -249,6 +251,8 @@ plot.addEventListener("keydown", (ev) => {
   const k = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[ev.key];
   if (!k || !G) return; ev.preventDefault();
   show({ iDep: Math.max(0, Math.min(G.nDep - 1, pick.iDep + k[0])), iTof: Math.max(0, Math.min(G.nTof - 1, pick.iTof + k[1])) });
+  const v = (id) => document.getElementById(id).textContent;   // read out for keyboard steps only, not for every pointer move
+  document.getElementById("say").textContent = `Leave ${v("r-dep")}, arrive ${v("r-arr")}, ${v("r-tof")}, ${v("r-dv")}`;
 });
 
 // ---------- one destination's grid, worked out live ----------
