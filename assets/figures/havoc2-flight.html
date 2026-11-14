@@ -40,7 +40,8 @@ summary { cursor: pointer; color: var(--muted); }
 table { border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); font-weight: 400; }
 th { color: var(--muted); }
-@media (max-width: 640px) { .fig { grid-template-columns: 1fr; } .tick, .axis-title { font-size: 15px; } .note, .tip { font-size: 15.5px; } }
+@media (max-width: 640px) { .fig { grid-template-columns: 1fr; } .tick, .axis-title { font-size: 15px; } .note, .tip { font-size: 15.5px; }
+  #alt .tick { font-size: 11px; } #alt .note, #alt .tip { font-size: 11.5px; } }   /* the altitude chart redraws narrower on phones instead */
 </style>
 </head>
 <body>
@@ -76,15 +77,19 @@ const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const apo = Math.round(E.apogee_m / 10) * 10;
 
 // ---------- altitude against time ----------
-const A = document.getElementById("alt"), AW = 520, AH = 250, L = 44, R = 12, T = 12, B = 30, T0 = -2, T1 = Math.ceil(E.land + 2), AMAX = 600;
+// Phones get a narrower canvas, so the text stays about 11 px without crowding; labels move to where the chart is empty.
+const narrow = matchMedia("(max-width: 640px)").matches;
+const A = document.getElementById("alt"), AW = narrow ? 340 : 520, AH = narrow ? 230 : 250, L = narrow ? 40 : 44, R = 12, T = 12, B = 30, T0 = -2, T1 = Math.ceil(E.land + 2), AMAX = 600;
+A.setAttribute("viewBox", `0 0 ${AW} ${AH}`);
 const ax = (t) => L + (t - T0) / (T1 - T0) * (AW - L - R), ay = (a) => T + (1 - a / AMAX) * (AH - T - B);
 const g = el("g", { class: "grid" }, A);
 [0, 200, 400, 600].forEach((a) => { el("line", { x1: L, x2: AW - R, y1: ay(a), y2: ay(a) }, g); txt(A, L - 6, ay(a) + 4, a === 600 ? "600 m" : a, "tick", "end"); });
-for (let t = 0; t <= T1; t += 10) txt(A, ax(t), AH - B + 16, t, "tick", "middle");
-txt(A, L, AH - 2, "seconds after liftoff", "axis-title", "start");
+for (let t = 0; t <= T1; t += 10) txt(A, ax(t), AH - B + 16, narrow && t + 10 > T1 ? `${t} s` : t, "tick", "middle");
+if (!narrow) txt(A, L, AH - 2, "seconds after liftoff", "axis-title", "start");
 el("rect", { class: "band", x: ax(E.brownout), y: T, width: ax(E.resume) - ax(E.brownout), height: AH - T - B }, A);
-txt(A, (ax(E.brownout) + ax(E.resume)) / 2, ay(80), "brownout:", "note muted", "middle");
-txt(A, (ax(E.brownout) + ax(E.resume)) / 2, ay(80) + 14, "no log ~9 s", "note muted", "middle");
+const bandY = ay(narrow ? 260 : 80);   // on phones the burnout label would run into it low down
+txt(A, (ax(E.brownout) + ax(E.resume)) / 2, bandY, "brownout:", "note muted", "middle");
+txt(A, (ax(E.brownout) + ax(E.resume)) / 2, bandY + 14, "no log ~9 s", "note muted", "middle");
 const pts = (s) => s.map(([t, a]) => `${ax(t).toFixed(1)},${ay(Math.max(0, a)).toFixed(1)}`).join(" ");
 el("polyline", { class: "ln asc", points: pts(D.asc) }, A);
 el("polyline", { class: "ln dsc", points: pts(D.dsc) }, A);
@@ -96,7 +101,8 @@ const bx = ax(E.burnout), by = ay(altAtAsc(E.burnout));
 el("line", { class: "lead", x1: bx + 3, y1: by, x2: bx + 26, y2: by }, A);
 txt(A, bx + 29, by + 4, `burnout, T+${E.burnout.toFixed(1)} s`);
 const lastD = D.dsc[D.dsc.length - 1];
-txt(A, ax(lastD[0]), ay(lastD[1]) + 16, `landed, T+${Math.round(E.land)} s`, "note", "end");
+if (narrow) el("circle", { class: "mk", cx: ax(lastD[0]), cy: ay(lastD[1]), r: 3.5, fill: "#E8590C" }, A);   // the readout names it on phones
+else txt(A, ax(lastD[0]), ay(lastD[1]) + 16, `landed, T+${Math.round(E.land)} s`, "note", "end");
 
 // ---------- ground track (equal scale, north up) ----------
 const K = document.getElementById("trk"), KW = 330, KH = 250, pad = 22;

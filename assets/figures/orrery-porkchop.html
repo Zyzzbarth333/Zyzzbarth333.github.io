@@ -38,7 +38,8 @@ dd { margin: 0; }
 .wins button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; white-space: nowrap; }
 .wins button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; }
 .wins button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.tw { overflow-x: auto; }
+.wrap > * { min-width: 0; }   /* grid items may shrink below their content, so the table scrolls instead of widening the page */
+.tw { overflow-x: auto; max-width: 100%; }
 .dest button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .dest button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; cursor: default; }
 .dest button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
