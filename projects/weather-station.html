@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=0f22f953">
+    <link rel="stylesheet" href="../assets/css/style.css?v=b6a23649">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -56,7 +56,7 @@
             <p class="outcome">A weather station UQ Space sets up at the launch site, so the pre-flight apogee prediction can use wind and pressure measured on site. I wrote its first design and rewrote most of its firmware. At the 2026 Australian Universities Rocket Competition it logged about 7 hours over 2 days, and all <strong>98,218</strong> checksummed rows on its card, bench tests included, passed.</p>
         </header>
         <dl class="facts">
-            <div><dt>My role</dt><dd>Lead avionics engineer. Wrote the first design and parts list, rewrote most of the firmware and sourced the parts. A teammate built the prototype</dd></div>
+            <div><dt>My role</dt><dd>Lead avionics engineer. Wrote the first design and parts list, rewrote most of the firmware and sourced the parts. Wrote 30 of the repository's 39 commits. A teammate built the prototype</dd></div>
             <div><dt>Team</dt><dd>UQ Space avionics team</dd></div>
             <div><dt>When</dt><dd>Jun – Oct 2026</dd></div>
             <div><dt>Tools</dt><dd>Arduino Mega, Heltec LoRa (915 MHz), BME280, C++, Fusion 360</dd></div>
@@ -75,9 +75,10 @@
                 <li>An Arduino Mega reads a wind and rain kit and a BME280, and writes every sample to SD first.</li>
                 <li>A Heltec LoRa board relays about every second row on 915 MHz to a second board at the ground station.</li>
                 <li>My firmware rewrite appends to the log, keeps sampling and transmitting when the SD card or a sensor drops out, and puts a 16-bit cyclic redundancy check (CRC-16) and a sequence number on every row.</li>
+                <li>I built the station&#x27;s 3D-printed enclosure, which housed it at the 2026 Australian Universities Rocket Competition.</li>
             </ul>
             <h2 id="specifications">Specifications</h2>
-            <table class="spec"><tr><th scope="row">Controller</th><td>Arduino Mega 2560</td></tr><tr><th scope="row">Sensors</th><td>DFRobot SEN0186 wind and rain kit, BME280</td></tr><tr><th scope="row">Radio</th><td>Heltec WiFi LoRa 32 V3, 915 MHz</td></tr><tr><th scope="row">Logging</th><td>microSD at 1 Hz; CRC-16 and sequence number on every row</td></tr><tr><th scope="row">Power</th><td>USB power bank, 10 to 20 Ah</td></tr><tr><th scope="row">Enclosure</th><td>3D-printed ASA</td></tr></table>
+            <table class="spec"><tr><th scope="row">Controller</th><td>Arduino Mega 2560</td></tr><tr><th scope="row">Sensors</th><td>DFRobot SEN0186 wind and rain kit, BME280</td></tr><tr><th scope="row">Radio</th><td>Heltec WiFi LoRa 32 V3, 915 MHz</td></tr><tr><th scope="row">Logging</th><td>microSD at 1 Hz; CRC-16 and sequence number on every row</td></tr><tr><th scope="row">Power</th><td>USB power bank, 10 to 20 Ah</td></tr><tr><th scope="row">Enclosure</th><td>3D printed; the Fusion design specifies ASA</td></tr></table>
         </div>
         <figure class="figure figure-embed">
             <iframe src="../assets/figures/weather-station-exploded.html?v=a3bf4916" title="Interactive exploded view of the weather station: hover or focus to take it apart" loading="lazy" style="--ratio:1.2"></iframe>
