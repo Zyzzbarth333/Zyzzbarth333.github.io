@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
+    <link rel="stylesheet" href="../assets/css/style.css?v=0f22f953">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -53,7 +53,7 @@
         <header class="project-head">
             <h1>Airbrake control simulation</h1>
             <p class="meta">UQ Space · simulation study · 2026</p>
-            <p class="outcome">A Python simulation for airbrakes that trim a rocket&#x27;s apogee to a target, built for UQ Space. On the 177 of 200 simulated flights of the team&#x27;s Hera rocket where a 2,900 m target was reachable, three of the four controllers missed it by about <strong>4 m RMS</strong> (root mean square) with perfect state knowledge. Everything is simulation: no airbrake has been built.</p>
+            <p class="outcome">A Python simulation for airbrakes that trim a rocket&#x27;s apogee to a target; I wrote it and its controllers for UQ Space. On the 177 of 200 simulated flights of the team&#x27;s Hera rocket where a 2,900 m target was reachable, three of the four controllers missed it by about <strong>4 m RMS</strong> (root mean square) with perfect state knowledge, against 21.4 m for bang-bang. Everything is simulation: no airbrake has been built.</p>
         </header>
         <dl class="facts">
             <div><dt>My role</dt><dd>Wrote the simulation and the controllers, and reviewed the team's original rocket model</dd></div>
@@ -71,7 +71,7 @@
             <p>Airbrakes let a rocket shed speed during its coast so it reaches a target apogee instead of overshooting it. Before building any hardware, the team needed to know which controller to fly and what it would take to fly it well.</p>
             <h2 id="what-i-did">What I did</h2>
             <ul>
-                <li>I fixed the model first: the team&#x27;s RocketPy model of Hera matched OpenRocket only because several of its errors cancelled. After my fixes it agrees with OpenRocket to within 0.3% on three reference cases. That is model against model, not against a flight.</li>
+                <li>I fixed the model first: the team&#x27;s RocketPy model of Hera matched OpenRocket only because several of its errors cancelled. After my fixes I verified it against OpenRocket, and it agrees to within 0.3% on three reference cases. That is model against model, not against a flight.</li>
                 <li>I wrote four controllers, target solve, PI (proportional-integral), bang-bang and model predictive control (MPC), and flew each on the same 200 randomised 6-DOF flights at 10 Hz, with actuator lag and the competition&#x27;s deployment rules.</li>
                 <li>213 test functions in 12 files cover the model and the controllers.</li>
             </ul>
