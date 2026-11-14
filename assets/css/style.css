@@ -48,7 +48,7 @@ body {
 
 img { max-width: 100%; height: auto; display: block; }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
     font-family: var(--font-head);
     font-weight: 900;
     font-variation-settings: "SOFT" 0;
@@ -275,12 +275,12 @@ p, li, dd, figcaption { text-wrap: pretty; }
     margin-bottom: 0.6rem;
 }
 
-.card h3 a { text-decoration: none; }
-/* the title link covers the whole card */
-.card h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }   /* above the lifted pill, so the whole card is one link */
-.card:hover h3 a, .card:focus-within h3 a { text-decoration: underline; }
+.card :is(h3, h4) a { text-decoration: none; }
+/* the title link covers the whole card (h4 on the smaller Earlier work cards) */
+.card :is(h3, h4) a::after { content: ""; position: absolute; inset: 0; z-index: 1; }   /* above the lifted pill, so the whole card is one link */
+.card:hover :is(h3, h4) a, .card:focus-within :is(h3, h4) a { text-decoration: underline; }
 .card:focus-within { outline: 3px solid var(--indigo-deep); outline-offset: 3px; }
-.card h3 a:focus-visible { outline: none; }
+.card :is(h3, h4) a:focus-visible { outline: none; }
 
 .card p.summary {
     font-size: 0.95rem;
@@ -349,6 +349,39 @@ a.pill-outline:hover { background: var(--indigo); color: var(--white); }
 
 /* Meta line under a title: who, where, when, in plain text (no eyebrow above the heading) */
 .meta { margin: -0.15rem 0 0.9rem; font-size: 0.95rem; line-height: 1.4; }
+
+/* Earlier work: the two oldest projects in a smaller, quieter row under the grid. The icon sits beside the text and
+   there is no pill; the title's link still covers the card, and the icon still plays on hover. One column until the
+   cards are wide enough for a readable text column beside the icon. These selectors outrank the phone .card rules. */
+.earlier-title { text-align: center; font-size: clamp(1.35rem, 3vw, 1.6rem); margin: clamp(2.5rem, 6vw, 4rem) auto 1.1rem; }
+.earlier-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(16px, 2.5vw, 28px);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+}
+@media (min-width: 860px) { .earlier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.earlier-grid > .card {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 34rem);
+    grid-template-rows: 1fr auto auto auto 1fr;   /* the text block sits centred beside the icon */
+    justify-content: center;
+    column-gap: 1.1rem;
+    align-items: start;
+    text-align: left;
+    padding: 1.1rem 1.3rem;
+}
+.earlier-grid > .card .icon { grid-column: 1; grid-row: 1 / -1; align-self: center; width: 96px; margin: 0; }
+.earlier-grid > .card h4 { grid-column: 2; grid-row: 2; font-size: 1.1rem; margin: 0 0 0.3rem; }
+.earlier-grid > .card .meta { grid-column: 2; grid-row: 3; font-size: 0.88rem; margin: 0 0 0.55rem; }
+.earlier-grid > .card p.summary { grid-column: 2; grid-row: 4; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+@media (max-width: 600px) {
+    .earlier-grid > .card { grid-template-columns: 72px minmax(0, 1fr); column-gap: 0.9rem; padding: 1rem; }
+    .earlier-grid > .card .icon { width: 72px; }
+}
 
 /* Card icons: Anatomy-kit models recoloured to the site palette (needs iso-kit.css). */
 .card .icon.iso {

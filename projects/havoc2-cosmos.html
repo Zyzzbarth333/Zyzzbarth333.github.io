@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth</title>
-    <meta name="description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed its checksum.">
+    <meta name="description" content="The C++ flight firmware I wrote and the ground station I built for UQ Space rockets. On the first flight, to about 540 m, every logged frame passed its checksum.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="HAVOC-2 firmware and COSMOS ground station · Isaac Johan Ziebarth">
-    <meta property="og:description" content="Flight firmware and a ground station for UQ Space rockets. On the first flight every logged frame passed its checksum.">
+    <meta property="og:description" content="The C++ flight firmware I wrote and the ground station I built for UQ Space rockets. On the first flight, to about 540 m, every logged frame passed its checksum.">
     <meta property="og:url" content="https://zyzzbarth333.github.io/projects/havoc2-cosmos.html">
     <link rel="canonical" href="https://zyzzbarth333.github.io/projects/havoc2-cosmos.html">
     <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
+    <link rel="stylesheet" href="../assets/css/style.css?v=0f22f953">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -53,13 +53,13 @@
         <header class="project-head">
             <h1>HAVOC-2 firmware and COSMOS ground station</h1>
             <p class="meta">Team project · UQ Space · 2026</p>
-            <p class="outcome">Flight firmware for UQ Space&#x27;s HAVOC-2 flight computer, and COSMOS, the ground station the team runs at launches. On HAVOC-2&#x27;s first flight, to about <strong>540 m</strong>, every logged frame passed CRC, and every intact radio frame matched the SD card byte for byte.</p>
+            <p class="outcome">The C++ flight firmware I wrote for UQ Space&#x27;s HAVOC-2 flight computer, and COSMOS, the ground station I built, which the team runs at launches. On HAVOC-2&#x27;s first flight, to about <strong>540 m</strong>, every logged frame passed its cyclic redundancy check (CRC), and every intact radio frame matched the SD card byte for byte.</p>
         </header>
         <dl class="facts">
-            <div><dt>My role</dt><dd>Developed HAVOC-2's C++ flight firmware (all 24 firmware commits) from June to November 2026, when the team moved to a consolidated flight computer. Built COSMOS; nobody else has committed to it</dd></div>
+            <div><dt>My role</dt><dd>Lead avionics engineer until November 2026. Developed HAVOC-2's C++ flight firmware (all 24 firmware commits) from June to November 2026, when the team moved to a consolidated flight computer. Built COSMOS; nobody else has committed to it</dd></div>
             <div><dt>Team</dt><dd>UQ Space avionics team; teammates designed the HAVOC-2 board</dd></div>
             <div><dt>When</dt><dd>HAVOC-2 firmware Jun – Nov 2026; COSMOS May 2026 – present</dd></div>
-            <div><dt>Tools</dt><dd>C++, Teensy 4.1, RFD900 radio, Python, React, WebSockets</dd></div>
+            <div><dt>Tools</dt><dd>C++, Teensy 4.1, RFD900 radio, Python, React, WebSockets, OpenRocket for Monte Carlo ensembles</dd></div>
             <div><dt>Code</dt><dd>Private: UQ Space team repositories</dd></div>
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
@@ -103,7 +103,7 @@
             <ul>
                 <li>On its first flight, in July 2026, HAVOC-2 flew as the data recorder on a sub-scale rocket that reached about 540 m after an 11.7 g boost.</li>
                 <li>On the replayed flight log, the new estimator cut false speed on the pad from a peak of 137 m/s to 0.37 m/s, and with sensor faults injected it never called apogee early.</li>
-                <li>At the 2026 Australian Universities Rocket Competition, COSMOS recorded flight computer data from the launch rail and, before launch, ran a 512-run OpenRocket ensemble from the weather station&#x27;s pressure and wind.</li>
+                <li>At the 2026 Australian Universities Rocket Competition, COSMOS recorded flight computer data from the launch rail and, about 3 hours before launch, ran a 512-run OpenRocket Monte Carlo ensemble from the weather station&#x27;s pressure and wind to predict the apogee spread and the landing footprint.</li>
             </ul>
             <h2 id="what-went-wrong">What went wrong</h2>
             <ul>

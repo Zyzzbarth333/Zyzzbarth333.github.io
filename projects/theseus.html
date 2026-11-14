@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>Theseus V rover autonomy · Isaac Johan Ziebarth</title>
-    <meta name="description" content="The autonomy software I wrote for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
+    <meta name="description" content="The autonomy software I wrote in C++ and Python for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Theseus V rover autonomy · Isaac Johan Ziebarth">
-    <meta property="og:description" content="The autonomy software I wrote for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
+    <meta property="og:description" content="The autonomy software I wrote in C++ and Python for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
     <meta property="og:url" content="https://zyzzbarth333.github.io/projects/theseus.html">
     <link rel="canonical" href="https://zyzzbarth333.github.io/projects/theseus.html">
     <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
+    <link rel="stylesheet" href="../assets/css/style.css?v=0f22f953">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -56,7 +56,7 @@
             <p class="outcome">The ROS 2 autonomy stack I wrote on my own for UQ Space&#x27;s Theseus V rover. It ran the autonomy task at the 2026 Australian Rover Challenge, where the team placed <strong>1st of 17</strong>.</p>
         </header>
         <dl class="facts">
-            <div><dt>My role</dt><dd>Sole developer of the autonomy stack (82 of 83 commits) and of Theseus GCS, the ground control station (87 of 87 commits)</dd></div>
+            <div><dt>My role</dt><dd>Lead avionics engineer. Sole developer of the autonomy stack (82 of 83 commits) and of Theseus GCS, the ground control station (87 of 87 commits)</dd></div>
             <div><dt>Team</dt><dd>UQ Space rover team</dd></div>
             <div><dt>When</dt><dd>Oct 2025 – Apr 2026</dd></div>
             <div><dt>Tools</dt><dd>ROS 2, Nav2, FAST-LIO2, C++, Python, Gazebo, YOLO, React</dd></div>
@@ -76,7 +76,7 @@
                 <li>The stack is 9 ROS 2 packages on two computers. An Orange Pi 5 Plus runs Nav2, FAST-LIO2 LiDAR-inertial odometry from a Livox MID-360 LiDAR, and KISS-SLAM, which turns FAST-LIO2&#x27;s output into the 2D occupancy map that exploration works from. A Jetson Xavier NX runs YOLO and ArUco detection on the cameras.</li>
                 <li>A frontier detector picks the next goal, and a 10-state supervisor runs the mission.</li>
                 <li>For safety I wrote 4 costmap layers in C++ (the maps Nav2 plans around) and a 4-layer geofence that slows, then stops, the rover near the arena boundary.</li>
-                <li>I built a Gazebo arena with placards and randomly placed cubes, so I could run the whole stack in simulation before the hardware was ready.</li>
+                <li>I built a Gazebo arena with placards and randomly placed cubes, so I could test the whole stack in simulation before the hardware was ready.</li>
                 <li>The rover doesn&#x27;t spin in place. Spinning a skid-steer rover can dig its wheels into sand and draw high current, and KISS-ICP, the LiDAR-only odometry I started with, lost track during pure rotation. So the 9-stage recovery sequence I wrote for Nav2 clears the costmap, waits, nudges forward and backs up instead, and the path follower turns in arcs.</li>
             </ul>
             <h3>Theseus GCS</h3>
