@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>Theseus V rover autonomy · Isaac Johan Ziebarth</title>
-    <meta name="description" content="The ROS 2 stack I wrote for the rover&#x27;s autonomy task at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
+    <meta name="description" content="The autonomy software I wrote for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Theseus V rover autonomy · Isaac Johan Ziebarth">
-    <meta property="og:description" content="The ROS 2 stack I wrote for the rover&#x27;s autonomy task at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
+    <meta property="og:description" content="The autonomy software I wrote for the rover at the 2026 Australian Rover Challenge, where UQ Space placed 1st of 17.">
     <meta property="og:url" content="https://zyzzbarth333.github.io/projects/theseus.html">
     <link rel="canonical" href="https://zyzzbarth333.github.io/projects/theseus.html">
     <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/profile.jpg">
@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=fe36ac2c">
+    <link rel="stylesheet" href="../assets/css/style.css?v=337d8e3e">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -92,7 +92,7 @@
         </figure>
         <div class="prose">
             <h2 id="result">Result</h2>
-            <p>At the 2026 Australian Rover Challenge the stack ran the autonomy task on the rover, and the team placed 1st of 17 overall. Theseus GCS ran the autonomy and mapping task; the driving tasks used a separate camera feed with less delay.</p>
+            <p>At the competition Theseus GCS ran the autonomy and mapping task; the driving tasks used a separate camera feed with less delay.</p>
             <h2 id="what-went-wrong">What went wrong</h2>
             <ul>
                 <li><strong>IMU vibration:</strong> the MID-360&#x27;s built-in IMU sits next to the LiDAR&#x27;s spinning prism motor, and the motor&#x27;s vibration coupled straight into it. Every LiDAR-inertial odometry we tried on the rover (FAST-LIO2, Point-LIO and DLIO) folds the IMU into its filter, so the extra noise showed up as persistent drift in the odometry, while LiDAR-only KISS-ICP did better on the same data. Before the competition I added an IMU filter node that calibrates the gyro bias at start-up, updates it whenever the rover is stopped and clamps the gyro after a stop, but it couldn&#x27;t remove vibration while the rover was driving. For Theseus VI we moved to an external IMU on the rigid sensor plate and kept the MID-360&#x27;s IMU for logging only.</li>

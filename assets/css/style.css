@@ -600,7 +600,7 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
 .note { font-size: 0.95rem; }
 
 /* Spec tables (project pages) */
-.spec { width: 100%; max-width: var(--measure); border-collapse: collapse; font-size: 0.95rem; }
+.spec { width: 100%; max-width: var(--measure); border-collapse: collapse; font-size: 0.95rem; margin-bottom: 2rem; }
 .spec th, .spec td { text-align: left; vertical-align: top; padding: 0.6rem 0.9rem 0.6rem 0; border-top: 1px solid var(--indigo-line); }
 .spec tr:last-child th, .spec tr:last-child td { border-bottom: 1px solid var(--indigo-line); }
 .spec th { font-size: 0.88rem; font-weight: 700; white-space: nowrap; padding-top: 0.65rem; width: 1%; }
