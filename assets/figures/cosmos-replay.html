@@ -58,7 +58,7 @@ html, body { margin: 0; background: transparent; }
 .controls { display: flex; align-items: center; gap: 10px; padding: 0 14px 12px; }
 .controls button { font: 700 0.7rem/1 var(--mono); letter-spacing: 0.8px; text-transform: uppercase; color: var(--text); background: var(--bg3);
                    border: 1px solid var(--line2); border-radius: 4px; padding: 7px 10px; cursor: pointer; }
-.controls button[aria-pressed="true"] { background: var(--aqua); color: #000; border-color: var(--aqua); }
+.controls button.on { background: var(--aqua); color: #000; border-color: var(--aqua); }
 .controls button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .controls input { flex: 1; accent-color: var(--aqua); height: 28px; margin: 0; cursor: pointer; }   /* a taller hit area for touch; the track stays thin */
 .note { padding: 0 14px 10px; font: 0.8rem/1.4 var(--mono); color: var(--text3); }
@@ -90,7 +90,7 @@ html, body { margin: 0; background: transparent; }
     </div>
   </div>
   <div class="controls">
-    <button type="button" id="play" aria-pressed="false">Play</button>
+    <button type="button" id="play">Play</button>
     <button type="button" id="speed" aria-label="2× replay speed">2&times;</button>
     <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay position">
   </div>
@@ -102,6 +102,8 @@ var D = {"state":[[0.0,"IDLE",-0.2,0.0,1.0,0.0],[0.2,"IDLE",-0.0,0.0,1.0,0.0],[0
   var S = D.state, HB = D.hb, GPS = D.gps, F = D.frames;
   var END = S[S.length - 1][0];
   var LIFT = S.find(function (r) { return r[1] === 'BOOST'; })[0];
+  var LANDT = (S.find(function (r) { return r[1] === 'LANDED'; }) || [END])[0];
+  var PLAY_END = Math.min(END, LANDT + 1);   // playback stops a second after landing, not after the clock's last 8 s
   var PHASES = ['IDLE', 'BOOST', 'COAST', 'APOGEE', 'DESCENT', 'LANDED'];
   var LABEL = { BOOST: 'Liftoff', COAST: 'Burnout', APOGEE: 'Apogee', DESCENT: 'Descent', LANDED: 'Landed' };
   var events = [];
@@ -145,11 +147,11 @@ var D = {"state":[[0.0,"IDLE",-0.2,0.0,1.0,0.0],[0.2,"IDLE",-0.0,0.0,1.0,0.0],[0
     dot.setAttribute('cx', X(r[0])); dot.setAttribute('cy', Y(r[2]));
     $('clock').textContent = fmt(t);
     $('r-alt').innerHTML = r[2].toFixed(1) + '<small>m</small>';
-    $('r-vel').innerHTML = (r[3] > 0 ? '+' : '') + r[3].toFixed(1) + '<small>m/s</small>';
+    $('r-vel').innerHTML = (r[3] > 0 ? '+' : r[3] < 0 ? '−' : '') + Math.abs(r[3]).toFixed(1) + '<small>m/s</small>';
     $('r-acc').innerHTML = r[4].toFixed(2) + '<small>g</small>';
     $('apo').textContent = r[5] > 1 && (r[1] !== 'IDLE' && r[1] !== 'BOOST' && r[1] !== 'COAST') ? Math.round(r[5]) + ' m \u00b7 ' + Math.round(r[5] * 3.28084).toLocaleString() + ' ft' : '\u2013';
     var k = PHASES.indexOf(r[1]);
-    [].forEach.call(rail.children, function (li, j) { li.className = j < k ? 'past' : j === k ? 'now' : ''; });
+    [].forEach.call(rail.children, function (li, j) { li.className = j < k ? 'past' : j === k ? 'now' : ''; if (j === k) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current'); });
     var g = at(GPS, t); if (g !== null) pill('p-gps', GPS[g][1] ? 'ok' : 'warn', 'GPS ' + (GPS[g][1] ? '3D' : 'no fix') + ' \u00b7 ' + GPS[g][2] + ' sats');
     var h = at(HB, t); if (h !== null) { pill('p-batt', HB[h][1] > 7200 ? 'ok' : 'warn', 'Batt ' + (HB[h][1] / 1000).toFixed(2) + ' V'); pill('p-sens', HB[h][2] ? 'ok' : 'bad', HB[h][2] ? 'Sensors OK' : 'Sensor fault'); }
     var fi = at(F, t); if (fi !== null) { var pct = 100 * crcCum[fi] / (fi + 1); pill('p-crc', pct > 99 ? 'ok' : 'warn', 'CRC ' + pct.toFixed(1) + '% \u00b7 ' + (fi + 1 - crcCum[fi]) + ' bad'); }
@@ -167,20 +169,20 @@ var D = {"state":[[0.0,"IDLE",-0.2,0.0,1.0,0.0],[0.2,"IDLE",-0.0,0.0,1.0,0.0],[0
         log.appendChild(row);
       });
     }
-    $('scrub').value = Math.round(1000 * t / END);
+    $('scrub').value = Math.round(1000 * t / END); $('scrub').setAttribute('aria-valuetext', fmt(t));
   }
   var t = 0, playing = false, speed = 2, last = 0, raf = 0;
   function tick(now) {
     var dt = last ? (now - last) / 1000 : 0; last = now;
-    t = Math.min(END, t + dt * speed);
+    t = Math.min(PLAY_END, t + dt * speed);
     render(t);
-    if (t >= END) { setPlay(false); return; }
+    if (t >= PLAY_END) { setPlay(false); return; }
     raf = requestAnimationFrame(tick);
   }
   function setPlay(on) {
-    playing = on; $('play').setAttribute('aria-pressed', on); $('play').textContent = on ? 'Pause' : (t >= END ? 'Replay' : 'Play');
+    playing = on; $('play').classList.toggle('on', on); $('play').textContent = on ? 'Pause' : (t >= PLAY_END ? 'Replay' : 'Play');   // the label says the state; no aria-pressed
     cancelAnimationFrame(raf); last = 0;
-    if (on) { if (t >= END) t = 0; raf = requestAnimationFrame(tick); }
+    if (on) { if (t >= PLAY_END) t = LIFT - 3; raf = requestAnimationFrame(tick); }
   }
   $('play').addEventListener('click', function () { setPlay(!playing); });
   $('speed').addEventListener('click', function () { speed = speed === 2 ? 6 : speed === 6 ? 1 : 2; this.textContent = speed + '\u00d7'; this.setAttribute('aria-label', speed + '\u00d7 replay speed'); });

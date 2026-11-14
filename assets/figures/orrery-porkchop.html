@@ -36,18 +36,19 @@ dd { margin: 0; }
 .hint { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
 .dest { margin: 0 0 6px; font-size: 13.5px; color: var(--muted); }
 .wins { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); line-height: 1.7; font-variant-numeric: tabular-nums; }
-.wins button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; white-space: nowrap; }
+.wins button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 4px 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; white-space: nowrap; }
 .wins button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; }
 .wins button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wrap > * { min-width: 0; }   /* grid items may shrink below their content, so the table scrolls instead of widening the page */
 .tw { overflow-x: auto; max-width: 100%; }
-.dest button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.dest button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 4px 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .dest button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; cursor: default; }
 .dest button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 details { font-size: 13px; }
 summary { cursor: pointer; color: var(--muted); }
 table { border-collapse: collapse; margin-top: 6px; }
 th, td { text-align: left; padding: 3px 14px 3px 0; border-bottom: 1px solid var(--grid); font-weight: 400; font-variant-numeric: tabular-nums; }
+th:nth-child(n+3), td:nth-child(n+3) { text-align: right; }   /* numbers line up; their units are in the headers */
 th { color: var(--muted); }
 @media (max-width: 600px) { .wrap { padding: 10px; } .below { grid-template-columns: 1fr; gap: 10px; } .below svg { max-width: 300px; margin: 0 auto; } }
 .below h3 { margin-bottom: 6px; }
@@ -78,7 +79,7 @@ th { color: var(--muted); }
     </div>
   </div>
   <details><summary>Every launch window as a table, beside NASA's Trajectory Browser</summary>
-    <div class="tw"><table><thead><tr><th>Leave Earth</th><th id="tb-arr">Arrive at Mars</th><th>Flight time</th><th>C3 (km²/s²)</th><th>Injection</th><th>Arrival</th><th>Total Δv</th><th>NASA's total</th></tr></thead><tbody id="tb"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>Leave Earth</th><th id="tb-arr">Arrive at Mars</th><th>Flight time (days)</th><th>C3 (km²/s²)</th><th>Injection (km/s)</th><th>Arrival (km/s)</th><th>Total Δv (km/s)</th><th>NASA's total (km/s)</th></tr></thead><tbody id="tb"></tbody></table></div>
   </details>
 </div>
 <script type="module">
@@ -279,7 +280,7 @@ function run(k, win) {
     window.__porkchop = { dest: k, ms: Math.round(performance.now() - t0), cells: G.nDep * G.nTof, best: { dv: BEST.dv, dep: dateAt(BEST.iDep).toISOString().slice(0, 10), tof: tofDays[BEST.iTof] } };
     plot.setAttribute("aria-label", `Porkchop plot of total delta-v for Earth to ${C.name} departures from ${fmt(depStart)} over ${C.span} days and flight times of ${C.tof[0]} to ${C.tof[1]} days, worked out live. The cheapest transfer needs ${BEST.dv.toFixed(2)} km/s. Point at it, or use the arrow keys, to pick a transfer.`);
     drawOrbits(); draw(); drawWins();
-    setText("hint", "Point at or tap the plot, or use its arrow keys, to pick a departure date and flight time. The dot marks the cheapest transfer on the plot; pick a launch window above to move to it.");
+    setText("hint", `Point at or tap the plot, or use its arrow keys, to pick a departure date and flight time. The dot marks the cheapest transfer on the plot; pick a launch window above to move to it. The plot reads to its grid (every ${C.step} days of departure and ${C.tof[2]} days of flight), so its dates can differ by a day or two from the exact windows above.`);
   }, 30);
 }
 
@@ -320,7 +321,7 @@ function drawWins() {
   list.forEach((w) => {
     const nasa = (NASA[key] || []).find((e) => Math.abs(e[0] - w.depMs) <= 45 * DAY_MS);
     const tr = document.createElement("tr");
-    [fmt(new Date(w.depMs)), fmt(new Date(w.arrMs)), `${w.tofDays.toFixed(0)} days`, w.c3.toFixed(1), `${w.injectionDv.toFixed(2)} km/s`, `${w.arrivalDv.toFixed(2)} km/s`, `${w.totalDv.toFixed(2)} km/s`, nasa ? `${nasa[2].toFixed(2)} km/s (leaves ${fmt(new Date(nasa[0]))})` : "–"]
+    [fmt(new Date(w.depMs)), fmt(new Date(w.arrMs)), w.tofDays.toFixed(0), w.c3.toFixed(1), w.injectionDv.toFixed(2), w.arrivalDv.toFixed(2), w.totalDv.toFixed(2), nasa ? `${nasa[2].toFixed(2)} (leaves ${fmt(new Date(nasa[0]))})` : "–"]
       .forEach((v) => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
     tb.appendChild(tr);
   });

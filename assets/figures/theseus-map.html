@@ -24,6 +24,7 @@ details { font-size: 13px; }
 summary { cursor: pointer; color: var(--muted); }
 table { border-collapse: collapse; margin-top: 6px; }
 th, td { text-align: left; padding: 3px 16px 3px 0; border-bottom: 1px solid var(--grid); font-weight: 400; font-variant-numeric: tabular-nums; }
+th:nth-child(n+2), td:nth-child(n+2) { text-align: right; }   /* numbers line up */
 th { color: var(--muted); }
 @media (max-width: 520px) { .wrap { padding: 10px; } .lab { font-size: 1.25px; stroke-width: 0.3px; } }
 </style>
