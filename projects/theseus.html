@@ -20,7 +20,7 @@
     <link rel="manifest" href="../site.webmanifest">
     <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=0f22f953">
+    <link rel="stylesheet" href="../assets/css/style.css?v=b6a23649">
     <script>
         // Hide .reveal content only once JS runs; if site.js never loads, show everything.
         document.documentElement.classList.add('js');
@@ -57,10 +57,11 @@
         </header>
         <dl class="facts">
             <div><dt>My role</dt><dd>Lead avionics engineer. Sole developer of the autonomy stack (82 of 83 commits) and of Theseus GCS, the ground control station (87 of 87 commits)</dd></div>
-            <div><dt>Team</dt><dd>UQ Space rover team</dd></div>
+            <div><dt>Team</dt><dd>Avionics, one of the 6 UQ Space sub-teams that developed Theseus V</dd></div>
             <div><dt>When</dt><dd>Oct 2025 – Apr 2026</dd></div>
             <div><dt>Tools</dt><dd>ROS 2, Nav2, FAST-LIO2, C++, Python, Gazebo, YOLO, React</dd></div>
             <div><dt>Code</dt><dd>Private: UQ Space team repositories</dd></div>
+            <div class="wide"><dt>Press</dt><dd>Interviewed for <a href="https://www.space.gov.au/news-and-media/gen-space-uq-space-winning-2026-australian-rover-challenge" target="_blank" rel="noopener">the Australian Space Agency's Gen Space feature<span class="visually-hidden"> (opens in a new tab)</span></a> (28 Apr 2026) on the team's win</dd></div>
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#credits">Credits</a></li></ul></nav>
         <figure class="figure figure-embed">
@@ -99,7 +100,7 @@
                 <li><strong>Placard detections:</strong> shortly before the competition I switched the ArUco detectors to best-effort QoS, but my topic mux still subscribed to them as reliable. ROS 2 never connects a reliable subscriber to a best-effort publisher, so live placard detections couldn&#x27;t reach the mission supervisor during the run. I fixed the mux&#x27;s QoS the day after.</li>
             </ul>
             <h2 id="credits">Credits</h2>
-            <p>Theseus V is a UQ Space team rover. This page covers the software I wrote for it; the rover itself is the rover team&#x27;s work.</p>
+            <p>Theseus V is a UQ Space team rover. The page covers the software I wrote for it; the rover itself is the work of UQ Space&#x27;s aerostructures, avionics, payload, propulsion, recovery and systems engineering sub-teams.</p>
         </div>
         <nav class="page-nav" aria-label="More projects">
             <a class="pill pill-outline" href="../index.html#projects">&larr; All projects</a>

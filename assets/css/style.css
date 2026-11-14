@@ -570,6 +570,7 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
 }
 .facts div { padding: 0.9rem 1rem 0.9rem 0; }
 .facts div:first-child { grid-column: 1 / -1; border-bottom: 1px solid var(--indigo-line); }   /* "My role" gets the full width */
+.facts div.wide { grid-column: 1 / -1; border-top: 1px solid var(--indigo-line); }   /* so does a long row such as Press */
 .facts dt { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.15rem; }
 .facts dd { margin: 0; font-size: 0.98rem; line-height: 1.45; max-width: var(--measure); }
 
