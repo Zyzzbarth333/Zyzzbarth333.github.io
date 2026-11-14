@@ -80,7 +80,9 @@ const box = new THREE.Box3().setFromObject(group);
 const centre = box.getCenter(new THREE.Vector3());
 group.position.sub(centre);
 const size = box.getSize(new THREE.Vector3()).length();
-camera.position.set(size * 0.95, size * 0.75, size * 1.15);
+// far enough that the pair's bounding sphere fits the 30° view at every turn, with room for the corner labels
+const fitDist = (size / 2) / Math.sin(THREE.MathUtils.degToRad(15)) * 1.12;
+camera.position.set(0.95, 0.75, 1.15).normalize().multiplyScalar(fitDist);
 camera.lookAt(0, 0, 0);
 
 const controls = new OrbitControls(camera, renderer.domElement);

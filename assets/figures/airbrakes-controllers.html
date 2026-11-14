@@ -46,33 +46,56 @@ const svg = document.getElementById("c"), ro = document.getElementById("ro");
 const NS = "http://www.w3.org/2000/svg";
 const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
 const txt = (p, x, y, s, cls, anchor) => { const t = el("text", { x, y, class: cls, "text-anchor": anchor || "start" }, p); t.textContent = s; return t; };
-const W = 640, L = 92, R = 76, T = 8, ROW = 52, X0 = -60, X1 = 40;
-const sx = (v) => L + (v - X0) / (X1 - X0) * (W - L - R);
-const H = T + ROW * D.rows.length + 26;
-svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-svg.setAttribute("aria-label", `Apogee miss for each controller on the ${D.reach} reachable flights. RMS: ` + D.stats.map((s) => `${s.name} ${s.rms.toFixed(1)} m`).join(", ") + ".");
-const g = el("g", { class: "grid" }, svg);
-for (let v = X0; v <= X1; v += 10) {
-  el("line", { x1: sx(v), x2: sx(v), y1: T, y2: T + ROW * D.rows.length }, g);
-  if (v % 20 === 0) txt(svg, sx(v), H - 8, (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + (v === X1 ? " m" : ""), "tick", "middle");
-}
-el("line", { class: "zero", x1: sx(0), x2: sx(0), y1: T, y2: T + ROW * D.rows.length }, svg);
+// Two layouts: wide puts names left and RMS right of each strip; narrow (phones) puts both above it, so text stays readable.
+const X0 = -60, X1 = 40, T = 8;
 // a steady jitter per flight, so each flight sits at the same height in every row
 const jit = D.flights.map((f) => ((Math.sin(f.case * 12.9898) * 43758.5453) % 1 + 1) % 1 - 0.5);
-const dots = el("g", { class: "dots" }, svg);
-const pos = [];
-D.rows.forEach((row, r) => {
-  const cy = T + ROW * r + ROW / 2;
-  txt(svg, L - 10, cy + 4, D.names[r], "name", "end");
-  txt(svg, W - R + 8, cy + 4, `RMS ${D.stats[r].rms.toFixed(1)} m`, "rms");
-  row.forEach((e, i) => {
-    const x = sx(Math.max(X0, Math.min(X1, e))), y = cy + jit[i] * ROW * 0.62;
-    el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: 2.6 }, dots);
-    pos.push([x, y, r, i]);
+let lay = null, pos = [], rings = [], cur = null;
+function render() {
+  const narrow = svg.getBoundingClientRect().width < 520;
+  if (lay && lay.narrow === narrow) return;
+  const W = narrow ? 360 : 640, L = narrow ? 8 : 92, R = narrow ? 8 : 76;
+  const LAB = narrow ? 18 : 0, ROW = narrow ? 60 : 52, STRIP = ROW - LAB;
+  const sx = (v) => L + (v - X0) / (X1 - X0) * (W - L - R);
+  const H = T + ROW * D.rows.length + 26;
+  svg.replaceChildren();
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("aria-label", `Apogee miss for each controller on the ${D.reach} reachable flights. RMS: ` + D.stats.map((s) => `${s.name} ${s.rms.toFixed(1)} m`).join(", ") + ".");
+  const g = el("g", { class: "grid" }, svg);
+  for (let v = X0; v <= X1; v += 10) {
+    el("line", { x1: sx(v), x2: sx(v), y1: T, y2: T + ROW * D.rows.length }, g);
+    if (v % 20 === 0) txt(svg, sx(v), H - 8, (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + (v === X1 ? " m" : ""), "tick", v === X1 && narrow ? "end" : "middle");
+  }
+  el("line", { class: "zero", x1: sx(0), x2: sx(0), y1: T, y2: T + ROW * D.rows.length }, svg);
+  const dots = el("g", { class: "dots" }, svg);
+  pos = [];
+  D.rows.forEach((row, r) => {
+    const top = T + ROW * r, cy = top + LAB + STRIP / 2;
+    if (narrow) {
+      txt(svg, L, top + 13, D.names[r], "name");
+      txt(svg, W - R, top + 13, `RMS ${D.stats[r].rms.toFixed(1)} m`, "rms", "end");
+    } else {
+      txt(svg, L - 10, cy + 4, D.names[r], "name", "end");
+      txt(svg, W - R + 8, cy + 4, `RMS ${D.stats[r].rms.toFixed(1)} m`, "rms");
+    }
+    row.forEach((e, i) => {
+      const x = sx(Math.max(X0, Math.min(X1, e))), y = cy + jit[i] * STRIP * 0.62;
+      el("circle", { cx: x.toFixed(1), cy: y.toFixed(1), r: 2.6 }, dots);
+      pos.push([x, y, r, i]);
+    });
   });
-});
-const rings = D.rows.map(() => el("circle", { class: "ring", r: 5, visibility: "hidden" }, svg));
-const hit = el("rect", { class: "hit", x: L, y: T, width: W - L - R, height: ROW * D.rows.length }, svg);
+  rings = D.rows.map(() => el("circle", { class: "ring", r: 5, visibility: "hidden" }, svg));
+  const hit = el("rect", { class: "hit", x: L, y: T, width: W - L - R, height: ROW * D.rows.length }, svg);
+  hit.addEventListener("pointermove", (ev) => {
+    const b = svg.getBoundingClientRect(), x = (ev.clientX - b.left) / b.width * W, y = (ev.clientY - b.top) / b.height * H;
+    let best = null, bd = 1e9;
+    pos.forEach((p) => { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; best = p; } });
+    cur = best && bd < 400 ? best[3] : null; show(cur);
+  });
+  hit.addEventListener("pointerleave", () => show(null));
+  lay = { narrow, W, H };
+  if (cur !== null) show(cur);
+}
 function show(i) {
   if (i === null) { rings.forEach((c) => c.setAttribute("visibility", "hidden")); ro.textContent = ""; return; }
   D.rows.forEach((row, r) => {
@@ -82,14 +105,8 @@ function show(i) {
   const f = D.flights[i], m = (v) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + " m";
   ro.textContent = `Flight ${f.case + 1} (wind ${f.wind} m/s): ` + D.names.map((n, r) => `${n} ${m(D.rows[r][i])}`).join(" · ");
 }
-let cur = null;
-hit.addEventListener("pointermove", (ev) => {
-  const b = svg.getBoundingClientRect(), x = (ev.clientX - b.left) / b.width * W, y = (ev.clientY - b.top) / b.height * H;
-  let best = null, bd = 1e9;
-  pos.forEach((p) => { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; best = p; } });
-  cur = best && bd < 400 ? best[3] : null; show(cur);
-});
-hit.addEventListener("pointerleave", () => show(null));
+render();
+new ResizeObserver(render).observe(svg);
 // keyboard: left and right step through the flights in order of PI's miss
 const order = D.flights.map((_, i) => i).sort((a, b) => D.rows[1][a] - D.rows[1][b]);
 svg.addEventListener("keydown", (ev) => {

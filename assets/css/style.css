@@ -65,7 +65,7 @@ a { color: inherit; text-underline-offset: 0.18em; }
 .site-header ::selection, .hero ::selection, .band-red ::selection, .footer-bar ::selection { background: var(--yellow); color: var(--indigo); }
 table, .facts dd, .experience .when { font-variant-numeric: tabular-nums; }
 
-p, li, figcaption { text-wrap: pretty; }
+p, li, dd, figcaption { text-wrap: pretty; }
 
 :focus-visible {
     outline: 3px solid var(--indigo);
@@ -547,6 +547,13 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
 /* Wide app-like embeds (the iBoM) keep their own height; on phones they get most of the screen. */
 .figure-embed.wide iframe { background: var(--white); box-shadow: 0 0 0 1px var(--indigo-line); }
 @media (max-width: 700px) { .figure-embed.wide iframe { aspect-ratio: auto; height: 85vh; } }
+/* Embeds that can't work on a phone: a note and a link there instead (the frame loads only on wider screens, in site.js) */
+.embed-phone-note { display: none; margin: 0; padding: 1.1rem 1.2rem; border-radius: 12px; box-shadow: 0 0 0 1px var(--indigo-line); background: var(--white); }
+.embed-phone-note .pill { margin: 0.6rem 0 0; }
+@media (max-width: 599px) {
+    .figure-embed[data-desktop-only] iframe { display: none; }
+    .figure-embed[data-desktop-only] .embed-phone-note { display: block; }
+}
 .figure.wide img { border: 2px solid var(--indigo); border-radius: 12px; }
 .fig-link { display: block; border-radius: 12px; }
 .fig-link:hover img { border-color: var(--red); }

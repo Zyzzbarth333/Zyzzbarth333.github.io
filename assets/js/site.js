@@ -19,6 +19,14 @@
     items.forEach(function (el) { io.observe(el); });
 })();
 
+// Embeds that can't work on a phone load only on wider screens (the page shows a note and a link on phones).
+document.querySelectorAll('.figure-embed[data-desktop-only] iframe[data-src]').forEach(function (frame) {
+    var wide = window.matchMedia('(min-width: 600px)');
+    function load() { if (wide.matches && !frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src); }
+    load();
+    if (wide.addEventListener) wide.addEventListener('change', load);
+});
+
 // Size each embedded figure to its content (same-origin pages under assets/figures/).
 document.querySelectorAll('.figure-embed iframe:not([data-fixed])').forEach(function (frame) {
     function fit() {
