@@ -22,18 +22,20 @@ belongs in the script that writes the page; a hand edit here is overwritten by t
 | <img src=".github/readme/icons/airbrakes.png" width="64" height="64" alt=""> | [Airbrake control simulation](https://zyzzbarth333.github.io/projects/airbrakes.html) | UQ Space · simulation study · 2026 |
 | <img src=".github/readme/icons/digital-orrery.png" width="64" height="64" alt=""> | [Digital orrery and transfer planner](https://zyzzbarth333.github.io/projects/digital-orrery.html) | Personal project · 2025–26 |
 | <img src=".github/readme/icons/weather-station.png" width="64" height="64" alt=""> | [Launch-site weather station](https://zyzzbarth333.github.io/projects/weather-station.html) | Team project · UQ Space · 2026 |
+| <img src=".github/readme/icons/errol.png" width="64" height="64" alt=""> | [Operator tools for Errol, an autonomous research car](https://zyzzbarth333.github.io/projects/errol.html) | UQ Winter Research Program · 2025 |
 | <img src=".github/readme/icons/crank-arm.png" width="64" height="64" alt=""> | [Titanium crank arm for metal 3D printing](https://zyzzbarth333.github.io/projects/crank-arm.html) | Individual coursework · UQ · 2026 |
 | <img src=".github/readme/icons/camera-mount.png" width="64" height="64" alt=""> | [Ball joint and mount for a security camera](https://zyzzbarth333.github.io/projects/camera-mount.html) | Personal project · 2022 |
 | <img src=".github/readme/icons/engg1100.png" width="64" height="64" alt=""> | [Remote-controlled firefighting vehicle](https://zyzzbarth333.github.io/projects/engg1100.html) | First-year team project · 2022 |
 
 <p>
-  <img src=".github/readme/projects.png" width="62%" alt="The project grid: a wide card for the Theseus rover, then cards with isometric icons">
-  <img src=".github/readme/phone.png" width="22%" alt="The home page on a phone">
+  <img src=".github/readme/projects.png" width="58%" alt="The project grid: a wide card for the Theseus rover, then a card with an isometric icon for each project">
+  <img src=".github/readme/phone.png" width="26%" alt="The home page on a phone">
 </p>
 
 Each project page follows one template: the outcome, a facts box (role, team, dates, tools, code), a lead figure,
 then the problem, what was built, the result, what went wrong and credits. Most lead figures are live: flight
-logs, a porkchop plot computed in the browser, a LiDAR map, a KiCad board viewer and 3D models.
+logs, a porkchop plot computed in the browser, a LiDAR map, a KiCad board viewer, 3D models and a replay of a
+recorded drive of an autonomous car.
 
 ![The top of the HAVOC-2 and COSMOS page: title, outcome and facts box](.github/readme/project-page.png)
 
