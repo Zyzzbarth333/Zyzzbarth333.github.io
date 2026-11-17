@@ -35,7 +35,12 @@ belongs in the script that writes the page; a hand edit here is overwritten by t
 Each project page follows one template: the outcome, a facts box (role, team, dates, tools, code), a lead figure,
 then the problem, what was built, the result, what went wrong and credits. Most lead figures are live: flight
 logs, a porkchop plot computed in the browser, a LiDAR map, a KiCad board viewer, 3D models and a replay of a
-recorded drive of an autonomous car.
+recorded drive of an autonomous car, run in Lichtblick with the car's own Foxglove panels.
+
+<p>
+  <img src=".github/readme/errol-replay.webp" width="52%" alt="Ten seconds of the Errol replay in Lichtblick: the GPS array panel, the LiDAR point cloud moving around the car, the campus map and the vehicle dashboard">
+  <img src=".github/readme/havoc2-replay.webp" width="46%" alt="The HAVOC-2 flight figure replaying the first flight: a cursor runs along the altitude plot while the ground track and acceleration follow">
+</p>
 
 ![The top of the HAVOC-2 and COSMOS page: title, outcome and facts box](.github/readme/project-page.png)
 
@@ -64,6 +69,9 @@ recorded drive of an autonomous car.
 Serve the folder so paths resolve as they do on Pages, then open `http://localhost:8000`:
 
     python3 -m http.server 8000
+
+The Errol replay streams its recording with HTTP range requests, which `python3 -m http.server` doesn't support, so
+check that page with a static server that does.
 
 ## Publishing
 
