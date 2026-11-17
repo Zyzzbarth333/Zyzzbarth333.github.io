@@ -226,6 +226,7 @@ function drawOrbits() {
 }
 
 function show(c) {
+  if (busy) return;                                  // the grid is being replaced
   pick = c;
   const dep = dateAt(c.iDep), tof = tofDays[c.iTof], arrD = new Date(dep.getTime() + tof * DAY * 1000);
   if (marks && geo) {
@@ -268,9 +269,12 @@ function run(k, win) {
   document.querySelectorAll(".dest button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.dest === k)));
   if (!WINS[k]) search(k);
   drawWins();
-  setTimeout(() => {
-    const t0 = performance.now();
-    G = porkchopGrid({ stateOf, departure, arrival, muSun: MU_SUN, depStart, depDays, tofDays });
+  const req = ++gridReq, t0 = performance.now();
+  busy = true; plot.style.opacity = "0.45"; plot.setAttribute("aria-busy", "true");   // the click shows at once; the grid takes 0.3 to 0.4 s
+  gridOf({ departure, arrival, muSun: MU_SUN, depStart, depDays, tofDays }).then((g) => {
+    if (req !== gridReq) return;                     // a later pick replaced this one
+    busy = false; plot.style.opacity = ""; plot.removeAttribute("aria-busy");
+    G = g;
     DV = new Float64Array(G.dvDep.length);
     let bi = -1;
     for (let n = 0; n < DV.length; n++) { DV[n] = G.dvDep[n] + capture(G.vinfArr[n], k); if (Number.isFinite(DV[n]) && (bi < 0 || DV[n] < DV[bi])) bi = n; }
@@ -285,7 +289,25 @@ function run(k, win) {
     plot.setAttribute("aria-label", `Porkchop plot of total delta-v for Earth to ${C.name} departures from ${fmt(depStart)} over ${C.span} days and flight times of ${C.tof[0]} to ${C.tof[1]} days, worked out live. The cheapest transfer needs ${BEST.dv.toFixed(2)} km/s. Point at it, or use the arrow keys, to pick a transfer.`);
     drawOrbits(); draw(); drawWins();
     setText("hint", `Point at or tap the plot, or use its arrow keys, to pick a departure date and flight time. The dot marks the cheapest transfer on the plot; pick a launch window above to move to it. The plot reads to its grid (every ${C.step} days of departure and ${C.tof[2]} days of flight), so its dates can differ by a day or two from the exact windows above.`);
-  }, 30);
+  });
+}
+
+// ---------- the porkchop grid, worked out in a worker so the page never freezes; on the main thread if workers fail ----------
+let gridWorker = null, gridReq = 0, gridSeq = 0, busy = false;
+function gridOf(o) {
+  const here = () => new Promise((ok) => setTimeout(() => ok(porkchopGrid({ stateOf, ...o })), 30));
+  if (gridWorker === null) {
+    try { gridWorker = new Worker(new URL("./orrery/grid.worker.js", import.meta.url), { type: "module" }); }
+    catch (e) { gridWorker = false; }
+  }
+  if (!gridWorker) return here();
+  return new Promise((ok) => {
+    const id = ++gridSeq;
+    const done = (e) => { if (e.data.id !== id) return; gridWorker.removeEventListener("message", done); ok(e.data.G); };
+    gridWorker.addEventListener("message", done);
+    gridWorker.onerror = () => { gridWorker = false; here().then(ok); };
+    gridWorker.postMessage({ id, ...o });
+  });
 }
 
 // ---------- the orrery's trajectory search: every launch window to 2040, in a worker ----------
