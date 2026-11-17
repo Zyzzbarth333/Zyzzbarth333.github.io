@@ -743,3 +743,26 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
     .site-header { position: static; }
     .js .reveal { opacity: 1; transform: none; }
 }
+/* METR4810: the pod steers on hover (two drawn poses, crossfaded), the bore path and mouth in the block */
+.card .icon .mt-bore { fill: none; stroke: #BB0700; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: .8; }
+.card .icon .mt-mouth { fill: #2E1499; opacity: .55; }
+.card .icon .mt-steer { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {      /* reduced motion keeps the pod straight */
+    .card .icon .mt-steer, .card .icon .mt-straight { transition: opacity .6s ease; }
+    .card:hover .icon .mt-steer, .card:focus-within .icon .mt-steer { opacity: 1; }
+    .card:hover .icon .mt-straight, .card:focus-within .icon .mt-straight { opacity: 0; }
+}
+/* Coursework: a compact list under Earlier work, each line linking to its entry on the coursework page */
+.coursework-list {
+    list-style: none; margin: 0 auto; padding: 0; max-width: 980px;
+    display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 2.2rem;
+}
+@media (min-width: 860px) { .coursework-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.coursework-list li {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    padding: 0.6rem 0.15rem; border-bottom: 1px solid rgba(46, 20, 153, 0.2);
+}
+.coursework-list a { font-weight: 600; }
+.coursework-list .meta { margin: 0; font-size: 0.88rem; white-space: nowrap; }
+.project-page .prose p.meta { font-size: 0.92rem; margin: -0.4rem 0 0.7rem; }
+.project-page .prose > .figure { max-width: 560px; margin-left: auto; margin-right: auto; }

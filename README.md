@@ -23,9 +23,11 @@ belongs in the script that writes the page; a hand edit here is overwritten by t
 | <img src=".github/readme/icons/digital-orrery.png" width="64" height="64" alt=""> | [Digital orrery and transfer planner](https://zyzzbarth333.github.io/projects/digital-orrery.html) | Personal project · 2025–26 |
 | <img src=".github/readme/icons/weather-station.png" width="64" height="64" alt=""> | [Launch-site weather station](https://zyzzbarth333.github.io/projects/weather-station.html) | Team project · UQ Space · 2026 |
 | <img src=".github/readme/icons/errol.png" width="64" height="64" alt=""> | [Operator tools for Errol, an autonomous research car](https://zyzzbarth333.github.io/projects/errol.html) | UQ Winter Research Program · 2025 |
+| <img src=".github/readme/icons/metr4810.png" width="64" height="64" alt=""> | [A steered cutter pod for a tunnel-boring robot](https://zyzzbarth333.github.io/projects/metr4810.html) | METR4810 · team of 4 · 2026 |
 | <img src=".github/readme/icons/crank-arm.png" width="64" height="64" alt=""> | [Titanium crank arm for metal 3D printing](https://zyzzbarth333.github.io/projects/crank-arm.html) | Individual coursework · UQ · 2026 |
 | <img src=".github/readme/icons/camera-mount.png" width="64" height="64" alt=""> | [Ball joint and mount for a security camera](https://zyzzbarth333.github.io/projects/camera-mount.html) | Personal project · 2022 |
 | <img src=".github/readme/icons/engg1100.png" width="64" height="64" alt=""> | [Remote-controlled firefighting vehicle](https://zyzzbarth333.github.io/projects/engg1100.html) | First-year team project · 2022 |
+|  | [Selected coursework](https://zyzzbarth333.github.io/projects/coursework.html): propulsion, hypersonics, control, robotics, functional safety and computer vision | UQ coursework · 2025 – 2026 |
 
 <p>
   <img src=".github/readme/projects.png" width="58%" alt="The project grid: a wide card for the Theseus rover, then a card with an isometric icon for each project">
