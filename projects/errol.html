@@ -61,12 +61,14 @@
             <div><dt>Tools</dt><dd>TypeScript, Foxglove, ROS 2, Linux (systemd, dnsmasq), Ouster LiDAR</dd></div>
             <div><dt>Code</dt><dd>Private: held by the lab</dd></div>
         </dl>
-        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#what-i-did">What I did</a></li><li><a href="#credits">Credits</a></li></ul></nav>
+        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-car">The car</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#credits">Credits</a></li></ul></nav>
         <figure class="figure figure-embed wide">
             <iframe src="../assets/figures/errol-replay.html?v=02159c1b" title="Live replay of a recorded Errol drive in a replica of the Vehicle Operation layout: GPS array, LiDAR point cloud, track and vehicle dashboard" loading="lazy" style="--ratio:1.75"></iframe>
             <figcaption>A replica of my Foxglove &quot;Vehicle Operation&quot; layout, rebuilt for this page and replaying 45 s of a drive recorded on Errol on 24 July 2025: the Ouster LiDAR&#x27;s point cloud, the five GNSS receivers, the car&#x27;s track, and the speed, gear, steering, indicators, brake and throttle from its drive-by-wire reports. Press Play, or drag the slider; drag the 3D view to turn it.</figcaption>
         </figure>
         <div class="prose">
+            <h2 id="the-car">The car</h2>
+            <p>Errol is a Lexus RX 450h fitted with Ouster OS1-128 and RoboSense BP32 LiDARs, a NovAtel PwrPak7D and four u-blox ZED-F9P GNSS receivers, and PACMod3 drive-by-wire, all on ROS 2.</p>
             <h2 id="what-i-did">What I did</h2>
             <ul>
                 <li>I built 10 Foxglove panels in TypeScript, arranged in 4 layouts, for the car&#x27;s LiDAR, GNSS and drive-by-wire data.</li>
