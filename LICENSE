@@ -1,0 +1,17 @@
+Copyright (c) 2026 Isaac Johan Ziebarth. All rights reserved.
+
+The code, text, images, figures and other content in this repository are not
+licensed for reuse. You may view the published site and this repository, and use
+the features GitHub's Terms of Service provide for public repositories, but you
+may not copy, modify, publish or distribute any of it without written permission.
+
+Third-party components keep their own licences, which are stated in README.md
+(Licence) and in the licence file beside each component:
+
+- assets/vendor/three-0.187.0/LICENSE               three.js (MIT)
+- assets/vendor/astronomy-engine-2.1.19/LICENSE     Astronomy Engine (MIT)
+- assets/vendor/kicanvas/LICENSE.md                 KiCanvas (MIT)
+- assets/vendor/kicanvas/fonts/                     Material Symbols (Apache 2.0), Nunito (SIL OFL 1.1)
+- assets/fonts/                                     Fraunces and Sanchez (SIL OFL 1.1)
+- assets/figures/LICENSE-anatomy-kit.txt            Anatomy kit (MIT)
+- assets/figures/osiris-v0-ibom.html                InteractiveHtmlBom output (MIT)

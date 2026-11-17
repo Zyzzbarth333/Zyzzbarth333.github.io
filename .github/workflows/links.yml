@@ -1,0 +1,26 @@
+# Checks every local link, image and #anchor in the published pages and the docs, without going online.
+# Runs on each pull request into main and on each push to main.
+name: Links
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --no-progress --offline --include-fragments --root-dir ${{ github.workspace }}
+            './**/*.html' README.md CONTRIBUTING.md
+          fail: true
+          jobSummary: true
