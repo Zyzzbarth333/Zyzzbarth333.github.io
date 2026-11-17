@@ -11,6 +11,9 @@ checked.
    - every claim against the author's verified facts;
    - accessibility (axe, WCAG 2.2 AA), HTML validity, links and Lighthouse;
    - the changed pages at phone width (390 px) and desktop width (1280 px).
+
+   The Links workflow (`.github/workflows/links.yml`) also checks every local link, image and anchor on each
+   pull request.
 4. Open a pull request into `main`, and merge it once the checks pass and the author has approved it.
    GitHub Pages republishes `main` within about a minute.
 
