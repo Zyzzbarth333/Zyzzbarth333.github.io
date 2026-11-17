@@ -90,6 +90,10 @@
             <iframe src="../assets/figures/havoc2-flight3d.html?v=45f61a7f" title="The same flight in 3D at true scale: drag or use the arrow keys to turn it, and replay it" loading="lazy" style="--ratio:1.15"></iframe>
             <figcaption>The same flight in 3D, at true scale and relative to the pad, drawn from the same logs and with the same rules: solid lines are measured and dashed lines modelled, with the climb in ink and the descent in orange. The faint line on the grid is its track over the ground. Drag, or use the arrow keys, to turn it, and replay it to follow the rocket at 4 times real speed.</figcaption>
         </figure>
+        <figure class="figure figure-embed wide">
+            <iframe src="../assets/figures/havoc2-states.html?v=5b80a8c9" title="State diagram of HAVOC-2&#x27;s flight-phase detector, with the threshold for each transition" loading="lazy" style="--ratio:3.6"></iframe>
+            <figcaption>The flight-phase detector in HAVOC-2&#x27;s firmware as of October 2026, which I redesigned after the first flight and tuned on its logs and bench captures. It reports the phase in telemetry and fires nothing. |a| is the IMU&#x27;s measured acceleration magnitude in g, relative to its own reading at rest, sampled at 50 Hz, and v is the vertical velocity from the filter that blends the barometer with the IMU.</figcaption>
+        </figure>
         <figure class="figure figure-embed">
             <iframe src="../assets/figures/cosmos-architecture.html?v=e1233669" title="Block diagram of COSMOS: one server per device, feeding the React page, the sim service and a hash-chained session log" loading="lazy" style="--ratio:1.85"></iframe>
             <figcaption>How I put COSMOS together, as the code stands: one server process per device, one WebSocket per server for telemetry and commands, and a hash-chained session log that can be verified and replayed.</figcaption>
