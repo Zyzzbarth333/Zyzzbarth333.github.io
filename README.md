@@ -92,7 +92,7 @@ for reuse ([LICENSE](LICENSE)). Third-party parts keep their own licences:
 | `assets/vendor/kicanvas/`, the KiCad viewer on the OSIRIS page: [KiCanvas](https://kicanvas.org/) ([source](https://github.com/theacodes/kicanvas)). Its font stylesheet points at the self-hosted `fonts/` | MIT (`LICENSE.md` beside it) |
 | `assets/vendor/kicanvas/fonts/`: [Material Symbols Outlined](https://github.com/google/material-design-icons), cut down to the icons KiCanvas uses, and [Nunito](https://github.com/googlefonts/nunito) | Apache 2.0 and SIL Open Font License, each with its licence |
 | `lichtblick/`: a build of [Lichtblick](https://github.com/lichtblick-suite/lichtblick) v1.31.0 with a small patch (`lichtblick/lichtblick-static-loaders.patch`), for the Errol replay | Mozilla Public License 2.0 (`lichtblick/LICENSE.txt`; source and changes in `lichtblick/SOURCE.md`) |
-| `lichtblick/static/errol-vehicle-controls.foxe`: the Errol Vehicle Controls panels, built | MIT |
+| `lichtblick/static/errol-vehicle-controls.foxe`: the Errol Vehicle Controls panels, built | MIT, (c) 2025 The University of Queensland (`lichtblick/static/LICENSE-errol-vehicle-controls.txt`) |
 | `lichtblick/data/lexus.glb`: simplified from the Lexus model in [Autoware](https://github.com/autowarefoundation/sample_vehicle_launch)'s sample vehicle | Apache 2.0 (`lichtblick/data/LICENSE-autoware.txt`) |
 | `lichtblick/data/errol-drive.mcap`: its car-model topic uses the `foxglove.SceneUpdate` schema from [@foxglove/schemas](https://github.com/foxglove/foxglove-sdk) | MIT |
 | `assets/fonts/`: Fraunces and Sanchez | SIL Open Font License (texts beside them) |

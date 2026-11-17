@@ -9,5 +9,6 @@ licensed under the Mozilla Public License 2.0 (`LICENSE.txt`). Its source is at 
 - an asset URL relative to the page, such as the car model, resolves against the page (`MessagePipeline/store.ts`);
 - the left sidebar starts closed, and the launch-preference screen is off (`WorkspaceContextProvider.tsx`, `WebRoot.tsx`).
 
-`static/errol-vehicle-controls.foxe` holds the Errol Vehicle Controls panels (MIT). `data/lexus.glb` is derived
+`static/errol-vehicle-controls.foxe` holds the Errol Vehicle Controls panels (MIT, (c) 2025 The University of
+Queensland; `static/LICENSE-errol-vehicle-controls.txt`). `data/lexus.glb` is derived
 from the Lexus model in Autoware's sample_vehicle (Apache-2.0).

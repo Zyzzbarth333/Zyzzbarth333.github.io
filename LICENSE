@@ -16,6 +16,7 @@ Third-party components keep their own licences, which are stated in README.md
 - assets/figures/LICENSE-anatomy-kit.txt            Anatomy kit (MIT)
 - assets/figures/osiris-v0-ibom.html                InteractiveHtmlBom output (MIT)
 - lichtblick/                                       Lichtblick (MPL 2.0; lichtblick/LICENSE.txt, SOURCE.md)
-- lichtblick/static/errol-vehicle-controls.foxe     Errol Vehicle Controls panels (MIT)
+- lichtblick/static/errol-vehicle-controls.foxe     Errol Vehicle Controls panels (MIT, (c) 2025 The University
+                                                    of Queensland; LICENSE-errol-vehicle-controls.txt)
 - lichtblick/data/lexus.glb                         derived from Autoware's sample-vehicle Lexus model (Apache 2.0;
                                                     lichtblick/data/LICENSE-autoware.txt)
