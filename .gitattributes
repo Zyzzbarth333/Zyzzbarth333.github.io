@@ -19,3 +19,5 @@
 *.glb binary
 *.foxe binary
 *.wasm binary
+*.mp4 binary
+*.webm binary
