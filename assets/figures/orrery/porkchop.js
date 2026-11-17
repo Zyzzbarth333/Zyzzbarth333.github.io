@@ -1,4 +1,4 @@
-// Copied unchanged from github.com/Zyzzbarth333/digital-orrery (src/physics/porkchop.js, commit a4ea6e3), MIT licence.
+// Copied unchanged from github.com/Zyzzbarth333/digital-orrery (src/physics/porkchop.js, commit 92ac34a), MIT licence.
 // src/physics/porkchop.js
 //
 // Porkchop (launch-window) grid driven by the verified Lambert solver in

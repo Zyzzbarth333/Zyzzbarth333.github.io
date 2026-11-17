@@ -1,4 +1,4 @@
-// Copied unchanged from github.com/Zyzzbarth333/digital-orrery (src/physics/orbital.js, commit a4ea6e3), MIT licence.
+// Copied unchanged from github.com/Zyzzbarth333/digital-orrery (src/physics/orbital.js, commit 92ac34a), MIT licence.
 // src/physics/orbital.js
 //
 // Orbital-mechanics core for digital-orrery. Pure ES module: no imports, no
