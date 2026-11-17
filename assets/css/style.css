@@ -435,6 +435,10 @@ a.pill-outline:hover { background: var(--indigo); color: var(--white); }
 .card .icon .ws-head { fill: #BB0700; stroke: #2E1499; stroke-width: 0.8; stroke-linejoin: round; }
 .card .icon .ws-cap { fill: #ffffff; stroke: #2E1499; stroke-width: 1; }
 .card .icon .rk-flame { opacity: 0; transform-box: fill-box; transform-origin: 50% 0%; }   /* site.js lights it during the boost */
+.card .icon .er-ring { fill: none; stroke: #BB0700; stroke-width: 1.2; opacity: 0; }   /* Errol: LiDAR scan rings, hidden at rest */
+.card .icon .er-head { fill: #FFC908; } .card .icon .er-tail { fill: #BB0700; } .card .icon .er-lidar-dot { fill: #ffffff; }
+.card .icon .er-seam { fill: none; stroke: #A99EDB; stroke-width: 0.8; }
+.card .icon .er-handle { fill: none; stroke: #6E5CC4; stroke-width: 1.4; stroke-linecap: round; }
 
 /* Hover loops: paused at rest, running on hover or keyboard focus, never under reduced motion */
 @media (prefers-reduced-motion: no-preference) {
@@ -449,10 +453,14 @@ a.pill-outline:hover { background: var(--indigo); color: var(--white); }
     .card .icon .ev-puff-1 { animation-delay: 0.18s !important; } .card .icon .ev-puff-2 { animation-delay: 0.36s !important; }
     .card .icon .ev-fire   { transform-box: fill-box; transform-origin: 50% 100%; animation: ev-douse 4.4s ease-in infinite; }
     .card .icon .ev-flame  { transform-box: fill-box; transform-origin: 50% 100%; animation: ic-flicker 0.3s ease-in-out infinite alternate; }
+    /* Errol: three LiDAR scan rings ripple out from under the car */
+    .card .icon .er-ring   { animation: er-scan 2.4s ease-out infinite; }
+    .card .icon .er-ring-1 { animation-delay: 0.8s; } .card .icon .er-ring-2 { animation-delay: 1.6s; }
     /* more specific than the loops above, so the loops stay parked until hover or focus */
     .card:not(:hover):not(:focus-within) .icon * { animation-play-state: paused; }
 }
 @keyframes ic-drive   { to { transform: translate(7.2px, 4.6px); } }
+@keyframes er-scan    { 0% { transform: scale(0.12); opacity: 0; } 8% { opacity: 0.9; } 100% { transform: scale(1); opacity: 0; } }
 @keyframes ic-pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 @keyframes ic-module  { 0%, 100% { transform: none; } 50% { transform: translate(0, -28px); } }
 @keyframes ic-flicker { from { transform: scale(1, 1); } to { transform: scale(0.85, 1.3); } }
