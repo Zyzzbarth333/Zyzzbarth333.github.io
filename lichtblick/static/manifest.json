@@ -1,0 +1,15 @@
+{
+ "extensions": [
+  "errol-vehicle-controls.foxe"
+ ],
+ "layouts": [
+  {
+   "name": "Errol open day",
+   "file": "errol-open-day-v7.json"
+  },
+  {
+   "name": "Errol operation",
+   "file": "errol-operation-v7.json"
+  }
+ ]
+}

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Errol replay</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:2rem;background:#fff;color:#111}a{color:inherit}</style>
+</head>
+<body>
+<p>Opening the drive in Lichtblick&hellip;</p>
+<script>
+  const here = new URL('.', location.href);
+  const q = new URLSearchParams({ ds: 'remote-file', 'ds.url': new URL('data/errol-drive.mcap', here).href, layout: 'Errol open day' });
+  location.replace(new URL('./?' + q, here));
+</script>
+<noscript><p>The replay runs in Lichtblick, which needs JavaScript.</p></noscript>
+</body>
+</html>
