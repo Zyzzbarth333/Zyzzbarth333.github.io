@@ -15,3 +15,7 @@
 *.woff2 binary
 *.stl  binary
 *.pdf  binary
+*.mcap binary
+*.glb binary
+*.foxe binary
+*.wasm binary

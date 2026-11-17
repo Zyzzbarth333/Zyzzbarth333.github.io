@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Errol drive replay in Lichtblick</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; }
+  .poster { position: relative; height: 100%; display: grid; place-items: center; overflow: hidden; }
+  .poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+  .poster::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / 0.5); }
+  .cta { position: relative; z-index: 1; display: grid; justify-items: center; gap: 0.7rem; padding: 1rem; text-align: center;
+         font: 400 0.95rem/1.4 system-ui, sans-serif; color: #fff; }
+  .start { font: 600 1.05rem/1 system-ui, sans-serif; padding: 0.9rem 1.5rem; border: 0; border-radius: 999px;
+           background: #fff; color: #111; cursor: pointer; display: inline-flex; gap: 0.6rem; align-items: center; }
+  .start:hover { background: #e8e8e8; }
+  .start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .start svg { width: 0.9em; height: 0.9em; }
+  .cta p { margin: 0; max-width: 30rem; text-shadow: 0 1px 2px #000; }
+  .app { position: absolute; left: 0; top: 0; width: 1440px; height: 878px; border: 0; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<div class="poster">
+  <img src="../img/projects/errol-lichtblick.webp?v=141060" width="1448" height="886"
+       alt="Still from the replay: the GPS array status panel, Errol's LiDAR point cloud around the Lexus model, a street map of the campus and the vehicle dashboard at 25 km/h in drive">
+  <div class="cta">
+    <button class="start" type="button"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0 9 5 1 10z" fill="currentColor"/></svg>Start the replay</button>
+    <p>Loads Lichtblick in this frame, scaled from a desktop window, then streams the 45 s drive (50 MB).</p>
+  </div>
+</div>
+<script>
+  // Run Lichtblick at a desktop window size and scale it to the frame, so its panels lay out as they do full size.
+  document.querySelector('.start').addEventListener('click', () => {
+    const app = document.createElement('iframe');
+    app.className = 'app'; app.title = 'Lichtblick replaying the Errol drive'; app.src = '../../lichtblick/errol.html';
+    const fit = () => { const k = innerWidth / 1440; app.style.transform = `scale(${k})`; app.style.height = `${innerHeight / k}px`; };
+    document.body.replaceChildren(app); fit(); addEventListener('resize', fit); app.focus();
+  });
+</script>
+</body>
+</html>

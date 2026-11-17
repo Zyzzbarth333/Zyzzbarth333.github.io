@@ -1,0 +1,139 @@
+{
+ "configById": {
+  "Errol Vehicle Controls.GPS Array Monitor!1jofuhw": {},
+  "Errol Vehicle Controls.Vehicle Dashboard!2cohdp8": {},
+  "3D!lidar_monitor": {
+   "cameraState": {
+    "perspective": true,
+    "distance": 60,
+    "phi": 50.15505768532026,
+    "thetaOffset": 135.2713367550871,
+    "targetOffset": [
+     0.22833652234792498,
+     1.027506511313104,
+     0
+    ],
+    "target": [
+     0,
+     0,
+     0
+    ],
+    "targetOrientation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "fovy": 45,
+    "near": 0.5,
+    "far": 500
+   },
+   "followMode": "follow-pose",
+   "scene": {
+    "transforms": {
+     "showLabel": false,
+     "editable": false,
+     "enablePreloading": true
+    },
+    "enableStats": false,
+    "backgroundColor": "#000000"
+   },
+   "layers": {
+    "grid": {
+     "layerId": "foxglove.Grid",
+     "visible": true,
+     "frameLocked": true,
+     "size": 50,
+     "divisions": 10,
+     "lineWidth": 1,
+     "color": "#1B5E20",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "order": 1,
+     "opacity": 0.5
+    }
+   },
+   "topics": {
+    "/ouster/points": {
+     "visible": true,
+     "pointSize": 3,
+     "colorField": "reflectivity",
+     "colorMode": "colormap",
+     "colorMap": "turbo",
+     "explicitAlpha": 1
+    },
+    "/rslidar_points": {
+     "visible": true,
+     "pointSize": 2,
+     "colorField": "intensity",
+     "colorMode": "colormap",
+     "colorMap": "rainbow",
+     "explicitAlpha": 0.8
+    },
+    "/errol/vehicle_model": {
+     "visible": true
+    }
+   },
+   "publish": {
+    "type": "disabled",
+    "poseTopic": "/move_base_simple/goal",
+    "pointTopic": "/clicked_point",
+    "poseEstimateTopic": "/initialpose",
+    "poseEstimateXDeviation": 0.5,
+    "poseEstimateYDeviation": 0.5,
+    "poseEstimateThetaDeviation": 0.26179939
+   },
+   "transforms": {},
+   "imageMode": {},
+   "followTf": "base_link"
+  },
+  "map!gps_track": {
+   "zoomLevel": 19,
+   "center": {
+    "lat": -27.499375822014954,
+    "lon": 153.0144867549401
+   },
+   "followTopic": "/novatel/oem7/fix",
+   "layer": "map",
+   "topicColors": {},
+   "maxNativeZoom": 18,
+   "topicConfig": {
+    "/novatel/oem7/fix": {
+     "historyMode": "all",
+     "pointDisplayMode": "dot"
+    }
+   },
+   "customTileUrl": "",
+   "disabledTopics": []
+  }
+ },
+ "globalVariables": {},
+ "userNodes": {},
+ "playbackConfig": {
+  "speed": 1
+ },
+ "layout": {
+  "first": "Errol Vehicle Controls.GPS Array Monitor!1jofuhw",
+  "second": {
+   "first": "3D!lidar_monitor",
+   "second": {
+    "first": "map!gps_track",
+    "second": "Errol Vehicle Controls.Vehicle Dashboard!2cohdp8",
+    "direction": "column",
+    "splitPercentage": 25
+   },
+   "direction": "row",
+   "splitPercentage": 60
+  },
+  "direction": "row",
+  "splitPercentage": 26
+ }
+}

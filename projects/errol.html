@@ -62,9 +62,10 @@
             <div><dt>Code</dt><dd>Private: held by the lab</dd></div>
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#the-car">The car</a></li><li><a href="#what-i-did">What I did</a></li><li><a href="#credits">Credits</a></li></ul></nav>
-        <figure class="figure figure-embed wide">
-            <iframe src="../assets/figures/errol-replay.html?v=02159c1b" title="Live replay of a recorded Errol drive in a replica of the Vehicle Operation layout: GPS array, LiDAR point cloud, track and vehicle dashboard" loading="lazy" style="--ratio:1.75"></iframe>
-            <figcaption>A replica of my Foxglove &quot;Vehicle Operation&quot; layout, rebuilt for this page and replaying 45 s of a drive recorded on Errol on 24 July 2025: the Ouster LiDAR&#x27;s point cloud, the five GNSS receivers, the car&#x27;s track, and the speed, gear, steering, indicators, brake and throttle from its drive-by-wire reports. Press Play, or drag the slider; drag the 3D view to turn it.</figcaption>
+        <figure class="figure figure-embed wide" data-desktop-only>
+            <iframe data-src="../assets/figures/errol-lichtblick.html?v=ed6b0aff" title="Replay of a recorded Errol drive in Lichtblick with my Foxglove panels: GPS array status, LiDAR point cloud around the car, campus map and vehicle dashboard" loading="lazy" style="--ratio:1.64" data-fixed></iframe>
+            <p class="embed-phone-note">The replay runs a full desktop app, which needs a wider screen than a phone. <a class="pill" href="../lichtblick/errol.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+            <figcaption>My Foxglove layout, with my GPS Array Monitor and Vehicle Dashboard panels, running in Lichtblick, the open-source fork of Foxglove, and replaying 45 s of a drive recorded on Errol on 24 July 2025 in real time: the status of the five GNSS receivers, the Ouster LiDAR&#x27;s point cloud around the car, its track on the campus map, and the speed, gear, steering, indicators, brake and throttle from the drive-by-wire reports. Start it, then press Play; drag the 3D view to turn it. The Layouts menu also has my full three-tab operation layout. <a class="fig-open" href="../lichtblick/errol.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></figcaption>
         </figure>
         <div class="prose">
             <h2 id="the-car">The car</h2>
@@ -83,7 +84,7 @@
         </figure>
         <div class="prose">
             <h2 id="credits">Credits</h2>
-            <p>Errol belongs to the UQ School of Mechanical and Mining Engineering. The page covers the tools I built for it during the 2025 UQ Winter Research Program.</p>
+            <p>Errol belongs to the UQ School of Mechanical and Mining Engineering. The page covers the tools I built for it during the 2025 UQ Winter Research Program. The replay runs <a href="https://github.com/lichtblick-suite/lichtblick" target="_blank" rel="noopener">Lichtblick<span class="visually-hidden"> (opens in a new tab)</span></a> v1.31.0 (Mozilla Public License 2.0; <a href="../lichtblick/SOURCE.md">its source and my changes</a>), and its car model is derived from the Lexus in <a href="https://github.com/autowarefoundation/sample_vehicle_launch" target="_blank" rel="noopener">Autoware's sample vehicle<span class="visually-hidden"> (opens in a new tab)</span></a> (Apache License 2.0). Map tiles &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap<span class="visually-hidden"> (opens in a new tab)</span></a> contributors.</p>
         </div>
         <nav class="page-nav" aria-label="More projects">
             <a class="pill pill-outline" href="../index.html#projects">&larr; All projects</a>

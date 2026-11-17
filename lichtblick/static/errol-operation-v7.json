@@ -1,0 +1,289 @@
+{
+ "configById": {
+  "Errol Vehicle Controls.System Readiness!3sd0tws": {},
+  "Errol Vehicle Controls.Mission Control!3ff2k1m": {},
+  "Errol Vehicle Controls.GPS Array Monitor!1jofuhw": {},
+  "Errol Vehicle Controls.Vehicle Dashboard!2cohdp8": {},
+  "3D!lidar_monitor": {
+   "cameraState": {
+    "perspective": true,
+    "distance": 60,
+    "phi": 50.15505768532026,
+    "thetaOffset": 135.2713367550871,
+    "targetOffset": [
+     0.22833652234792498,
+     1.027506511313104,
+     0
+    ],
+    "target": [
+     0,
+     0,
+     0
+    ],
+    "targetOrientation": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "fovy": 45,
+    "near": 0.5,
+    "far": 500
+   },
+   "followMode": "follow-pose",
+   "scene": {
+    "transforms": {
+     "showLabel": false,
+     "editable": false,
+     "enablePreloading": true
+    },
+    "enableStats": false,
+    "backgroundColor": "#000000"
+   },
+   "layers": {
+    "grid": {
+     "layerId": "foxglove.Grid",
+     "visible": true,
+     "frameLocked": true,
+     "size": 50,
+     "divisions": 10,
+     "lineWidth": 1,
+     "color": "#1B5E20",
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "order": 1,
+     "opacity": 0.5
+    }
+   },
+   "topics": {
+    "/ouster/points": {
+     "visible": true,
+     "pointSize": 3,
+     "colorField": "reflectivity",
+     "colorMode": "colormap",
+     "colorMap": "turbo",
+     "explicitAlpha": 1
+    },
+    "/rslidar_points": {
+     "visible": true,
+     "pointSize": 2,
+     "colorField": "intensity",
+     "colorMode": "colormap",
+     "colorMap": "rainbow",
+     "explicitAlpha": 0.8
+    },
+    "/errol/vehicle_model": {
+     "visible": true
+    }
+   },
+   "publish": {
+    "type": "disabled",
+    "poseTopic": "/move_base_simple/goal",
+    "pointTopic": "/clicked_point",
+    "poseEstimateTopic": "/initialpose",
+    "poseEstimateXDeviation": 0.5,
+    "poseEstimateYDeviation": 0.5,
+    "poseEstimateThetaDeviation": 0.26179939
+   },
+   "transforms": {},
+   "imageMode": {},
+   "followTf": "base_link"
+  },
+  "map!gps_track": {
+   "zoomLevel": 19,
+   "center": {
+    "lat": -27.499375822014954,
+    "lon": 153.0144867549401
+   },
+   "followTopic": "/novatel/oem7/fix",
+   "layer": "map",
+   "topicColors": {},
+   "maxNativeZoom": 18,
+   "topicConfig": {
+    "/novatel/oem7/fix": {
+     "historyMode": "all",
+     "pointDisplayMode": "dot"
+    }
+   },
+   "customTileUrl": "",
+   "disabledTopics": []
+  },
+  "Plot!critical_metrics": {
+   "paths": [
+    {
+     "value": "/pacmod/vehicle_speed_rpt.vehicle_speed",
+     "enabled": true,
+     "timestampMethod": "receiveTime",
+     "label": "Speed (m/s)",
+     "color": "#1976D2",
+     "lineWidth": 3
+    },
+    {
+     "value": "/novatel/oem7/bestpos.lat_stdev",
+     "enabled": true,
+     "timestampMethod": "receiveTime",
+     "label": "GPS Error (m)",
+     "color": "#F44336",
+     "lineWidth": 2
+    },
+    {
+     "value": "/novatel/oem7/bestpos.diff_age",
+     "enabled": true,
+     "timestampMethod": "receiveTime",
+     "label": "RTK Age (s)",
+     "color": "#FF9800",
+     "lineWidth": 2
+    }
+   ],
+   "showLegend": true,
+   "legendDisplay": "floating",
+   "showPlotValuesInLegend": true,
+   "isSynced": true,
+   "xAxisVal": "timestamp",
+   "sidebarDimension": 200,
+   "showXAxisLabels": true,
+   "showYAxisLabels": true,
+   "timestampFormat": "timeOfDay",
+   "followingViewWidth": 30
+  },
+  "Plot!gps_performance": {
+   "paths": [
+    {
+     "value": "/novatel/oem7/bestpos.num_svs",
+     "enabled": true,
+     "timestampMethod": "receiveTime",
+     "label": "Satellites",
+     "color": "#4CAF50",
+     "lineWidth": 2
+    },
+    {
+     "value": "/novatel/oem7/bestpos.lat_stdev",
+     "enabled": true,
+     "timestampMethod": "receiveTime",
+     "label": "Accuracy (m)",
+     "color": "#F44336",
+     "lineWidth": 2
+    }
+   ],
+   "showLegend": true,
+   "legendDisplay": "floating",
+   "showPlotValuesInLegend": true,
+   "isSynced": true,
+   "xAxisVal": "timestamp",
+   "minYValue": 0,
+   "timestampFormat": "timeOfDay",
+   "showXAxisLabels": true,
+   "showYAxisLabels": true,
+   "sidebarDimension": 240
+  },
+  "Table!system_health": {
+   "paths": [
+    {
+     "value": "/novatel/oem7/bestpos.num_svs",
+     "label": "Satellites"
+    },
+    {
+     "value": "/pacmod/vehicle_speed_rpt.vehicle_speed",
+     "label": "Speed (m/s)"
+    },
+    {
+     "value": "/novatel/oem7/bestpos.lat_stdev",
+     "label": "GPS \u03c3 (m)"
+    },
+    {
+     "value": "/pacmod/yaw_rate_rpt.yaw_rate",
+     "label": "Yaw Rate"
+    },
+    {
+     "value": "/pacmod/steering_rpt.manual_input",
+     "label": "Steering (rad)"
+    },
+    {
+     "value": "/pacmod/brake_rpt.manual_input",
+     "label": "Brake %"
+    },
+    {
+     "value": "/recording/active.data",
+     "label": "Recording"
+    }
+   ],
+   "topicPath": ""
+  },
+  "RawMessages!diagnostics": {
+   "topicPath": "/diagnostics",
+   "diffEnabled": false,
+   "diffMethod": "custom",
+   "showFullMessageForDiff": false,
+   "diffTopicPath": "",
+   "fontSize": 10,
+   "maxMessages": 10,
+   "filter": "message|level"
+  },
+  "Tab!main": {
+   "activeTabIdx": 1,
+   "tabs": [
+    {
+     "title": "\u2705 PRE-FLIGHT CHECK",
+     "layout": "Errol Vehicle Controls.System Readiness!3sd0tws"
+    },
+    {
+     "title": "\ud83d\ude97 VEHICLE OPERATION",
+     "layout": {
+      "first": "Errol Vehicle Controls.Mission Control!3ff2k1m",
+      "second": {
+       "first": {
+        "first": "Errol Vehicle Controls.GPS Array Monitor!1jofuhw",
+        "second": "3D!lidar_monitor",
+        "direction": "column",
+        "splitPercentage": 40
+       },
+       "second": {
+        "first": "map!gps_track",
+        "second": "Errol Vehicle Controls.Vehicle Dashboard!2cohdp8",
+        "direction": "column",
+        "splitPercentage": 50
+       },
+       "direction": "row",
+       "splitPercentage": 50
+      },
+      "direction": "row",
+      "splitPercentage": 25
+     }
+    },
+    {
+     "title": "\ud83d\udcca METRICS",
+     "layout": {
+      "first": {
+       "first": "Plot!critical_metrics",
+       "second": "Plot!gps_performance",
+       "direction": "column",
+       "splitPercentage": 50
+      },
+      "second": {
+       "first": "Table!system_health",
+       "second": "RawMessages!diagnostics",
+       "direction": "column",
+       "splitPercentage": 60
+      },
+      "direction": "row",
+      "splitPercentage": 70
+     }
+    }
+   ]
+  }
+ },
+ "globalVariables": {},
+ "userNodes": {},
+ "playbackConfig": {
+  "speed": 1
+ },
+ "layout": "Tab!main"
+}
