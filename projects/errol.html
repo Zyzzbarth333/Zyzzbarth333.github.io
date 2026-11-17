@@ -62,9 +62,9 @@
             <div><dt>Code</dt><dd>Private: held by the lab</dd></div>
         </dl>
         <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#what-i-did">What I did</a></li><li><a href="#credits">Credits</a></li></ul></nav>
-        <figure class="figure">
-            <img src="../assets/img/projects/errol-foxglove.jpg" alt="A Foxglove layout replaying one of the car&#x27;s recorded drives: a LiDAR point cloud of campus buildings, a street map and a vehicle dashboard panel" width="1600" height="975" fetchpriority="high" decoding="async">
-            <figcaption>A Foxglove layout replaying one of Errol&#x27;s recorded drives on the UQ St Lucia campus: the LiDAR point cloud, the car on the map, and a vehicle dashboard panel with speed, gear, steering, indicators, brake and throttle.</figcaption>
+        <figure class="figure figure-embed wide">
+            <iframe src="../assets/figures/errol-replay.html?v=02159c1b" title="Live replay of a recorded Errol drive in a replica of the Vehicle Operation layout: GPS array, LiDAR point cloud, track and vehicle dashboard" loading="lazy" style="--ratio:1.75"></iframe>
+            <figcaption>A replica of my Foxglove &quot;Vehicle Operation&quot; layout, rebuilt for this page and replaying 45 s of a drive recorded on Errol on 24 July 2025: the Ouster LiDAR&#x27;s point cloud, the five GNSS receivers, the car&#x27;s track, and the speed, gear, steering, indicators, brake and throttle from its drive-by-wire reports. Press Play, or drag the slider; drag the 3D view to turn it.</figcaption>
         </figure>
         <div class="prose">
             <h2 id="what-i-did">What I did</h2>
@@ -75,6 +75,10 @@
                 <li>The LiDAR sometimes failed to start. I fixed it by giving the LiDAR a permanent MAC-based DHCP lease through dnsmasq.</li>
             </ul>
         </div>
+        <figure class="figure reveal">
+            <img src="../assets/img/projects/errol-foxglove.jpg" alt="The real layout in Foxglove, replaying a drive: a LiDAR point cloud of campus buildings, a street map and the vehicle dashboard panel" width="1600" height="975" loading="lazy" decoding="async">
+            <figcaption>The real layout in Foxglove, replaying one of Errol&#x27;s drives on the UQ St Lucia campus.</figcaption>
+        </figure>
         <div class="prose">
             <h2 id="credits">Credits</h2>
             <p>Errol belongs to the UQ School of Mechanical and Mining Engineering. The page covers the tools I built for it during the 2025 UQ Winter Research Program.</p>
