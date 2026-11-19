@@ -83,7 +83,8 @@
     const Q = (window.__cloudQ = window.__cloudQ || []);
     window.__rover = { get x() { return rx * MPC; }, get y() { return ry * MPC; }, get h() { return rh; }, get livo() { return livo; } };
 
-    function size() { const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // phones draw at 1x: the arena is pixel art, and 2x cost a third of the frame rate
+    function size() { const dpr = Math.min(innerWidth < 700 ? 1 : 2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       cols = Math.floor(W / CELL); rows = Math.floor(H / CELL); }
     const tval = (x, y) => { const gw = tg.gw, gx = x / 60, gy = y / 60, x0 = gx | 0, y0 = gy | 0, fx_ = gx - x0, fy_ = gy - y0, s = v => v * v * (3 - 2 * v), g = tg.g;
       const a = g[y0 * gw + x0] || 0, b = g[y0 * gw + x0 + 1] || 0, c = g[(y0 + 1) * gw + x0] || 0, d = g[(y0 + 1) * gw + x0 + 1] || 0; return a + (b - a) * s(fx_) + (c - a) * s(fy_) + (a - b - c + d) * s(fx_) * s(fy_); };
@@ -182,7 +183,8 @@
       items.forEach(it => { const mv = it.kind === 'devil' ? devil : it.kind === 'guard' ? guard : null, ix = mv ? Math.floor(mv.x) : it.x, iy = mv ? Math.floor(mv.y) : it.y;
         if (!it.found && inside(ix, iy) && cam[id(ix, iy)] && inCam(ix + .5, iy + .5)) detect(it); });
     }
-    function logLine(text, sub) { const li = document.createElement('li'); li.innerHTML = `<div class="row"><span class="glyph" style="background:${C.org}"></span><span><b>${text}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></div>`; logEl.prepend(li); }
+    function logLine(text, sub, kind) { const li = document.createElement('li'); li.innerHTML = `<div class="row"><span class="glyph" style="background:${C.org}"></span><span><b>${text}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></div>`;
+      if (kind) li.querySelector('.glyph').replaceWith(thumb({ kind }, 22)); logEl.prepend(li); }
     function counters() { const c = document.getElementById('coins'), sc = document.getElementById('score'); if (c) c.textContent = coins; if (sc) sc.textContent = score; }
     function glyphHTML(it) {
       if (it.kind === 'aruco') return '<span class="glyph aruco">' + it.bits.map(b => `<i style="background:${b ? '#fff' : '#111'}"></i>`).join('') + '</span>';
@@ -194,7 +196,7 @@
         if (t) tasks.push({ it, type: t }); }
       let title, sub, body, btn = '', icon = '';
       if (it.kind === 'aruco') { const p = BY[it.slug]; nProj++; title = p.title; sub = `ArUco ${String(it.n).padStart(2, '0')} · project`; body = p.result;
-        icon = (document.querySelector('.pcard[data-slug="' + it.slug + '"] .icon') || {}).outerHTML || ''; btn = `<button class="btn" type="button" data-open="${it.slug}">Open</button>`; }
+        icon = (document.querySelector('.pcard[data-slug="' + it.slug + '"] .icon') || {}).outerHTML || ''; btn = `<button class="btn" type="button" data-open="${it.slug}">Open</button>`;  if (!quiet) { const say = document.getElementById('rv-say'); if (say) say.textContent = `Found a project: ${p.title}`; } }
       else if (it.kind === 'cube') { nFind++; title = it.label; sub = `${it.name} cube · result`; body = it.sub; }
       else if (it.kind === 'egg') { nFind++; title = it.name; sub = 'field find ★'; body = it.text;
         if (it.look === 'block' && (quiet || RM)) { coins++; score += 100; counters(); }
@@ -263,8 +265,8 @@
       if (devil) { devil.a += (rnd() - .5) * .3; const nx = devil.x + Math.cos(devil.a) * dt * 2, ny = devil.y + Math.sin(devil.a) * dt * 2; if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { devil.x = nx; devil.y = ny; } else devil.a += 2; }
       if (guard && ruins) { guard.t -= dt;   // the barrow guard wanders between the stones
         const near = Math.hypot(rx - guard.x, ry - guard.y) < 2.6 / MPC;
-        if (near && !guard.awake && !guard.done && !transition) { guard.awake = performance.now(); logLine('Something in the barrow woke up', 'it shuffles after the rover, slowly. It walks like someone with a bad knee.'); }
-        if (guard.awake && performance.now() - guard.awake > 7000) { guard.awake = 0; guard.done = true; guard.t = 0; logLine('The guard lost interest', 'and went back to its stones.'); }
+        if (near && !guard.awake && !guard.done && !transition) { guard.awake = performance.now(); logLine('Something in the barrow woke up', 'it shuffles after the rover, slowly. It walks like someone with a bad knee.', 'guard'); }
+        if (guard.awake && performance.now() - guard.awake > 7000) { guard.awake = 0; guard.done = true; guard.t = 0; logLine('The guard lost interest', 'and went back to its stones.', 'guard'); }
         if (guard.awake) { guard.wx = rx; guard.wy = ry; guard.t = 1; }
         else if (guard.t <= 0 || Math.hypot(guard.x - guard.wx, guard.y - guard.wy) < .4) { const a = rnd() * 6.28, r = rnd() * ruins.R * .75; guard.wx = ruins.cx + Math.cos(a) * r; guard.wy = ruins.cy + Math.sin(a) * r; guard.t = 3 + rnd() * 4; }
         const dx = guard.wx - guard.x, dy = guard.wy - guard.y, d = Math.hypot(dx, dy) || 1, sp = (guard.awake ? .35 : .45) / MPC * dt * (guard.awake && d < 1.2 / MPC ? 0 : 1), nx = guard.x + dx / d * sp, ny = guard.y + dy / d * sp;
@@ -273,7 +275,7 @@
       if (hasWord && !shout && performance.now() > shoutCool) { const R2 = 3.2 / MPC, close = q => q && Math.hypot(q.x - rx, q.y - ry) < R2;
         if (critters.some(c => !c.home && close(c)) || (guard && guard.awake && close(guard)) || close(devil)) { shout = performance.now(); shoutCool = shout + 15000;
           critters.forEach(c => { if (close(c)) c.home = true; }); if (guard && close(guard)) { const a = Math.atan2(guard.y - ry, guard.x - rx); guard.x += Math.cos(a) * 1.5 / MPC; guard.y += Math.sin(a) * 1.5 / MPC; if (!inside(guard.x | 0, guard.y | 0) || occ[id(guard.x | 0, guard.y | 0)]) { guard.x -= Math.cos(a) * 1.5 / MPC; guard.y -= Math.sin(a) * 1.5 / MPC; } guard.awake = 0; guard.done = true; }
-          if (close(devil)) devil = null; logLine('The rover used its word', 'Everything nearby went a long way.'); } }
+          if (close(devil)) devil = null; logLine('The rover used its word', 'Everything nearby went a long way.', 'shout'); } }
       if (power > 0) power = Math.max(0, power - dt);
       critters.forEach(c => { const sp = (power ? 1.6 : 2.6) * dt, dx = rx - c.x, dy = ry - c.y, d = Math.hypot(dx, dy) || 1, sgn = power ? -1 : 1;
         if (c.home) { const hx = c.hx - c.x, hy = c.hy - c.y, hd = Math.hypot(hx, hy); if (hd < .3) c.home = false; else { c.x += hx / hd * 5 * dt; c.y += hy / hd * 5 * dt; } return; }
@@ -454,7 +456,7 @@
       if (t < A + Pd) return { k: 0, x: px, y: py, alt: 0, fold: .45, S: S * .8, sat: true };
       const u = Math.min(1, (t - A - Pd) / B), v = u * u; return { k: u >= 1 ? 2 : 0, x: px + (dragon.x1 - px) * v, y: py + (dragon.y1 - py) * v, alt: u, fold: .45 + .55 * u, S: S * (.8 + .2 * u) }; }
     function drawDragon(now, shadow) { if (!dragon) return; const p = dragonAt_(now); if (p.k > 1) { if (!shadow) dragon = null; return; }
-      if (p.sat && !dragon.landed) { dragon.landed = true; logLine('Something very large landed on the barrow', 'the costmap marks it as a moving obstacle the size of a bus. The rover gives it room.'); }
+      if (p.sat && !dragon.landed) { dragon.landed = true; logLine('Something very large landed on the barrow', 'the costmap marks it as a moving obstacle the size of a bus. The rover gives it room.', 'dragon'); }
       const flap = p.sat ? Math.sin(now / 900) * .15 : Math.sin(now / 280);
       ctx.save(); if (shadow) { ctx.translate(p.x + (8 + 82 * p.alt) * p.S, p.y + (10 + 110 * p.alt) * p.S); ctx.rotate(dragon.a); ctx.globalAlpha = .14 + .1 * (1 - p.alt); wyrm(ctx, p.S * .92, flap, INKC, null, p.fold); }
       else { ctx.translate(p.x, p.y); ctx.rotate(dragon.a); ctx.globalAlpha = .96; wyrm(ctx, p.S, flap, '#3B3047', INKC, p.fold); }
@@ -465,6 +467,8 @@
       if (it.kind === 'wall') { g.lineCap = 'round'; g.strokeStyle = INKC; g.lineWidth = 8; g.beginPath(); g.arc(16, 30, 16, 3.6, 5.8); g.stroke(); g.strokeStyle = STONE; g.lineWidth = 5.5; g.stroke();
         g.lineCap = 'butt'; g.strokeStyle = '#FFC908'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(13, 12); g.lineTo(16, 15); g.lineTo(13, 18); g.moveTo(18, 12); g.lineTo(18, 18); g.stroke(); return; }
       if (it.kind === 'guard') { const keep = guard; guard = { x: 16 / CELL, y: 16 / CELL, a: -Math.PI / 2 }; const k2 = ctx; ctx = g; drawGuard(0); ctx = k2; guard = keep; return; }
+      if (it.kind === 'dragon') { g.save(); g.translate(17, 16); g.rotate(-.5); wyrm(g, .15, 1, '#3B3047', INKC); g.restore(); return; }
+      if (it.kind === 'shout') { g.strokeStyle = C.yel; g.lineWidth = 3; g.beginPath(); g.arc(16, 16, 11, 0, 7); g.stroke(); g.strokeStyle = INKC; g.lineWidth = 1.2; g.beginPath(); g.arc(16, 16, 7, 0, 7); g.stroke(); g.fillStyle = C.ind; g.beginPath(); g.arc(16, 16, 3, 0, 7); g.fill(); return; }
       if (it.kind === 'sand') { g.fillStyle = 'rgba(226,201,143,.9)'; g.beginPath(); g.ellipse(16, 16, 13, 9, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(30,33,38,.35)'; g.lineWidth = 1; for (const o of [-3, 2]) { g.beginPath(); g.moveTo(7, 16 + o); g.quadraticCurveTo(16, 12 + o, 25, 16 + o); g.stroke(); } return; }
       if (it.kind === 'devil') { g.strokeStyle = 'rgba(160,130,80,.9)'; g.lineWidth = 2; for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(16, 16, 3 + k * 3.5, k, k + 4); g.stroke(); } return; }
       return false; }
@@ -550,7 +554,8 @@
         for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.moveTo(x + sx * half, y + sy * (half - L)); ctx.lineTo(x + sx * half, y + sy * half); ctx.lineTo(x + sx * (half - L), y + sy * half); ctx.stroke(); }
         const label = (it.kind === 'aruco' ? `aruco ${String(it.n).padStart(2, '0')}` : it.kind === 'cube' ? `yolo: ${it.name.toLowerCase()} cube` : it.kind === 'egg' ? 'yolo: unknown object' : it.kind === 'cell' ? 'yolo: power cell' : 'yolo: ' + it.kind) + ` ${f.conf}`;
         ctx.font = '600 12px "Chivo Mono", monospace'; const w = ctx.measureText(label).width + 12;
-        ctx.fillStyle = col === '#F5F4F0' || col === '#FFC908' ? C.ink : col; ctx.fillRect(x - half, y - half - 22, w, 20); ctx.fillStyle = '#fff'; ctx.fillText(label, x - half + 6, y - half - 8); ctx.globalAlpha = 1; }
+        const tagBg = col === '#F5F4F0' || col === '#FFC908' ? C.ink : col, tagDark = [C.ink, C.ind, C.red, '#1E2126', '#2E1499', '#BB0700'].includes(tagBg);
+        ctx.fillStyle = tagBg; ctx.fillRect(x - half, y - half - 22, w, 20); ctx.fillStyle = tagDark ? '#fff' : C.ink; ctx.fillText(label, x - half + 6, y - half - 8); ctx.globalAlpha = 1; }
       // bit mode: v3's rover and its two-link grabber (v4's scan flash on the camera wedges is kept)
       let bx = 0, by = 0;
       if (act) { const p = (now - act.t0) / (act.type === 'pick' ? 2200 : 1100), it = act.it, ix = (it.x + .5) * CELL, iy = (it.y + .5) * CELL, ox = rx * CELL + Math.cos(rh) * 10, oy = ry * CELL + Math.sin(rh) * 10;
@@ -583,7 +588,7 @@
         dragon = { t0: now, dur: 7500, a, x0: mx - Math.cos(a) * L, y0: my - Math.sin(a) * L, x1: mx + Math.cos(a) * L, y1: my + Math.sin(a) * L }; dragonAt = 0;
         if (ruins && rnd() < .6) { const px = (ruins.cx + Math.cos(ruins.a0) * ruins.R) * CELL, py = (ruins.cy + Math.sin(ruins.a0) * ruins.R) * CELL;   // it lands on the arch
           dragon.perch = [px, py]; dragon.x0 = px - Math.cos(a) * L; dragon.y0 = py - Math.sin(a) * L; dragon.x1 = px + Math.cos(a) * L; dragon.y1 = py + Math.sin(a) * L; }
-        else logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.'); }
+        else logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.', 'dragon'); }
       drawDragon(now, false);
       ctx.fillStyle = C.ink; ctx.fillRect(W - 120, H - 30, 1 / MPC * CELL, 4); ctx.font = '500 11px "Chivo Mono", monospace'; ctx.fillText('1 m', W - 120, H - 36);
       if (transition) { const kk = Math.min(1, (now - transition) / 1400); ctx.fillStyle = `rgba(236,234,228,${kk})`; ctx.fillRect(0, 0, W, H);
@@ -593,7 +598,8 @@
         if (kk >= 1 && now - transition > 2000) { transition = 0; newSector(); } }
     }
     let last = 0, vis = true;
-    function loop(t) { const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; if (vis) { step(dt / 2); step(dt / 2); draw(t); } requestAnimationFrame(loop); }
+    let paused = false; const pb = document.getElementById('rv-pause'); if (pb) pb.addEventListener('click', () => { paused = !paused; pb.setAttribute('aria-pressed', paused); });
+    function loop(t) { const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; if (vis && !paused) { step(dt / 2); step(dt / 2); draw(t); } requestAnimationFrame(loop); }
     new IntersectionObserver(es => { vis = es[0].isIntersecting; }).observe(cv);
     const at = ev => { const r = cv.getBoundingClientRect(); return [(ev.clientX - r.left) / CELL, (ev.clientY - r.top) / CELL, ev.clientX - r.left, ev.clientY - r.top]; };
     cv.addEventListener('mousemove', ev => { const [gx, gy, px, py] = at(ev);
@@ -609,7 +615,7 @@
       task = null; goal = [gx, gy]; userGoal = true; path = astar(Math.floor(rx), Math.floor(ry), gx, gy) || []; if (!path.length) { goal = null; userGoal = false; } status(); });
     const lv = document.getElementById('livo'); if (lv) lv.addEventListener('change', () => { livo = lv.checked; });
     document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { view = b.dataset.view; gridDirty = true;
-      document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); const lg = document.getElementById('sensors-note'); if (lg) lg.hidden = view !== 'costmap'; const ln = document.getElementById('nav2-note'); if (ln) ln.hidden = view !== 'nav2'; }));
+      document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); const lg = document.getElementById('sensors-note'); if (lg) lg.hidden = view !== 'costmap'; const ln = document.getElementById('nav2-note'); if (ln) ln.hidden = view !== 'nav2'; const sk = cv.parentElement.querySelector('.sensors'); if (sk) sk.hidden = view !== 'cloud'; }));
     document.getElementById('showall').onclick = () => {
       [...queue].forEach(slug => { detect({ kind: 'aruco', slug, n: DATA.found.indexOf(slug) + 1, bits: arucoBits(DATA.found.indexOf(slug) + 1), x: 0, y: 0 }, true); });
       items.filter(it => it.kind === 'aruco' && !it.found).forEach(it => detect(it, true)); queue = [];
@@ -757,14 +763,16 @@
     let vis = false; new IntersectionObserver(es => { vis = es[0].isIntersecting; if (vis) reset(); }).observe(cv);
     const loop = t => { if (vis) draw(t); requestAnimationFrame(loop); };
     const yAt = ev => { const r = cv.getBoundingClientRect(); return (ev.clientY - r.top) * H / r.height; };
-    cv.addEventListener('pointerdown', ev => { if (Math.abs(yAt(ev) - Y(target)) < 44) { drag = true; cv.setPointerCapture(ev.pointerId); } });
+    const onTarget = y => { const r = cv.getBoundingClientRect(); return Math.abs(y - (r.top + Y(target) * r.height / H)) < 22; };   // within 22 CSS px of the line
+    cv.addEventListener('touchstart', ev => { if (ev.touches.length === 1 && onTarget(ev.touches[0].clientY)) ev.preventDefault(); }, { passive: false });
+    cv.addEventListener('pointerdown', ev => { if (onTarget(ev.clientY)) { drag = true; cv.setPointerCapture(ev.pointerId); } });
     const xAt = ev => { const r = cv.getBoundingClientRect(); return (ev.clientX - r.left) * W / r.width; };
     const tAt = x => Math.max(0, Math.min(ctl[ctl.length - 1][0], (x - pad.l) / (W - pad.l - pad.r) * T1));
     cv.addEventListener('pointerleave', () => { if (scrub != null) { t0 = performance.now() - scrub / 2.8 * 1000; scrub = null; } });
-    cv.addEventListener('pointermove', ev => { const nearT = Math.abs(yAt(ev) - Y(target)) < 44; cv.style.cursor = nearT ? 'ns-resize' : 'ew-resize';
+    cv.addEventListener('pointermove', ev => { const nearT = onTarget(ev.clientY); cv.style.cursor = nearT ? 'ns-resize' : 'ew-resize';
       if (!drag && !nearT) { scrub = tAt(xAt(ev)); if (RM) draw(0); }
       if (drag) { target = Math.max(2400, Math.min(3080, Yi(yAt(ev)))); document.getElementById('ab-t').value = target; reset(); if (RM) draw(0); } });
-    cv.addEventListener('pointerup', () => { drag = false; });
+    for (const e of ['pointerup', 'pointercancel', 'lostpointercapture']) cv.addEventListener(e, () => { drag = false; });
     // Keyboard: Left/Right scrub the flight (Shift for 2 s), Home/End jump, Up/Down move the target, Escape resumes.
     cv.tabIndex = 0; cv.setAttribute('role', 'slider'); cv.setAttribute('aria-valuenow', 0); cv.setAttribute('aria-valuemin', 0); cv.setAttribute('aria-valuemax', ctl[ctl.length - 1][0].toFixed(1));
     cv.setAttribute('aria-label', 'Airbrake flight replay. Left and right arrows scrub through the flight, up and down move the target apogee.');

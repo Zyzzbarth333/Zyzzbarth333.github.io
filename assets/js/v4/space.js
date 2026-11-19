@@ -90,7 +90,7 @@ function land(c) {
 }
 dep.addEventListener("input", update); tof.addEventListener("input", update);
 go.addEventListener("click", () => launch(false)); $("sp-best").addEventListener("click", () => launch(true));
-$("sp-dest").addEventListener("click", (e) => { key = key === "mars" ? "venus" : "mars"; e.target.textContent = key === "mars" ? "Go to Venus instead" : "Go to Mars instead"; G = null; go.disabled = true; setup(); });
+$("sp-dest").addEventListener("click", (e) => { if (flying) return; key = key === "mars" ? "venus" : "mars"; e.target.textContent = key === "mars" ? "Go to Venus instead" : "Go to Mars instead"; G = null; go.disabled = true; setup(); });
 let dragging = false; const pick = (ev) => { const r = mini.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = 1 - (ev.clientY - r.top) / r.height;
   dep.value = Math.round(x * (G.nDep - 1)); tof.value = B.tof[0] + Math.round(y * (G.nTof - 1)) * B.tof[2]; update(); };
 mini.addEventListener("pointerdown", (ev) => { if (!G) return; dragging = true; mini.setPointerCapture(ev.pointerId); pick(ev); });

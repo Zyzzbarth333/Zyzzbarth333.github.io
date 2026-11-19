@@ -8,10 +8,10 @@
 <link rel="preload" href="/assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/v4/chivo.css?v=356b4fb9">
 <title>OSIRIS flight computer · Isaac Johan Ziebarth</title>
-<meta name="description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
+<meta name="description" content="My own flight computer design in KiCad. The V0 bench board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short I have to fix, and firmware comes after.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="OSIRIS flight computer · Isaac Johan Ziebarth">
-<meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
+<meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short I have to fix, and firmware comes after.">
 <meta property="og:url" content="https://zyzzbarth333.github.io/projects/osiris.html">
 <link rel="canonical" href="https://zyzzbarth333.github.io/projects/osiris.html">
 <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-top.jpg">
@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=83f76d13">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=a2f29934">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -36,8 +36,8 @@
   <div class="hero-tx">
     <p class="type">Personal project · 2026</p>
     <h1 id="t" data-vt="title">OSIRIS flight computer</h1>
-    <p class="res">0 DRC violations</p>
-    <p class="out">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes KiCad&#x27;s electrical rules check (ERC) and whose layout passes its design rules check (DRC) with 0 violations.</p>
+    <p class="res">0 ERC errors</p>
+    <p class="out">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes KiCad&#x27;s electrical rules check (ERC) with 0 errors. Its design rules check (DRC) still flags one short, a power track over a ground pad, which the next revision fixes.</p>
     <dl class="facts"><dt>My role</dt><dd>Sole designer</dd><dt>When</dt><dd>May 2026 – present</dd><dt>Tools</dt><dd>KiCad, STM32F411, ISM330IS, BMP581, INA228</dd><dt>Code</dt><dd>Private repository for now</dd></dl>
   </div>
 </section>
@@ -81,9 +81,11 @@
             <p>The second board's schematic passes ERC as well; its routing is unfinished.</p>
             <h2 id="what-went-wrong">What went wrong</h2>
             <p>A design review found that the USB and battery supplies could fight each other on V0. I work around it with a bench rule for now, and the fix is planned for the next revision.</p>
+            <p>The layout check also flags a short: a 0.8 mm VSYS track on the top layer runs over the ground pad of capacitor C7. I missed it when I first claimed the board was clean.</p>
             <h2 id="what-s-next">What's next</h2>
             <ul>
                 <li>The next revision separates the USB and battery supplies properly.</li>
+                <li>The VSYS track moves off C7, so the layout check passes too.</li>
                 <li>I have not written firmware for either board yet.</li>
             </ul>
         </div>
