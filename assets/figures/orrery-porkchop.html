@@ -40,7 +40,16 @@ dd { margin: 0; }
 .wins button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; }
 .wins button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wrap > * { min-width: 0; }   /* grid items may shrink below their content, so the table scrolls instead of widening the page */
-.tw { overflow-x: auto; max-width: 100%; }
+.tw { max-width: 100%; }
+/* on a phone each window is a small card of label and value, so the table never scrolls sideways (Isaac, 19 Nov 2026) */
+@media (max-width: 620px) {
+  .tw table, .tw tbody, .tw tr, .tw td { display: block; }
+  .tw thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tw tr { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 6px 0; border-bottom: 1px solid var(--grid); }
+  .tw td { border: 0; padding: 1px 0; text-align: right; }
+  .tw td::before { content: attr(data-l); float: left; color: var(--muted); font-size: 12px; }
+  .tw td { grid-column: 1 / -1; }
+}
 .dest button.link { font: inherit; color: var(--ink); background: none; border: 0; padding: 4px 1px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .dest button.link[aria-pressed="true"] { text-decoration: none; font-weight: 700; cursor: default; }
 .dest button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
@@ -348,7 +357,7 @@ function drawWins() {
     const nasa = (NASA[key] || []).find((e) => Math.abs(e[0] - w.depMs) <= 45 * DAY_MS);
     const tr = document.createElement("tr");
     [fmt(new Date(w.depMs)), fmt(new Date(w.arrMs)), w.tofDays.toFixed(0), w.c3.toFixed(1), w.injectionDv.toFixed(2), w.arrivalDv.toFixed(2), w.totalDv.toFixed(2), nasa ? `${nasa[2].toFixed(2)} (leaves ${fmt(new Date(nasa[0]))})` : "–"]
-      .forEach((v) => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+      .forEach((v, i) => { const td = document.createElement("td"); td.textContent = v; td.dataset.l = document.querySelectorAll("thead th")[i].textContent; tr.appendChild(td); });
     tb.appendChild(tr);
   });
 }

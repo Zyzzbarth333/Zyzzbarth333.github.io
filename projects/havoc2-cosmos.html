@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=6b27d7b8">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=83f76d13">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -103,8 +103,18 @@
 <nav class="next panel" aria-label="Next project"><a href="osiris.html" rel="next"><span class="icon iso" data-theme="light" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="iso-svg" viewBox="0 0 300 300" aria-hidden="true" focusable="false"><rect class="ic-bg" width="300" height="300"/><path class="iso-halo" d="M34.2 176L34.4 175L34.8 174.1L35.7 173.2L36.8 172.4L38.3 171.8L169.4 124.2L171 123.7L172.8 123.4L174.8 123.2L176.7 123.3L178.5 123.5L180.3 124L181.8 124.5L183.1 125.3L263.9 180.9L264.9 181.7L265.5 182.6L265.8 183.6L265.8 187.8L265.6 188.8L265.2 189.7L264.3 190.6L263.2 191.3L261.7 192L130.6 239.6L129 240.1L127.2 240.4L125.2 240.5L123.3 240.5L121.5 240.2L119.7 239.8L118.2 239.2L116.9 238.5L36.1 182.9L35.1 182.1L34.5 181.2L34.2 180.2Z"/><image href="/assets/img/projects/osiris-body.webp" x="0" y="0" width="300" height="300"/><g class="os-leds"><circle class="os-led os-led-green" data-led="3v3" cx="159.62" cy="151.27" r="2.6"/><circle class="os-led os-led-green" data-led="pwr" cx="134.4" cy="160.43" r="2.6"/><circle class="os-led os-led-amber" data-led="log" cx="129.35" cy="162.27" r="2.6"/><circle class="os-led os-led-amber" data-led="radio" cx="139.44" cy="158.6" r="2.6"/><circle class="os-led os-led-blue" data-led="hb" cx="155.5" cy="201.48" r="2.6"/><circle class="os-led os-led-red" data-led="arm" cx="150.45" cy="203.31" r="2.6"/><circle class="os-led os-led-red" data-led="flt" cx="145.41" cy="205.14" r="2.6"/></g><g class="os-module" data-lift="0 -38.27"><image href="/assets/img/projects/osiris-module.webp" x="0" y="0" width="300" height="300"/></g></svg></span><span><small>Next project</small><b>OSIRIS flight computer</b></span></a></nav>
 </main>
 <script>
-document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
-document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed])').forEach(f => { const fit = () => { try { const r = f.contentDocument.documentElement; r.style.overflow = 'hidden'; f.style.height = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight)) + 'px'; f.style.aspectRatio = 'auto'; } catch (e) {} }; f.addEventListener('load', () => { fit(); setTimeout(fit, 600); }); });
+// The lead figure's frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in
+// a table, fonts arriving), so it never shows a scrollbar of its own (Isaac, 19 Nov 2026). Embedded figures further down
+// are fitted by site.js. Frames only grow, and stop after 40 steps so a figure sized in vh units cannot chase its own
+// frame; one that is still growing then gets its scrollbar back rather than being cut off.
+document.querySelectorAll('.fig.panel iframe').forEach(f => {
+  let n = 0;
+  const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
+    const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
+    if (h > f.clientHeight + 1) { if (n++ < 40) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } else r.style.overflow = ''; } } catch (e) {} };
+  const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
+  f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
+});
 </script>
 <footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
 <script src="/assets/js/site.js" defer></script>
