@@ -71,7 +71,8 @@
     let cloud = null, cctx = null, tasks = [], task = null, act = null, chaseT = 0, coins = 0, score = 0, hasKey = false, critters = [], power = 0, eggQ = [], houston = 0, pause = 0;
     let livo = true, fresh = [], view = 'cloud', gridLayer = null, gridDirty = true;
     let cost = null, search = null, rawPath = [], carrot = null, recov = null, lastSenseAt = null;   // Nav2 view: costs, the planner's search, the controller's carrot, recovery
-    let ruins = null, guard = null, dragon = null, dragonAt = 0, idle = 0;   // set pieces: an old barrow, its guard, and now and then something large overhead
+    let ruins = null, guard = null, dragon = null, dragonAt = 0, idle = 0;
+    let hasClaw = false, hasWord = false, shout = null, shoutCool = 0;   // nods: a claw that opens the barrow, a word the carved wall teaches   // set pieces: an old barrow, its guard, and now and then something large overhead
     let seed = 1; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
     const id = (x, y) => y * cols + x, inside = (x, y) => x >= 0 && y >= 0 && x < cols && y < rows;
     const arucoBits = n => { let s = (n * 2654435761) >>> 0; const b = []; for (let i = 0; i < 16; i++) { s = (s * 1103515245 + 12345) >>> 0; b.push((s >> 16) & 1); } return b; };
@@ -124,6 +125,7 @@
       for (let e = 0; e < 3; e++) {   // three eggs a sector, from a queue shuffled once per visit (it used to be one, always the towel first)
         if (!eggQ.length) { eggQ = EGGS.map((_, i) => i); for (let i = eggQ.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [eggQ[i], eggQ[j]] = [eggQ[j], eggQ[i]]; } }
         want.push({ ...EGGS[eggQ.shift()] }); }
+      if (sector % 2 === 1 && !hasClaw) want.push({ kind: 'egg', look: 'claw', name: 'A carved stone claw', text: 'Three animal symbols are carved on its palm. It looks like it opens something old.' });
       const chase = sector % 4 === 0; if (chase) want.push({ kind: 'cell', name: 'A power cell', text: 'Fully charged. The dust sprites suddenly look nervous.', col: '#FFC908' });
       { const eg = want.filter(w => w.kind === 'egg'), rest = want.filter(w => w.kind !== 'egg'); want.length = 0;   // eggs early in the order, so a phone's few spots get one
         rest.forEach((w, i) => { want.push(w); if (i % 3 === 0 && eg.length) want.push(eg.shift()); }); want.push(...eg); }
@@ -173,10 +175,10 @@
           for (let j = 0; j < n; j++) { const jx = ex + dx * (rnd() - .5) * .4 + (rnd() - .5) * .3, jy = ey + dy * (rnd() - .5) * .4 + (rnd() - .5) * .3, px = jx * CELL, py = jy * CELL;
             const col = livo && inCam(jx, jy) ? trueCol(px, py, hh) : r < .5 ? `rgba(46,20,153,${.9 - r * .6})` : `rgba(${(46 + (r - .5) * 400) | 0},${(20 + (r - .5) * 80) | 0},${(153 - (r - .5) * 280) | 0},.75)`;
             emit(px, py, Math.max(0.02, hh * (0.15 + rnd() * 0.85)), col, j === 0); } } }
-      // cameras: occluded wedges mark what has been looked at, and do the detecting
+      // cameras: occluded wedges mark what has been looked at, and do the detecting (a camera that sees the carved wall has seen its find)
       for (const c of CAM) { const cx = rx + Math.cos(rh) * c.x - Math.sin(rh) * c.y, cy = ry + Math.sin(rh) * c.x + Math.cos(rh) * c.y;
         for (let k = -12; k <= 12; k++) { const a = rh + k / 12 * CAM_FOV / 2, dx = Math.cos(a), dy = Math.sin(a);
-          for (let s = 0.5; s <= CAM_R; s += .5) { const x = Math.floor(cx + dx * s), y = Math.floor(cy + dy * s); if (!inside(x, y)) break; if (occ[id(x, y)] && hgt[id(x, y)] > 0.45) break; cam[id(x, y)] = 1; } } }
+          for (let s = 0.5; s <= CAM_R; s += .5) { const x = Math.floor(cx + dx * s), y = Math.floor(cy + dy * s); if (!inside(x, y)) break; if (occ[id(x, y)] && hgt[id(x, y)] > 0.45) { if (ruins && ruins.cells && ruins.cells.has(id(x, y))) cam[ruins.item] = 1; break; } cam[id(x, y)] = 1; } } }
       items.forEach(it => { const mv = it.kind === 'devil' ? devil : it.kind === 'guard' ? guard : null, ix = mv ? Math.floor(mv.x) : it.x, iy = mv ? Math.floor(mv.y) : it.y;
         if (!it.found && inside(ix, iy) && cam[id(ix, iy)] && inCam(ix + .5, iy + .5)) detect(it); });
     }
@@ -197,9 +199,12 @@
       else if (it.kind === 'egg') { nFind++; title = it.name; sub = 'field find ★'; body = it.text;
         if (it.look === 'block' && (quiet || RM)) { coins++; score += 100; counters(); }
         if (it.look === 'key') { hasKey = true; body += ' Picked up.'; }
+        if (it.look === 'claw') { hasClaw = true; body += ' Picked up. Somewhere there is a door that wants it.'; }
         if (it.look === 'door') body += hasKey ? ' The rover has the key card. The door opens: behind it, more rocks.' : ' The rover has no red key card.'; }
       else if (it.kind === 'cell') { nFind++; title = it.name; sub = 'field find ★'; body = it.text; if (quiet || RM) power = 8; }
-      else { nFind++; title = it.name; sub = 'field find'; body = it.text; }
+      else { nFind++; title = it.name; sub = 'field find'; body = it.text;
+        if (it.kind === 'ruin') body += hasClaw ? ' The claw\'s three symbols match the rings turned on the slab. It grinds open. Behind it: more rocks.' : ' The slab has three carved rings and a hollow shaped like a claw.';
+        if (it.kind === 'wall') { hasWord = true; body += ' The rover has learned a word. It is itching to use it.'; } }
       if (!quiet) { latest.innerHTML = `<div class="lt-ic${icon ? ' card' : ''}">${icon || glyphHTML(it)}</div><div><p class="mono">${sub} · ${how} · conf ${conf}</p><b>${title}</b><p>${body}</p>${btn}</div>`;
         if (!icon && it.kind !== 'aruco') latest.querySelector('.lt-ic').replaceChildren(thumb(it, 76)); }   // the find as the arena draws it
       const li = document.createElement('li');
@@ -229,6 +234,7 @@
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = cx + dx, ny = cy + dy; if (blocked(nx, ny)) continue;
           let pen = (sand[id(nx, ny)] ? 2 : 0) + cost[id(nx, ny)] / 252 * 1.6; if (devil && Math.hypot(nx + .5 - devil.x, ny + .5 - devil.y) < 4) pen += 6;   // inflation cost, as Nav2's planners weigh it
           if (guard && Math.hypot(nx + .5 - guard.x, ny + .5 - guard.y) < 1.2 / MPC) pen += 6;
+          if (dragon && dragon.perch && Math.hypot((nx + .5) * CELL - dragon.perch[0], (ny + .5) * CELL - dragon.perch[1]) < 3.5 / MPC * CELL) pen += 8;
           const ng = g[cur] + (dx && dy ? Math.SQRT2 : 1) + pen, ni = id(nx, ny); if (ng < g[ni]) { g[ni] = ng; came[ni] = cur; open.push([ng + h(nx, ny), ni]); } } }
       search = { cells: seen, t0: performance.now(), failed: true }; return null;
     }
@@ -250,15 +256,24 @@
     let lastSense = 0, wd = null;
     window.__dbg = () => { const sx = Math.floor(rx), sy = Math.floor(ry), nb = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy]) => ({ nogo: nogo[id(sx+dx,sy+dy)], known: known[id(sx+dx,sy+dy)], nearO: nearO[id(sx+dx,sy+dy)], occ: occ[id(sx+dx,sy+dy)] }));
       const g = goal; const t = nextTarget(); goal = g; return JSON.stringify({ here: { nogo: nogo[id(sx,sy)], known: known[id(sx,sy)], nearO: nearO[id(sx,sy)] }, nb, next: t, targets: targets.length, tasks: tasks.length, vis: typeof vis !== 'undefined' ? vis : 'n/a' }); };   // prototype debug
+    window.__set = () => JSON.stringify({ ruins: ruins && { cx: +ruins.cx.toFixed(1), cy: +ruins.cy.toFixed(1), ring: ruins.ring }, items: items.filter(i => ['ruin', 'wall', 'guard'].includes(i.kind) || i.look === 'claw').map(i => ({ k: i.kind === 'egg' ? i.look : i.kind, x: i.x, y: i.y, occ: occ[id(i.x, i.y)], h: hgt[id(i.x, i.y)], cam: cam[id(i.x, i.y)], found: i.found })), hasClaw, hasWord });   // prototype debug
     window.__eggs = () => JSON.stringify(items.map(i => ({ k: i.kind === 'egg' ? i.look : i.kind, x: i.x, y: i.y, nogo: nogo[id(i.x, i.y)], occ: occ[id(i.x, i.y)], seen: cam[id(i.x, i.y)], found: i.found })));   // prototype debug
     window.__rv = () => ({ x: +rx.toFixed(2), y: +ry.toFixed(2), sector, goal: goal ? goal.join(',') : null, path: path.length, task: task ? task.type : null, act: act ? act.type : null, transition: !!transition, pause: +pause.toFixed(1), user: userGoal, eggs: items.filter(i => i.kind === 'egg').map(i => (i.found ? '+' : '-') + i.look).join(' ') });   // prototype debug hook
     function step(dt) {
       if (devil) { devil.a += (rnd() - .5) * .3; const nx = devil.x + Math.cos(devil.a) * dt * 2, ny = devil.y + Math.sin(devil.a) * dt * 2; if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { devil.x = nx; devil.y = ny; } else devil.a += 2; }
       if (guard && ruins) { guard.t -= dt;   // the barrow guard wanders between the stones
-        if (guard.t <= 0 || Math.hypot(guard.x - guard.wx, guard.y - guard.wy) < .4) { const a = rnd() * 6.28, r = rnd() * ruins.R * .75; guard.wx = ruins.cx + Math.cos(a) * r; guard.wy = ruins.cy + Math.sin(a) * r; guard.t = 3 + rnd() * 4; }
-        const dx = guard.wx - guard.x, dy = guard.wy - guard.y, d = Math.hypot(dx, dy) || 1, sp = .45 / MPC * dt, nx = guard.x + dx / d * sp, ny = guard.y + dy / d * sp;
+        const near = Math.hypot(rx - guard.x, ry - guard.y) < 2.6 / MPC;
+        if (near && !guard.awake && !guard.done && !transition) { guard.awake = performance.now(); logLine('Something in the barrow woke up', 'it shuffles after the rover, slowly. It walks like someone with a bad knee.'); }
+        if (guard.awake && performance.now() - guard.awake > 7000) { guard.awake = 0; guard.done = true; guard.t = 0; logLine('The guard lost interest', 'and went back to its stones.'); }
+        if (guard.awake) { guard.wx = rx; guard.wy = ry; guard.t = 1; }
+        else if (guard.t <= 0 || Math.hypot(guard.x - guard.wx, guard.y - guard.wy) < .4) { const a = rnd() * 6.28, r = rnd() * ruins.R * .75; guard.wx = ruins.cx + Math.cos(a) * r; guard.wy = ruins.cy + Math.sin(a) * r; guard.t = 3 + rnd() * 4; }
+        const dx = guard.wx - guard.x, dy = guard.wy - guard.y, d = Math.hypot(dx, dy) || 1, sp = (guard.awake ? .35 : .45) / MPC * dt * (guard.awake && d < 1.2 / MPC ? 0 : 1), nx = guard.x + dx / d * sp, ny = guard.y + dy / d * sp;
         guard.a = Math.atan2(dy, dx); if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { guard.x = nx; guard.y = ny; } else guard.t = 0; }
       if (transition) return;
+      if (hasWord && !shout && performance.now() > shoutCool) { const R2 = 3.2 / MPC, close = q => q && Math.hypot(q.x - rx, q.y - ry) < R2;
+        if (critters.some(c => !c.home && close(c)) || (guard && guard.awake && close(guard)) || close(devil)) { shout = performance.now(); shoutCool = shout + 15000;
+          critters.forEach(c => { if (close(c)) c.home = true; }); if (guard && close(guard)) { const a = Math.atan2(guard.y - ry, guard.x - rx); guard.x += Math.cos(a) * 1.5 / MPC; guard.y += Math.sin(a) * 1.5 / MPC; if (!inside(guard.x | 0, guard.y | 0) || occ[id(guard.x | 0, guard.y | 0)]) { guard.x -= Math.cos(a) * 1.5 / MPC; guard.y -= Math.sin(a) * 1.5 / MPC; } guard.awake = 0; guard.done = true; }
+          if (close(devil)) devil = null; logLine('The rover used its word', 'Everything nearby went a long way.'); } }
       if (power > 0) power = Math.max(0, power - dt);
       critters.forEach(c => { const sp = (power ? 1.6 : 2.6) * dt, dx = rx - c.x, dy = ry - c.y, d = Math.hypot(dx, dy) || 1, sgn = power ? -1 : 1;
         if (c.home) { const hx = c.hx - c.x, hy = c.hy - c.y, hd = Math.hypot(hx, hy); if (hd < .3) c.home = false; else { c.x += hx / hd * 5 * dt; c.y += hy / hd * 5 * dt; } return; }
@@ -333,6 +348,8 @@
           case 'speaker': ctx.fillStyle = C.ink; ctx.fillRect(x - 6, y - 4, 5, 8); ctx.beginPath(); ctx.moveTo(x - 1, y - 4); ctx.lineTo(x + 5, y - 8); ctx.lineTo(x + 5, y + 8); ctx.lineTo(x - 1, y + 4); ctx.fill(); if (Math.sin(now / 300) > 0) { ctx.fillText('♪', x + 8, y - 6); } return;
           case 'roll': ctx.fillStyle = '#D9A15B'; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); ctx.stroke(); ctx.strokeStyle = '#FFF7DA'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 5, .3, 5.6); ctx.stroke(); ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, y, 1.8, 0, 7); ctx.fill(); return;
           case 'wheel': ctx.fillStyle = '#E8B33C'; ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#F7D774'; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 7.5, -.5, .4); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(30,33,38,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 7.5, .5, 5.7); ctx.stroke(); return;
+          case 'claw': ctx.fillStyle = '#9A968D'; ctx.beginPath(); ctx.arc(x - 2, y + 2, 6, 0, 7); ctx.fill(); ctx.stroke(); for (const a of [-.9, -.1, .7]) { ctx.beginPath(); ctx.moveTo(x - 2 + Math.cos(a - 1.2) * 5, y + 2 + Math.sin(a - 1.2) * 5); ctx.quadraticCurveTo(x + Math.cos(a - 1.2) * 12, y + Math.sin(a - 1.2) * 12, x + 3 + Math.cos(a - .9) * 12, y - 1 + Math.sin(a - .9) * 12); ctx.lineTo(x - 2 + Math.cos(a - 1) * 5, y + 2 + Math.sin(a - 1) * 5); ctx.fill(); ctx.stroke(); }
+            ctx.fillStyle = C.ink; for (const [ox, oy] of [[-4, 1], [-1, 4], [-4, 5]]) ctx.fillRect(x + ox, y + oy, 1.6, 1.6); return;
           case 'beacon2': ctx.fillStyle = '#7D7564'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); ctx.stroke(); if (Math.sin(now / 900) > .7) { ctx.strokeStyle = C.org; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.stroke(); } return;
           default: ctx.fillStyle = '#7D7564'; for (const [ox, oy] of [[-5, 2], [3, -3], [5, 5]]) { ctx.beginPath(); ctx.arc(x + ox, y + oy, 3.5, 0, 7); ctx.fill(); ctx.stroke(); } return; } }
       ctx.beginPath(); ctx.moveTo(x - 6, y + 4); ctx.lineTo(x - 2, y - 6); ctx.lineTo(x + 6, y - 3); ctx.lineTo(x + 5, y + 5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
@@ -364,7 +381,7 @@
           items.push({ kind: 'guard', name: 'A barrow guard', text: 'Something in very old armour, shuffling between the stones with its eyes glowing. The costmap treats it as a moving obstacle and plans round it. It has not noticed the rover. Yet.', col: '#5C5448', x: Math.floor(cx), y: Math.floor(cy) + 1, found: false });
         } else {   // a curved wall of carved stone behind the arch
           const a1 = a0 + Math.PI, span = 1.1; t.lineCap = 'round';
-          for (let k = -span; k <= span; k += .02) { const x = cx + Math.cos(a1 + k) * R, y = cy + Math.sin(a1 + k) * R; solid(Math.floor(x), Math.floor(y), 1.8); }
+          ruins.cells = new Set(); for (let k = -span; k <= span; k += .02) { const x = cx + Math.cos(a1 + k) * R, y = cy + Math.sin(a1 + k) * R; solid(Math.floor(x), Math.floor(y), 1.8); if (inside(x | 0, y | 0)) ruins.cells.add(id(x | 0, y | 0)); }
           t.strokeStyle = 'rgba(30,33,38,.2)'; t.lineWidth = sw + 4; t.beginPath(); t.arc(px(cx) + 6, px(cy) + 8, px(R), a1 - span, a1 + span); t.stroke();
           t.strokeStyle = INKC; t.lineWidth = sw + 3; t.beginPath(); t.arc(px(cx), px(cy), px(R), a1 - span, a1 + span); t.stroke();
           t.strokeStyle = STONE; t.lineWidth = sw; t.beginPath(); t.arc(px(cx), px(cy), px(R), a1 - span, a1 + span); t.stroke();
@@ -374,6 +391,7 @@
             if (glow) { t.shadowColor = '#FFC908'; t.shadowBlur = 8; } t.strokeStyle = glow ? '#FFC908' : 'rgba(30,33,38,.6)'; t.beginPath();
             const v = (j * 7) % 4; t.moveTo(-3, -3); t.lineTo(v & 1 ? 3 : 0, 0); t.lineTo(-3, 3); if (v & 2) { t.moveTo(1, -3); t.lineTo(1, 3); } t.stroke(); t.restore(); }
           const mx = cx + Math.cos(a1) * R, my = cy + Math.sin(a1) * R;
+          ruins.item = id(Math.floor(cx + Math.cos(a1) * (R - 1.6)), Math.floor(cy + Math.sin(a1) * (R - 1.6)));
           items.push({ kind: 'wall', name: 'A carved wall', text: 'Curved stone, carved in a script nobody on the team can read. One word glows faintly. The rover learns nothing from it, but somehow feels louder.', col: STONE, x: Math.floor(cx + Math.cos(a1) * (R - 1.6)), y: Math.floor(cy + Math.sin(a1) * (R - 1.6)), found: false });
         }
         pil.forEach(([x, y]) => { solid(Math.floor(x), Math.floor(y), 2.2); stone(t, px(x), px(y), sw, sw, a0, 7); });
@@ -414,10 +432,10 @@
       ctx.strokeStyle = '#B9BEC2'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(13, 9); ctx.stroke();   // a notched old blade
       ctx.fillStyle = '#5C5448'; ctx.strokeStyle = INKC; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(-1, 0, 6, 9, 0, 0, 7); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#3E3830'; ctx.beginPath(); ctx.arc(1, 0, 5, 0, 7); ctx.fill(); ctx.stroke();
-      ctx.shadowColor = '#7FD3FF'; ctx.shadowBlur = 6; ctx.fillStyle = '#9BE0FF'; for (const e of [-1.8, 1.8]) { ctx.beginPath(); ctx.arc(4.2, e, 1.1, 0, 7); ctx.fill(); }
+      const lit = guard.awake ? 1.7 : 1.1; ctx.shadowColor = '#7FD3FF'; ctx.shadowBlur = guard.awake ? 12 : 6; ctx.fillStyle = '#9BE0FF'; for (const e of [-1.8, 1.8]) { ctx.beginPath(); ctx.arc(4.2, e, lit, 0, 7); ctx.fill(); }
       ctx.restore(); }
-    function wyrm(g, S, flap, fill, line) {   // a large winged reptile from above, facing +x; original drawing
-      const span = 150 * S * (.78 + .22 * flap);
+    function wyrm(g, S, flap, fill, line, fold = 1) {   // a large winged reptile from above, facing +x; original drawing
+      const span = 150 * S * (.78 + .22 * flap) * fold;
       g.fillStyle = fill; g.strokeStyle = line; g.lineWidth = 1.5;
       for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(14 * S, sd * 8 * S); g.quadraticCurveTo(6 * S, sd * span * .7, -14 * S, sd * span);
         for (let k = 1; k <= 3; k++) g.quadraticCurveTo((-14 - k * 9) * S, sd * span * (1 - k * .22), (-14 - k * 8) * S, sd * span * (1 - k * .3));
@@ -428,10 +446,18 @@
       g.beginPath(); g.moveTo(20 * S, -6 * S); g.quadraticCurveTo(44 * S, -4 * S, 58 * S, -6 * S); g.lineTo(72 * S, 0); g.lineTo(58 * S, 6 * S); g.quadraticCurveTo(44 * S, 4 * S, 20 * S, 6 * S); g.closePath(); g.fill(); if (line) g.stroke();
       if (line) { g.strokeStyle = line; g.lineWidth = 2; g.beginPath(); g.moveTo(58 * S, -5 * S); g.lineTo(48 * S, -13 * S); g.moveTo(58 * S, 5 * S); g.lineTo(48 * S, 13 * S); g.stroke();
         g.fillStyle = '#FF5102'; g.beginPath(); g.arc(64 * S, -2.5 * S, 1.6 * S, 0, 7); g.arc(64 * S, 2.5 * S, 1.6 * S, 0, 7); g.fill(); } }
-    function drawDragon(now, shadow) { if (!dragon) return; const k = (now - dragon.t0) / dragon.dur; if (k > 1) { if (!shadow) dragon = null; return; }
-      const x = dragon.x0 + (dragon.x1 - dragon.x0) * k, y = dragon.y0 + (dragon.y1 - dragon.y0) * k, S = Math.max(.55, Math.min(1.1, W / 1300)), flap = Math.sin(now / 280);
-      ctx.save(); if (shadow) { ctx.translate(x + 90 * S, y + 120 * S); ctx.rotate(dragon.a); ctx.globalAlpha = .14; wyrm(ctx, S * .92, flap, INKC, null); }
-      else { ctx.translate(x, y); ctx.rotate(dragon.a); ctx.globalAlpha = .96; wyrm(ctx, S, flap, '#3B3047', INKC); }
+    function dragonAt_(now) {   // where the dragon is, how high (1 in the sky, 0 on the ground) and how far its wings are open
+      const S = Math.max(.55, Math.min(1.1, W / 1300)), t = now - dragon.t0;
+      if (!dragon.perch) { const k = t / dragon.dur; return { k, x: dragon.x0 + (dragon.x1 - dragon.x0) * k, y: dragon.y0 + (dragon.y1 - dragon.y0) * k, alt: 1, fold: 1, S }; }
+      const [px, py] = dragon.perch, A = 2600, Pd = 6500, B = 2600, ease = u => 1 - Math.pow(1 - u, 3);
+      if (t < A) { const u = ease(t / A); return { k: 0, x: dragon.x0 + (px - dragon.x0) * u, y: dragon.y0 + (py - dragon.y0) * u, alt: 1 - u, fold: 1 - .55 * u, S: S * (1 - .2 * u) }; }
+      if (t < A + Pd) return { k: 0, x: px, y: py, alt: 0, fold: .45, S: S * .8, sat: true };
+      const u = Math.min(1, (t - A - Pd) / B), v = u * u; return { k: u >= 1 ? 2 : 0, x: px + (dragon.x1 - px) * v, y: py + (dragon.y1 - py) * v, alt: u, fold: .45 + .55 * u, S: S * (.8 + .2 * u) }; }
+    function drawDragon(now, shadow) { if (!dragon) return; const p = dragonAt_(now); if (p.k > 1) { if (!shadow) dragon = null; return; }
+      if (p.sat && !dragon.landed) { dragon.landed = true; logLine('Something very large landed on the barrow', 'the costmap marks it as a moving obstacle the size of a bus. The rover gives it room.'); }
+      const flap = p.sat ? Math.sin(now / 900) * .15 : Math.sin(now / 280);
+      ctx.save(); if (shadow) { ctx.translate(p.x + (8 + 82 * p.alt) * p.S, p.y + (10 + 110 * p.alt) * p.S); ctx.rotate(dragon.a); ctx.globalAlpha = .14 + .1 * (1 - p.alt); wyrm(ctx, p.S * .92, flap, INKC, null, p.fold); }
+      else { ctx.translate(p.x, p.y); ctx.rotate(dragon.a); ctx.globalAlpha = .96; wyrm(ctx, p.S, flap, '#3B3047', INKC, p.fold); }
       ctx.restore(); }
     function drawIcon(g, it) {   // the set pieces, small, for the log and the Latest find pane
       if (it.kind === 'ruin') { for (let i = 0; i < 7; i++) { const a = i / 7 * 6.28; g.fillStyle = STONE; g.strokeStyle = INKC; g.lineWidth = 1.2; g.beginPath(); g.roundRect(16 + Math.cos(a) * 10 - 2.5, 16 + Math.sin(a) * 10 - 2.5, 5, 5, 1.5); g.fill(); g.stroke(); }
@@ -505,6 +531,8 @@
       }
       drawDragon(now, true);   // its shadow is on the ground, under the rover
       drawGuard(now);
+      if (shout) { const k = Math.max(0, (now - shout) / 900); if (k > 1) shout = null; else { const r = (k * 3.2 / MPC) * CELL; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = C.yel; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r, 0, 7); ctx.stroke();
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r * .82, 0, 7); ctx.stroke(); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.28; ctx.beginPath(); ctx.moveTo(rx * CELL + Math.cos(a) * r * .5, ry * CELL + Math.sin(a) * r * .5); ctx.lineTo(rx * CELL + Math.cos(a) * r * .75, ry * CELL + Math.sin(a) * r * .75); ctx.stroke(); } ctx.restore(); } }
       if (path.length) { ctx.strokeStyle = C.red; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); ctx.beginPath(); ctx.moveTo(rx * CELL, ry * CELL); for (const [x, y] of path) ctx.lineTo(x * CELL, y * CELL); ctx.stroke(); ctx.setLineDash([]); }
       if (goal && userGoal) { ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc((goal[0] + .5) * CELL, (goal[1] + .5) * CELL, 7, 0, 7); ctx.stroke(); }
       for (const it of items) if (it.found && !it.collected && !['ruin', 'wall', 'guard'].includes(it.kind) && !(act && act.it === it && act.type === 'pick' && now - act.t0 > 1100)) { const s = it === hoverIt ? 22 : 16; it.kind === 'aruco' ? drawAruco(it, s) : drawFind(it, s * .85, now); }
@@ -553,7 +581,9 @@
         for (let y = 2; y < rows - 2; y += 3) for (let x = 2; x < cols - 2; x += 3) if (!keeps.some(k => inR(x, y, k, 0))) { sx += x; sy += y; sn++; }
         const a = (rnd() - .5) * 1.2 + (rnd() < .5 ? 0 : Math.PI), L = Math.hypot(W, H) / 2 + 260, mx = sn ? sx / sn * CELL : W / 2, my = sn ? sy / sn * CELL : H / 2;
         dragon = { t0: now, dur: 7500, a, x0: mx - Math.cos(a) * L, y0: my - Math.sin(a) * L, x1: mx + Math.cos(a) * L, y1: my + Math.sin(a) * L }; dragonAt = 0;
-        logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.'); }
+        if (ruins && rnd() < .6) { const px = (ruins.cx + Math.cos(ruins.a0) * ruins.R) * CELL, py = (ruins.cy + Math.sin(ruins.a0) * ruins.R) * CELL;   // it lands on the arch
+          dragon.perch = [px, py]; dragon.x0 = px - Math.cos(a) * L; dragon.y0 = py - Math.sin(a) * L; dragon.x1 = px + Math.cos(a) * L; dragon.y1 = py + Math.sin(a) * L; }
+        else logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.'); }
       drawDragon(now, false);
       ctx.fillStyle = C.ink; ctx.fillRect(W - 120, H - 30, 1 / MPC * CELL, 4); ctx.font = '500 11px "Chivo Mono", monospace'; ctx.fillText('1 m', W - 120, H - 36);
       if (transition) { const kk = Math.min(1, (now - transition) / 1400); ctx.fillStyle = `rgba(236,234,228,${kk})`; ctx.fillRect(0, 0, W, H);
