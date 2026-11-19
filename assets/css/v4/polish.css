@@ -90,3 +90,42 @@ input, select, textarea { font-family: inherit; }
   header.top nav a { white-space: nowrap; padding: 9px 6px; font-size: 12px; }
   header.top nav a[href="#contact"] { display: block; }   /* the home sheet hid it when the links shared a row with the name */
 }
+
+/* Projects: on wide screens two card columns and a bigger preview panel, shaped to the figure it shows (its aspect ratio
+   comes from the project's data), never taller than the window. */
+@media (min-width: 1101px) {
+  .pj2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+  .pgrid { grid-template-columns: repeat(2, 1fr); }
+}
+.pv { max-height: calc(100vh - 230px); transition: aspect-ratio .35s cubic-bezier(.23, 1, .32, 1); }
+@media (prefers-reduced-motion: reduce) { .pv { transition: none; } }
+
+/* Experience: one column, as on the old site. */
+.xp { grid-template-columns: 1fr; max-width: 860px; }
+
+/* About: the Now / Also now / Next up boxes as one panel of three cards, each a label row, a title and a line, padded
+   and shadowed like the coursework terminal below so the two line up. */
+.nowp { position: relative; box-shadow: 6px 6px 0 var(--ink); }
+.nowp::before { content: ""; position: absolute; left: -2px; right: -2px; top: -2px; height: 6px; background: var(--stripe); }
+.nowp .sp { display: flex; flex-direction: column; gap: 8px; padding: 22px 20px 20px; }
+.nowp .k { display: flex; align-items: center; gap: 10px; min-height: 18px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--mute); }
+.nowp .k .lampx { font: 600 11px var(--mono); letter-spacing: .06em; }
+.nowp b { font: 900 1.2rem/1.15 Fraunces, Georgia, serif; color: var(--ink); }
+.nowp p { margin: 0; font-size: .95rem; line-height: 1.5; color: var(--mute); }
+.term { margin-top: 30px; }
+
+/* Coursework cards (home section and the coursework page's index): figure thumbnail, code and year, title, who did it. */
+.cwgrid { list-style: none; margin: 30px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }   /* nine pieces: three rows of three */
+.cwcard a { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 0 0 16px; text-decoration: none; color: var(--ink);
+  background: var(--panel); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); transition: transform .18s cubic-bezier(.23, 1, .32, 1), box-shadow .18s cubic-bezier(.23, 1, .32, 1); }
+.cwcard .th { display: block; aspect-ratio: 4 / 3; background: #fff; border-bottom: 2px solid var(--ink); overflow: hidden; }
+.cwcard .th img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.cwcard .cc { padding: 6px 14px 0; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.cwcard b { padding: 0 14px; font: 900 1.05rem/1.2 Fraunces, Georgia, serif; }
+.cwcard .who { padding: 0 14px; font: 500 12px/1.45 var(--mono); color: #2E7A4A; }
+@media (hover: hover) { .cwcard a:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); } }
+.cwcard a:focus-visible { outline: 3px solid var(--ind); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .cwcard a { transition: none; } .cwcard a:hover { transform: none; } }
+.cwmore { margin: 26px 0 0; }
+@media (max-width: 760px) { .cwgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 420px) { .cwgrid { grid-template-columns: 1fr; } }
