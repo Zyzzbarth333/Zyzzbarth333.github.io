@@ -474,7 +474,7 @@
     function show(slug) {
       if (slug === cur) return; cur = slug; const p = BY[slug];
       document.querySelectorAll('.pcard').forEach(r => r.classList.toggle('on', r.dataset.slug === slug));
-      t.textContent = p.title; s.textContent = p.result + ' · ' + p.summary; open.hidden = false; open.onclick = () => openProject(slug);
+      pv.style.aspectRatio = String(p.ratio || 16 / 11); pv.style.height = ''; t.textContent = p.title; s.textContent = p.result + ' · ' + p.summary; open.hidden = false; open.onclick = () => openProject(slug);
       let el = cache.get(slug);
       if (!el) {
         el = p.figure ? Object.assign(document.createElement('iframe'), { src: p.figure, title: 'Live figure: ' + p.title, loading: 'eager' })
@@ -484,7 +484,7 @@
         if (cache.size > 4) { const [k, old] = cache.entries().next().value; if (k !== slug) { old.remove(); cache.delete(k); } }
       }
       pv.querySelectorAll('iframe,img,.ph').forEach(x => x.classList.toggle('on', x === el && (x.complete || x.tagName === 'IFRAME' && x.dataset.ok)));
-      if (el.tagName === 'IFRAME') { el.addEventListener('load', () => { el.dataset.ok = 1; if (cur === slug) el.classList.add('on'); }, { once: true }); if (el.dataset.ok) el.classList.add('on'); }
+      if (el.tagName === 'IFRAME') { const fit = () => { try { const d = el.contentDocument.documentElement, cap = Math.max(320, innerHeight - 230); const h = Math.ceil(Math.max(d.scrollHeight, d.getBoundingClientRect().height)); el.dataset.h = Math.min(h, cap); d.style.overflow = h > cap ? '' : 'hidden'; if (cur === slug) { pv.style.aspectRatio = 'auto'; pv.style.height = el.dataset.h + 'px'; } } catch (e) {} }; el.addEventListener('load', () => { el.dataset.ok = 1; if (cur === slug) el.classList.add('on'); fit(); setTimeout(fit, 1500); }, { once: true }); if (el.dataset.ok) { el.classList.add('on'); fit(); } }
       else if (el.complete) el.classList.add('on');
       const ph = pv.querySelector('.ph'); if (ph) ph.remove();
     }
