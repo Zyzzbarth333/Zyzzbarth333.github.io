@@ -21,7 +21,7 @@
 
 // Embeds that can't work on a phone load only on wider screens (the page shows a note and a link on phones).
 document.querySelectorAll('.figure-embed[data-desktop-only] iframe[data-src]').forEach(function (frame) {
-    var wide = window.matchMedia('(min-width: 600px)');
+    var wide = window.matchMedia('(min-width: 701px)');
     function load() { if (wide.matches && !frame.getAttribute('src')) frame.setAttribute('src', frame.dataset.src); }
     load();
     if (wide.addEventListener) wide.addEventListener('change', load);
@@ -39,7 +39,7 @@ document.querySelectorAll('.figure-embed iframe:not([data-fixed])').forEach(func
                 root.style.overflow = 'hidden';
                 var h = Math.ceil(root.getBoundingClientRect().height);
                 if (root.scrollHeight > frame.clientHeight + 1) h = Math.max(h, root.scrollHeight);
-                frame.style.height = h + 'px';
+                frame.style.height = h + (frame.offsetHeight - frame.clientHeight) + 'px';   // plus the frame's own border
                 frame.style.aspectRatio = 'auto';
             }
         } catch (e) { /* keep the CSS aspect ratio */ }

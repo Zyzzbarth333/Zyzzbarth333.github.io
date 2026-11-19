@@ -93,15 +93,15 @@
 <nav class="next panel" aria-label="Next project"><a href="airbrakes.html" rel="next"><span class="icon iso" data-theme="light" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="iso-svg" viewBox="0 0 300 300" aria-hidden="true" focusable="false"><rect class="ic-bg" width="300" height="300"/><path class="iso-halo" d="M78.5 230.3L80.8 224.2L85.7 218.5L93.2 213.2L102.8 208.7L114.2 205.2L127 202.6L140.6 201.2L154.7 201L168.5 202L181.7 204.2L193.6 207.4L203.9 211.6L212 216.6L217.8 222.3L221 228.3L221.5 234.4L221.5 236.1L219.2 242.1L214.3 247.9L206.8 253.1L197.2 257.6L185.8 261.2L173 263.7L159.4 265.1L145.3 265.3L131.5 264.3L118.3 262.2L106.4 258.9L96.1 254.7L88 249.7L82.2 244.1L79 238.1L78.5 231.9Z"/><image href="/assets/img/projects/airbrakes-body.webp" x="0" y="0" width="300" height="300"/><g class="ab-flaps" data-i="0" data-deg="0" visibility="visible"><image href="/assets/img/projects/airbrakes-f0.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="1" data-deg="16" visibility="hidden"><image href="/assets/img/projects/airbrakes-f16.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="2" data-deg="32" visibility="hidden"><image href="/assets/img/projects/airbrakes-f32.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="3" data-deg="48" visibility="hidden"><image href="/assets/img/projects/airbrakes-f48.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="4" data-deg="64" visibility="hidden"><image href="/assets/img/projects/airbrakes-f64.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="5" data-deg="80" visibility="hidden"><image href="/assets/img/projects/airbrakes-f80.webp" x="0" y="0" width="300" height="300"/></g></svg></span><span><small>Next project</small><b>Airbrake control simulation</b></span></a></nav>
 </main>
 <script>
-document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
-// Every figure frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in a
-// table, fonts arriving), so no figure ever shows a scrollbar of its own (Isaac, 19 Nov 2026). Frames only grow, and stop
-// after a few steps, so a figure sized in vh units cannot chase its own frame.
-document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed]), .fig.panel iframe').forEach(f => {
+// The lead figure's frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in
+// a table, fonts arriving), so it never shows a scrollbar of its own (Isaac, 19 Nov 2026). Embedded figures further down
+// are fitted by site.js. Frames only grow, and stop after 40 steps so a figure sized in vh units cannot chase its own
+// frame; one that is still growing then gets its scrollbar back rather than being cut off.
+document.querySelectorAll('.fig.panel iframe').forEach(f => {
   let n = 0;
   const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
     const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
-    if (h > f.clientHeight + 1 && n++ < 8) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } } catch (e) {} };
+    if (h > f.clientHeight + 1) { if (n++ < 40) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } else r.style.overflow = ''; } } catch (e) {} };
   const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
   f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
 });

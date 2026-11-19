@@ -98,7 +98,7 @@
       sectorT0 = performance.now(); sector++; seed = 9001 + sector * 7919; size(); paintTerrain();
       cloud = document.createElement('canvas'); cloud.width = W; cloud.height = H; cctx = cloud.getContext('2d'); tasks = []; task = null; act = null; window.__cloudReset = true;
       gridLayer = document.createElement('canvas'); gridLayer.width = W; gridLayer.height = H; gridDirty = true;
-      const N = cols * rows; nogo = new Uint8Array(N); occ = new Uint8Array(N); hgt = new Float32Array(N); known = new Uint8Array(N); cam = new Uint8Array(N); nearO = new Uint8Array(N); sand = new Uint8Array(N); cost = new Uint8Array(N); search = null; rawPath = []; carrot = null; recov = null;
+      const N = cols * rows; nogo = new Uint8Array(N); occ = new Uint8Array(N); hgt = new Float32Array(N); known = new Uint8Array(N); cam = new Uint8Array(N); nearO = new Uint8Array(N); sand = new Uint8Array(N); cost = new Uint8Array(N); search = null; rawPath = []; carrot = null; recov = null; lastSenseAt = null;
       const keeps = [...cv.parentElement.querySelectorAll('[data-keep]')].filter(el => el.offsetParent).map(rectOf);
       const blobs = Math.round(N / 370);
       for (let i = 0; i < blobs; i++) { const cx = rnd() * cols, cy = rnd() * rows, kind = i % 6, r = (kind === 0 ? 4 + rnd() * 4 : kind === 1 ? 2.5 + rnd() : 0.9 + rnd() * 1.6) * 0.2 / MPC, ring = kind === 0;
@@ -214,7 +214,7 @@
       for (let n = 0; n < 80; n++) { let ch = 0;
         for (let i = 1; i < q.length - 1; i++) for (const k of [0, 1]) { const o = q[i][k]; q[i][k] += .2 * (p[i][k] - q[i][k]) + .3 * (q[i - 1][k] + q[i + 1][k] - 2 * q[i][k]); ch += Math.abs(o - q[i][k]); }
         if (ch < 1e-3) break; }
-      for (let i = 0; i < q.length; i++) { const x = Math.floor(q[i][0]), y = Math.floor(q[i][1]); if (!inside(x, y) || nogo[id(x, y)] || known[id(x, y)] === 2) q[i] = [...p[i]]; }   // never smooth into an obstacle
+      for (let i = 0; i < q.length; i++) { const x = Math.floor(q[i][0]), y = Math.floor(q[i][1]); if (!inside(x, y) || nogo[id(x, y)] || known[id(x, y)] === 2 || (nearO[id(x, y)] === 2 && Math.hypot(q[i][0] - p[0][0], q[i][1] - p[0][1]) > 3)) q[i] = [...p[i]]; }   // never smooth into an obstacle or its footprint ring
       return q; }
     function astarRaw(sx, sy, gx, gy) {
       const N = cols * rows, g = new Float32Array(N).fill(Infinity), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
@@ -295,7 +295,9 @@
       rh += Math.max(-1, Math.min(1, da)) * Math.min(1, dt * 6);
       const sp = SPEED * slow * turn * dt, d = Math.hypot(tx - rx, ty - ry), w = Math.abs(da) < .6 ? .6 : 0;   // drive along the heading as it swings onto the carrot
       if (ci === path.length - 1 && d <= sp) { rx = tx; ry = ty; path = []; carrot = null; }
-      else { const ux = (1 - w) * (tx - rx) / d + w * Math.cos(rh), uy = (1 - w) * (ty - ry) / d + w * Math.sin(rh), un = Math.hypot(ux, uy) || 1; rx += ux / un * sp; ry += uy / un * sp; }
+      else { let ux = (1 - w) * (tx - rx) / d + w * Math.cos(rh), uy = (1 - w) * (ty - ry) / d + w * Math.sin(rh), un = Math.hypot(ux, uy) || 1;
+        const bx1 = Math.floor(rx + ux / un * .8), by1 = Math.floor(ry + uy / un * .8); if (!inside(bx1, by1) || occ[id(bx1, by1)] || known[id(bx1, by1)] === 2 || nearO[id(bx1, by1)] === 2) { ux = tx - rx; uy = ty - ry; un = d; }   // off the path into a footprint ring: steer straight for the carrot
+        rx += ux / un * sp; ry += uy / un * sp; }
       if (!lastSenseAt || (nowT - lastSense > 120 && Math.hypot(rx - lastSenseAt[0], ry - lastSenseAt[1]) > .9)) { lastSense = nowT; lastSenseAt = [rx, ry]; sense(); }
       for (let i = 0; i <= Math.min(path.length - 1, ci + 2); i++) { const bx2 = Math.floor(path[i][0]), by2 = Math.floor(path[i][1]);   // same rule as astar: inflated cells near the rover are its way out
         if (known[id(bx2, by2)] === 2 || (nearO[id(bx2, by2)] === 2 && Math.hypot(path[i][0] - rx, path[i][1] - ry) > 3)) { path = []; break; } }
@@ -352,7 +354,7 @@
           for (let i = 1; i < 8; i++) { const a = a0 + i / 8 * Math.PI * 2 + (rnd() - .5) * .12, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R, fallen = i === 3 || i === 6;
             solid(Math.floor(x), Math.floor(y), fallen ? .35 : 1.6); if (fallen) solid(Math.floor(x + Math.cos(a) * .9), Math.floor(y + Math.sin(a) * .9), .35);
             stone(t, px(x) + (fallen ? Math.cos(a) * sl * .3 : 0), px(y) + (fallen ? Math.sin(a) * sl * .3 : 0), fallen ? sw * .8 : sw, fallen ? sl * 1.5 : sl, fallen ? a + .25 : a + Math.PI / 2, fallen ? 2 : 6); }
-          solid(Math.floor(cx), Math.floor(cy), .5); slab(t, px(cx), px(cy), a0);
+          solid(Math.floor(cx), Math.floor(cy), .4); slab(t, px(cx), px(cy), a0);
           items.push({ kind: 'ruin', name: 'An old barrow ring', text: 'Standing stones, two of them fallen, round a carved slab, with an arch on the way in. The lintel is above the 1 m band the costmap keeps, so Nav2 happily plans under it.', col: STONE, x: Math.floor(cx), y: Math.floor(cy), found: false });
           guard = { x: cx + .5, y: cy + 1.5, wx: cx, wy: cy, a: 0, t: 0 };
           items.push({ kind: 'guard', name: 'A barrow guard', text: 'Something in very old armour, shuffling between the stones with its eyes glowing. The costmap treats it as a moving obstacle and plans round it. It has not noticed the rover. Yet.', col: '#5C5448', x: Math.floor(cx), y: Math.floor(cy) + 1, found: false });
@@ -568,7 +570,7 @@
         tip.style.left = Math.min(px, W - 250) + 'px'; tip.style.top = py + 'px'; } else tip.hidden = true; });
     cv.addEventListener('mouseleave', () => { hoverIt = null; tip.hidden = true; });
     cv.addEventListener('click', ev => {
-      if (hoverIt) { if (hoverIt.kind === 'aruco') openProject(hoverIt.slug); return; }
+      if (hoverIt && !['ruin', 'wall'].includes(hoverIt.kind)) { if (hoverIt.kind === 'aruco') openProject(hoverIt.slug); return; }
       const [fx_, fy_] = at(ev), gx = Math.floor(fx_), gy = Math.floor(fy_); if (!inside(gx, gy) || nogo[id(gx, gy)] || known[id(gx, gy)] === 2 || transition) return;
       task = null; goal = [gx, gy]; userGoal = true; path = astar(Math.floor(rx), Math.floor(ry), gx, gy) || []; if (!path.length) { goal = null; userGoal = false; } status(); });
     const lv = document.getElementById('livo'); if (lv) lv.addEventListener('change', () => { livo = lv.checked; });
@@ -656,7 +658,7 @@
         if (cache.size > 4) { const [k, old] = cache.entries().next().value; if (k !== slug) { old.remove(); cache.delete(k); } }
       }
       pv.querySelectorAll('iframe,img,.ph').forEach(x => x.classList.toggle('on', x === el && (x.complete || x.tagName === 'IFRAME' && x.dataset.ok)));
-      if (el.tagName === 'IFRAME') { const fit = () => { try { const doc = el.contentDocument, d = doc.documentElement, b = doc.body, cap = Math.max(320, innerHeight - 230); b.style.zoom = ''; d.style.overflow = 'hidden'; let h = Math.ceil(Math.max(d.scrollHeight, d.getBoundingClientRect().height)); if (h > cap) { b.style.zoom = Math.max(.62, cap / h).toFixed(3); h = cap; } el.dataset.h = h; if (cur === slug) { pv.style.aspectRatio = 'auto'; pv.style.height = el.dataset.h + 'px'; } } catch (e) {} }; el.addEventListener('load', () => { el.dataset.ok = 1; if (cur === slug) el.classList.add('on'); fit(); setTimeout(fit, 1500); }, { once: true }); if (el.dataset.ok) { el.classList.add('on'); fit(); } }
+      if (el.tagName === 'IFRAME') { const fit = () => { try { const doc = el.contentDocument, d = doc.documentElement, b = doc.body, cap = Math.max(320, innerHeight - 230); el.style.transform = el.style.width = el.style.height = ''; d.style.overflow = 'hidden'; let h = Math.ceil(Math.max(d.scrollHeight, d.getBoundingClientRect().height)); if (h > cap) { const k = Math.max(.62, cap / h); el.style.transformOrigin = '0 0'; el.style.transform = 'scale(' + k.toFixed(3) + ')'; el.style.width = el.style.height = (100 / k).toFixed(2) + '%'; h = cap; } el.dataset.h = h; if (cur === slug) { pv.style.aspectRatio = 'auto'; pv.style.height = el.dataset.h + 'px'; } } catch (e) {} }; el.addEventListener('load', () => { el.dataset.ok = 1; if (cur === slug) el.classList.add('on'); fit(); setTimeout(fit, 1500); }, { once: true }); if (el.dataset.ok) { el.classList.add('on'); fit(); } }
       else if (el.complete) el.classList.add('on');
       const ph = pv.querySelector('.ph'); if (ph) ph.remove();
     }
