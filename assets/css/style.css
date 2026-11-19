@@ -743,15 +743,21 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
     .site-header { position: static; }
     .js .reveal { opacity: 1; transform: none; }
 }
-/* METR4810: the pod steers on hover (two drawn poses, crossfaded), the bore path and mouth in the block */
+/* METR4810: four rendered steps of the pod boring a curved tunnel through three foam blocks. Frame 0 (the pod at
+   the first block's face) shows at rest and under reduced motion; on hover the steps play and the tunnel grows. */
 .card .icon .mt-bore { fill: none; stroke: #BB0700; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: .8; }
 .card .icon .mt-mouth { fill: #2E1499; opacity: .55; }
-.card .icon .mt-steer { opacity: 0; }
-@media (prefers-reduced-motion: no-preference) {      /* reduced motion keeps the pod straight */
-    .card .icon .mt-steer, .card .icon .mt-straight { transition: opacity .6s ease; }
-    .card:hover .icon .mt-steer, .card:focus-within .icon .mt-steer { opacity: 1; }
-    .card:hover .icon .mt-straight, .card:focus-within .icon .mt-straight { opacity: 0; }
+.card .icon .mt-f1, .card .icon .mt-f2, .card .icon .mt-f3 { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {      /* paused at rest by the hover-loops rule, so frame 0 stays */
+    .card .icon .mt-f0 { animation: mt-a0 4.4s steps(1, end) infinite; }
+    .card .icon .mt-f1 { animation: mt-a1 4.4s steps(1, end) infinite; }
+    .card .icon .mt-f2 { animation: mt-a2 4.4s steps(1, end) infinite; }
+    .card .icon .mt-f3 { animation: mt-a3 4.4s steps(1, end) infinite; }
 }
+@keyframes mt-a0 { 0% { opacity: 1; } 20% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-a1 { 0% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-a2 { 0% { opacity: 0; } 40% { opacity: 1; } 60% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-a3 { 0% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 1; } }
 /* Coursework: a compact list under Earlier work, each line linking to its entry on the coursework page */
 .coursework-list {
     list-style: none; margin: 0 auto; padding: 0; max-width: 980px;
