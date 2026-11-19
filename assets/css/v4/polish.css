@@ -129,3 +129,6 @@ input, select, textarea { font-family: inherit; }
 .cwmore { margin: 26px 0 0; }
 @media (max-width: 760px) { .cwgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 @media (max-width: 420px) { .cwgrid { grid-template-columns: 1fr; } }
+
+/* Screen-reader-only text, such as the "(opens in a new tab)" after outside links. */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
