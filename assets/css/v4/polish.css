@@ -142,3 +142,11 @@ input, select, textarea { font-family: inherit; }
 /* phones: the hero card sits in the flow at the top of the arena, with 440 px of open ground under it for the rover
    (it used to cover all but about 100 px, so the rover found nothing) (19 Nov 2026) */
 @media (max-width: 700px) { #arena-wrap { height: auto !important; padding-bottom: 440px; } #arena-wrap .hero-copy { position: relative !important; left: auto !important; right: auto !important; top: auto !important; margin: 12px !important; } }
+/* the cloud view's key hides with the other views (it is display:flex, which would beat [hidden]) */
+#arena-wrap .sensors[hidden] { display: none; }
+/* one column: the airbrake render takes the column's width (it shrank to 0 x 0) */
+@media (max-width: 1100px) { #ab-model { width: 100%; } }
+/* the home skip link shows when it has focus, as on the project pages */
+.vh:focus, .vh:focus-visible { position: fixed !important; left: 12px !important; top: 12px !important; width: auto !important; height: auto !important; clip: auto !important; overflow: visible !important; z-index: 99; background: var(--yel); color: var(--ink); padding: 8px 12px; outline: 3px solid var(--ink); }
+/* the field log sector tag: leaf is 3.2:1 on the panel; a deeper green of the same hue reads at about 5:1 */
+.side .row i { color: #2B7044; }
