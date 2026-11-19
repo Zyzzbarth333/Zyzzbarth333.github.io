@@ -656,5 +656,5 @@
   /* nav highlight */
   const links = [...document.querySelectorAll('header.top nav a')];
   const io = new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + x.target.id)); }), { rootMargin: '-45% 0px -50% 0px' });
-  links.forEach(a => { const s = document.querySelector(a.getAttribute('href')); if (s) io.observe(s); });
+  links.forEach(a => { const h = a.getAttribute('href'); const s = h.startsWith('#') && document.querySelector(h); if (s) io.observe(s); });
 })();

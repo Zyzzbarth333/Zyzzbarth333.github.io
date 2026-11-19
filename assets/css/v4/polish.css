@@ -81,3 +81,12 @@ header.top { padding-top: env(safe-area-inset-top, 0px); }
 
 /* Inputs take the page font (the browser default is Arial). */
 input, select, textarea { font-family: inherit; }
+
+/* Phones: five header links don't fit beside the name, so they move to a second row that scrolls sideways if it must. */
+@media (max-width: 520px) {
+  header.top { height: auto; flex-wrap: wrap; row-gap: 0; padding: 8px 14px 4px; }
+  header.top .nm { font-size: 1rem; }
+  header.top nav { margin: 0 -6px; width: calc(100% + 12px); overflow-x: auto; scrollbar-width: none; gap: 0; }
+  header.top nav a { white-space: nowrap; padding: 9px 6px; font-size: 12px; }
+  header.top nav a[href="#contact"] { display: block; }   /* the home sheet hid it when the links shared a row with the name */
+}
