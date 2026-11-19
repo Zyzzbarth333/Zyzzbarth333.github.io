@@ -71,7 +71,7 @@
     let cloud = null, cctx = null, tasks = [], task = null, act = null, chaseT = 0, coins = 0, score = 0, hasKey = false, critters = [], power = 0, eggQ = [], houston = 0, pause = 0;
     let livo = true, fresh = [], view = 'cloud', gridLayer = null, gridDirty = true;
     let cost = null, search = null, rawPath = [], carrot = null, recov = null, lastSenseAt = null;   // Nav2 view: costs, the planner's search, the controller's carrot, recovery
-    let ruins = null, guard = null, dragon = null, dragonAt = 0;   // set pieces: an old barrow, its guard, and now and then something large overhead
+    let ruins = null, guard = null, dragon = null, dragonAt = 0, idle = 0;   // set pieces: an old barrow, its guard, and now and then something large overhead
     let seed = 1; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
     const id = (x, y) => y * cols + x, inside = (x, y) => x >= 0 && y >= 0 && x < cols && y < rows;
     const arucoBits = n => { let s = (n * 2654435761) >>> 0; const b = []; for (let i = 0; i < 16; i++) { s = (s * 1103515245 + 12345) >>> 0; b.push((s >> 16) & 1); } return b; };
@@ -115,6 +115,8 @@
         let bp = null, bd = Infinity; for (let y = 4; y < rows - 4; y++) for (let x = 4; x < cols - 4; x++) { if (!clearOf(x, y)) continue; const d = Math.hypot(x - rx, y - ry); if (d < bd) { bd = d; bp = [x, y]; } }
         if (bp) { rx = bp[0] + .5; ry = bp[1] + .5; } }
       clear(Math.floor(rx), Math.floor(ry), 8);
+      for (const it of [...items].reverse()) if (!it.found) {   // unfound markers and cubes go back in their queues first
+        if (it.kind === 'aruco') queue.unshift(it.slug); else if (it.kind === 'cube') { const { x, y, found, bits, kind, ...cube } = it; cubeQ.unshift(cube); } }
       const want = [];
       for (let i = 0; i < 2 && queue.length; i++) { const slug = queue.shift(); want.push({ kind: 'aruco', slug, n: DATA.found.indexOf(slug) + 1 }); }
       if (cubeQ.length) want.push({ kind: 'cube', ...cubeQ.shift() });
@@ -126,7 +128,7 @@
       { const eg = want.filter(w => w.kind === 'egg'), rest = want.filter(w => w.kind !== 'egg'); want.length = 0;   // eggs early in the order, so a phone's few spots get one
         rest.forEach((w, i) => { want.push(w); if (i % 3 === 0 && eg.length) want.push(eg.shift()); }); want.push(...eg); }
       houston = sector % 5 === 3 ? 9 : 0;
-      items = []; trail = []; devil = null; critters = []; power = 0;
+      items = []; trail = []; devil = null; critters = []; power = 0; idle = 0;
       placeSetPieces(keeps);
       const spacing = Math.max(9, Math.sqrt(N / (want.length * 2.2)));
       want.forEach(it => { let px, py, t = 0;
@@ -236,13 +238,14 @@
         for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy, ni = id(nx, ny);
           if (inside(nx, ny) && dist[ni] < 0 && !nogo[ni] && known[ni] !== 2 && nearO[ni] !== 2) { dist[ni] = dist[c] + 1; q.push(ni); } } }
       let best = null, bs = Infinity; const reach = [];
-      for (let y = 3; y < rows - 3; y += 2) for (let x = 3; x < cols - 3; x += 2) { const d = dist[id(x, y)]; if (d > 6 && !occ[id(x, y)]) reach.push([x, y]); if (d < 0 || cam[id(x, y)]) continue;
+      for (let y = 3; y < rows - 3; y += 2) for (let x = 3; x < cols - 3; x += 2) { const d = dist[id(x, y)]; if (d > 2 && !occ[id(x, y)]) reach.push([x, y]); if (d < 0 || cam[id(x, y)]) continue;
         let gain = 0; for (let oy = -4; oy <= 4; oy++) for (let ox = -4; ox <= 4; ox++) if (inside(x + ox, y + oy) && !cam[id(x + ox, y + oy)] && !occ[id(x + ox, y + oy)]) gain++;
         if (gain < 18) continue; targets.push([x, y]); const sc = d - gain * .35; if (sc < bs) { bs = sc; best = [x, y]; } }
       if (!best && reach.length && performance.now() - sectorT0 < 25000) best = reach[Math.floor(Math.random() * reach.length)];   // patrol until the sector has run 25 s
       return best;
     }
-    function plan() { if (!goal) { const f = nextTarget(); if (!f) { transition = performance.now(); status(); return; } goal = f; }
+    function plan() { if (!goal) { const f = nextTarget(); if (!f) { if (performance.now() - sectorT0 < 25000) { idle = .8; return; }   // nowhere new to look yet: wait, then look again
+        transition = performance.now(); status(); return; } goal = f; }
       path = astar(Math.floor(rx), Math.floor(ry), goal[0], goal[1]) || []; if (!path.length) { cam[id(goal[0], goal[1])] = 1; goal = null; userGoal = false; } }
     let lastSense = 0, wd = null;
     window.__dbg = () => { const sx = Math.floor(rx), sy = Math.floor(ry), nb = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy]) => ({ nogo: nogo[id(sx+dx,sy+dy)], known: known[id(sx+dx,sy+dy)], nearO: nearO[id(sx+dx,sy+dy)], occ: occ[id(sx+dx,sy+dy)] }));
@@ -266,6 +269,7 @@
           else if (!c.cool || performance.now() > c.cool) { c.cool = performance.now() + 4000; logLine('A dust sprite bumps the rover. The rover shrugs.', 'event'); } } });
       if (houston > 0) { houston -= dt; if (houston <= 0) { pause = 2.6; logLine("Houston, we've had a problem: bus undervolt. Cycling the arming key.", 'event'); st.innerHTML = 'fault · recovering'; } }
       if (pause > 0) { pause -= dt; if (pause <= 0) { logLine('Back up. Carrying on.', 'event'); status(); } return; }
+      if (idle > 0) { idle -= dt; return; }
       const nowT = performance.now();
       if (act) { const dur = act.type === 'pick' ? 2200 : 1100, it = act.it;
         const want = Math.atan2(it.y + .5 - ry, it.x + .5 - rx), da = Math.atan2(Math.sin(want - rh), Math.cos(want - rh));
@@ -580,7 +584,7 @@
       [...queue].forEach(slug => { detect({ kind: 'aruco', slug, n: DATA.found.indexOf(slug) + 1, bits: arucoBits(DATA.found.indexOf(slug) + 1), x: 0, y: 0 }, true); });
       items.filter(it => it.kind === 'aruco' && !it.found).forEach(it => detect(it, true)); queue = [];
       document.getElementById('projects').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }); };
-    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { sector--; newSector(); }, 300); });
+    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (cv.clientWidth === W && Math.abs(cv.clientHeight - H) < 160) return; sector--; newSector(); }, 300); });   // a phone's address bar showing or hiding changes the height a little: keep the sector
     sector = Math.max(0, (+new URLSearchParams(location.search).get('sector') || 1) - 1);
     newSector();
     if (RM) { for (let i = 0; i < occ.length; i++) known[i] = occ[i] ? 2 : 1; cam.fill(1); items.forEach(it => { if (!it.found) detect(it, true); }); draw(0); }
