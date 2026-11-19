@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=6b27d7b8">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=b9dca50d">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -76,7 +76,17 @@
 </main>
 <script>
 document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
-document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed])').forEach(f => { const fit = () => { try { const r = f.contentDocument.documentElement; r.style.overflow = 'hidden'; f.style.height = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight)) + 'px'; f.style.aspectRatio = 'auto'; } catch (e) {} }; f.addEventListener('load', () => { fit(); setTimeout(fit, 600); }); });
+// Every figure frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in a
+// table, fonts arriving), so no figure ever shows a scrollbar of its own (Isaac, 19 Nov 2026). Frames only grow, and stop
+// after a few steps, so a figure sized in vh units cannot chase its own frame.
+document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed]), .fig.panel iframe').forEach(f => {
+  let n = 0;
+  const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
+    const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
+    if (h > f.clientHeight + 1 && n++ < 8) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } } catch (e) {} };
+  const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
+  f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
+});
 </script>
 <footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
 <script src="/assets/js/site.js" defer></script>

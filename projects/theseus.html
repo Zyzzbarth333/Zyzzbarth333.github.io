@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=6b27d7b8">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=b9dca50d">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -38,7 +38,7 @@
     <h1 id="t" data-vt="title">Theseus V rover autonomy</h1>
     <p class="res">1st of 17</p>
     <p class="out">The ROS 2 autonomy stack I wrote on my own for UQ Space&#x27;s Theseus V rover. It ran the autonomy task at the 2026 Australian Rover Challenge, where the team placed 1st of 17.</p>
-    <dl class="facts"><dt>My role</dt><dd>Lead avionics engineer. Sole developer of the autonomy stack (82 of 83 commits) and of Theseus GCS, the ground control station (87 of 87 commits)</dd><dt>Team</dt><dd>Avionics, one of the 6 UQ Space sub-teams that developed Theseus V</dd><dt>When</dt><dd>Oct 2025 – Apr 2026</dd><dt>Tools</dt><dd>ROS 2, Nav2, FAST-LIO2, C++, Python, Gazebo, YOLO, React</dd><dt>Code</dt><dd>Private: UQ Space team repositories</dd></dl>
+    <dl class="facts"><dt>My role</dt><dd>Lead avionics engineer. Sole developer of the autonomy stack (82 of 83 commits) and of Theseus GCS, the ground control station (87 of 87 commits)</dd><dt>Team</dt><dd>Avionics, one of the 6 UQ Space sub-teams that developed Theseus V</dd><dt>When</dt><dd>Oct 2025 – Apr 2026</dd><dt>Tools</dt><dd>ROS 2, Nav2, FAST-LIO2, C++, Python, Gazebo, YOLO, React</dd><dt>Code</dt><dd>Private: UQ Space team repositories</dd><dt>Press</dt><dd>Interviewed for <a href="https://www.space.gov.au/news-and-media/gen-space-uq-space-winning-2026-australian-rover-challenge" target="_blank" rel="noopener">the Australian Space Agency's Gen Space feature<span class="visually-hidden"> (opens in a new tab)</span></a> (28 Apr 2026) on the team's win</dd></dl>
   </div>
 </section>
 <section class="fig panel" aria-label="Live figure"><div class="bar"><b>Live figure</b><span>theseus-map.html</span></div><iframe src="/assets/figures/theseus-map.html" title="Live figure: Theseus V rover autonomy" loading="lazy"></iframe></section>
@@ -87,7 +87,17 @@
 </main>
 <script>
 document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
-document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed])').forEach(f => { const fit = () => { try { const r = f.contentDocument.documentElement; r.style.overflow = 'hidden'; f.style.height = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight)) + 'px'; f.style.aspectRatio = 'auto'; } catch (e) {} }; f.addEventListener('load', () => { fit(); setTimeout(fit, 600); }); });
+// Every figure frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in a
+// table, fonts arriving), so no figure ever shows a scrollbar of its own (Isaac, 19 Nov 2026). Frames only grow, and stop
+// after a few steps, so a figure sized in vh units cannot chase its own frame.
+document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed]), .fig.panel iframe').forEach(f => {
+  let n = 0;
+  const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
+    const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
+    if (h > f.clientHeight + 1 && n++ < 8) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } } catch (e) {} };
+  const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
+  f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
+});
 </script>
 <footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
 <script src="/assets/js/site.js" defer></script>

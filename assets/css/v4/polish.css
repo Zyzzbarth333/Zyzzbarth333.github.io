@@ -132,3 +132,8 @@ input, select, textarea { font-family: inherit; }
 
 /* Screen-reader-only text, such as the "(opens in a new tab)" after outside links. */
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* a find drawn as the arena draws it, in the field log and the Latest find pane (19 Nov 2026) */
+.glyph.thumb { border: 0; background: none; padding: 0; }
+#latest .lt-ic canvas.thumb { width: 76px; height: 76px; }
+.dlog canvas.thumb, #log canvas.thumb { width: 22px; height: 22px; flex: none; }

@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=6b27d7b8">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=b9dca50d">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html" aria-current="page">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -68,7 +68,24 @@
         </figure>
             <h2 id="titanium-crank-arm-for-metal-3d-printing">Titanium crank arm for metal 3D printing</h2>
             <p class="meta">MATE7015 Additive Manufacturing · 2026 · on my own</p>
-            <p>A hollow Ti-6Al-4V bicycle crank arm designed for laser powder bed fusion: 408 MPa peak stress at the 1800 N test load, a safety factor of 2.11, and 21% lighter than my solid starting design. It is a design only. <a href="crank-arm.html">The full page</a> has the section, the static study and the printed prototypes.</p>
+            <p>A left bicycle crank arm in Ti-6Al-4V that I designed in Fusion 360 for laser powder bed fusion. At the 1800 N test load my static study peaks at 408 MPa, a safety factor of 2.11, and the arm weighs 251.4 g, 21% lighter than my solid starting design. It is a design only: the titanium arm has not been built.</p>
+            <p>Crank arms are usually forged, so every length needs its own dies. Printed in titanium, crank length could be a single model parameter, so a rider with a leg-length difference could get a custom arm, if the design suits the process.</p>
+            <ul>
+                <li>Crank length is one parameter of the model.</li>
+                <li>The arm is hollow and needs no supports inside: a closed internal cavity with 2 mm skins and ends 50° above horizontal, so the arm builds upright from the bottom bracket boss with no supports inside it. I chose the process partly for its fine resolution, which the thin skins need.</li>
+                <li>Two 3.5 mm holes let the unfused powder out. My first holes, in the top skin, raised the peak stress to 591 MPa, so I moved them to the side wall.</li>
+                <li>In my static study, at the 1800 N fatigue test load from BS EN ISO 4210-8, the peak von Mises stress is 408 MPa, a safety factor of 2.11 on the 860 MPa heat-treated minimum yield.</li>
+                <li>I printed 3 full-size ASA prototypes of earlier versions on my own printer. A 98.7% shrinkage setting brought the last one&#x27;s bores within 0.3% of the CAD.</li>
+                <li><strong>Over my weight target:</strong> at 251.4 g the arm is 76 g heavier than my stretch target, the 175 g Shimano arm.</li>
+            </ul>
+        <figure class="figure">
+            <img src="/assets/img/projects/crank-arm-section.webp" alt="Section along the crank arm showing the closed internal cavity, its thin skins and its angled ends" width="1600" height="637" loading="lazy" decoding="async">
+            <figcaption>Section along the arm: the closed internal cavity, its 2 mm skins and the ends angled 50° above horizontal, so it prints without internal supports.</figcaption>
+        </figure>
+        <figure class="figure">
+            <img src="/assets/img/projects/crank-arm-render.webp" alt="Render of the final crank arm with its two powder-escape holes in the side wall" width="1600" height="752" loading="lazy" decoding="async">
+            <figcaption>The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.</figcaption>
+        </figure>
             <h2 id="control-design-for-three-rigs">Control design for three rigs</h2>
             <p class="meta">METR6203 Control Engineering 2 · 2025 · two team assignments and one on my own</p>
             <p>On a gyro-actuated inverted pendulum I was responsible for the MATLAB and Simulink model, the LQR capture controller and integration, with Stateflow switching between an energy-based swing-up and balance. In simulation it swung up in about 1.1 s and was caught, but we ran out of time to get the swing-up working on the rig. On a Quanser 3-DOF helicopter I built the linearised hover model and the Simulink model that joins the observer, controller and plant, and the controller flew under joystick control. On my own, I designed a state feedback controller and observer for a linearised Whipple bicycle; in simulation its step response overshot by 3.4%.</p>
@@ -116,7 +133,17 @@
 </main>
 <script>
 document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
-document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed])').forEach(f => { const fit = () => { try { const r = f.contentDocument.documentElement; r.style.overflow = 'hidden'; f.style.height = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight)) + 'px'; f.style.aspectRatio = 'auto'; } catch (e) {} }; f.addEventListener('load', () => { fit(); setTimeout(fit, 600); }); });
+// Every figure frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in a
+// table, fonts arriving), so no figure ever shows a scrollbar of its own (Isaac, 19 Nov 2026). Frames only grow, and stop
+// after a few steps, so a figure sized in vh units cannot chase its own frame.
+document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed]), .fig.panel iframe').forEach(f => {
+  let n = 0;
+  const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
+    const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
+    if (h > f.clientHeight + 1 && n++ < 8) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } } catch (e) {} };
+  const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
+  f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
+});
 </script>
 <footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
 <script src="/assets/js/site.js" defer></script>
