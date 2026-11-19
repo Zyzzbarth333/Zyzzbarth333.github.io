@@ -743,21 +743,28 @@ a.pill-ghost:hover { background: var(--white); color: var(--red); }
     .site-header { position: static; }
     .js .reveal { opacity: 1; transform: none; }
 }
-/* METR4810: four rendered steps of the pod boring a curved tunnel through three foam blocks. Frame 0 (the pod at
-   the first block's face) shows at rest and under reduced motion; on hover the steps play and the tunnel grows. */
+/* METR4810: a cutaway of the three foam blocks. At rest (and under reduced motion, and on a phone) it shows the outcome
+   with the pod parked at the first face: pass 1's groove running wide in the bend, pass 2 from the far end, a red cross
+   where they missed. On hover it replays: a clean start, the pod boring in step by step, then the miss. */
 .card .icon .mt-bore { fill: none; stroke: #BB0700; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: .8; }
-.card .icon .mt-mouth { fill: #2E1499; opacity: .55; }
-.card .icon .mt-f1, .card .icon .mt-f2, .card .icon .mt-f3 { opacity: 0; }
-@media (prefers-reduced-motion: no-preference) {      /* paused at rest by the hover-loops rule, so frame 0 stays */
-    .card .icon .mt-f0 { animation: mt-a0 4.4s steps(1, end) infinite; }
-    .card .icon .mt-f1 { animation: mt-a1 4.4s steps(1, end) infinite; }
-    .card .icon .mt-f2 { animation: mt-a2 4.4s steps(1, end) infinite; }
-    .card .icon .mt-f3 { animation: mt-a3 4.4s steps(1, end) infinite; }
+.card .icon .mt-p1, .card .icon .mt-p2, .card .icon .mt-p3, .card .icon .mt-g1, .card .icon .mt-g2 { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {      /* paused at rest by the hover-loops rule, on the outcome */
+    .card .icon .mt-p0 { animation: mt-p0 5s steps(1, end) infinite; }
+    .card .icon .mt-p1, .card .icon .mt-g1 { animation: mt-s1 5s steps(1, end) infinite; }
+    .card .icon .mt-p2, .card .icon .mt-g2 { animation: mt-s2 5s steps(1, end) infinite; }
+    .card .icon .mt-p3 { animation: mt-s3 5s steps(1, end) infinite; }
+    .card .icon .mt-g3 { animation: mt-g3 5s steps(1, end) infinite; }
 }
-@keyframes mt-a0 { 0% { opacity: 1; } 20% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes mt-a1 { 0% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes mt-a2 { 0% { opacity: 0; } 40% { opacity: 1; } 60% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes mt-a3 { 0% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes mt-p0 { 0% { opacity: 1; } 28% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s1 { 0% { opacity: 0; } 28% { opacity: 1; } 48% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s2 { 0% { opacity: 0; } 48% { opacity: 1; } 68% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s3 { 0% { opacity: 0; } 68% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes mt-g3 { 0% { opacity: 1; } 8% { opacity: 0; } 68% { opacity: 1; } 100% { opacity: 1; } }
+.card .icon .mt-chip { opacity: 0; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {      /* foam chips fly off the cutter while it bores (hover replay only) */
+    .card .icon .mt-chip { animation: mt-chip .9s cubic-bezier(.2, .7, .4, 1) var(--dl, 0s) infinite; }
+}
+@keyframes mt-chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(220deg) scale(.6); } }
 /* Coursework: a compact list under Earlier work, each line linking to its entry on the coursework page */
 .coursework-list {
     list-style: none; margin: 0 auto; padding: 0; max-width: 980px;
