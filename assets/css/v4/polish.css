@@ -1,0 +1,83 @@
+/* Shared polish for Live v4 and the v3 archive (19 Nov): phone fixes (mobile-native) and motion fixes
+   (improve-animations / animation-performance). Loaded last, so it overrides the page CSS. */
+
+/* No grey/blue flash on tap; no landscape font inflation. Pull-to-refresh is left on: this is a scrolling document. */
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+
+/* Taps fire at once (no double-tap-zoom wait); control labels can't be long-press selected. */
+button, a, [role="button"], .btn, .k, .placard, .pm, .viewsw button, .olist button { touch-action: manipulation; }
+button, [role="button"], .btn, .k, .pill, .viewsw button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.btn:active, .k:active, .viewsw button:active { transform: scale(0.97); transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Small viewport units: heroes never sit under the URL bar; the dialog tracks the visible area. */
+.ex { height: min(84svh, 820px); }
+#explore:not(:has(.ex)) { height: min(88svh, 860px); }
+.fl-chart { height: calc(100svh - 100px); }
+dialog.full, dialog.file, dialog.pull, dialog.mon { max-height: calc(100dvh - 24px); }
+dialog.full { height: min(820px, calc(100dvh - 24px)); }
+
+/* Fixed and sticky chrome clears the notch and the home indicator (needs viewport-fit=cover). */
+header.top { padding-top: env(safe-area-inset-top, 0px); }
+.proto-switch { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+
+/* The airbrake graph scrubs sideways but must let the page scroll vertically on a phone. */
+#ab { touch-action: pan-y; }
+
+/* Touch has no hover: undo hover lifts on coarse pointers so a tapped card doesn't stay lifted. */
+@media (hover: none), (pointer: coarse) {
+  .pcard:hover { transform: none; }
+  .pcard:hover::before { transform: translate(0, 0); opacity: 0; }
+  .card:hover .icon, .prow:hover { transform: none; }
+}
+
+/* One easing token for UI motion. */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Reduced motion: no blinking, sliding or lifting; the canvases already stop themselves in JS. */
+@media (prefers-reduced-motion: reduce) {
+  .top-bulletin b::before, .bulletin .tag i { animation: none !important; }
+  .dlog li, .side li, #latest, dialog[open], dialog[open]::backdrop { animation: none !important; }
+  .pcard, .pcard::before, .prow, .placard, .gauge .needle { transition: none !important; }
+  .pcard:hover, .pcard:focus-within, .pcard.on { transform: none !important; }
+  .pv iframe, .pv img, #ab-model .abf { transition: none !important; }
+  html { scroll-behavior: auto !important; }
+}
+
+/* break-ui fixes (19 Nov) */
+.pcard .pill { margin-top: auto !important; }          /* pills sit on one line across a row, whatever the title length */
+.pcard .r { margin-bottom: 10px; }
+.full .live .nofig { position: absolute; inset: 0; display: grid; place-items: center; background: #FFF7DA; }
+.full .live .nofig .icon { display: block; width: min(60%, 420px); aspect-ratio: 1; }
+@media (max-width: 1100px) { .full .side2, .full .side { padding-top: 64px; } }   /* clear the Close button on narrow screens */
+
+/* emil-design-eng pass (19 Nov): keyboard focus that always shows, on light and dark panels. */
+:where(a, button, input, select, summary, [tabindex="0"]):focus-visible { outline: 2px solid var(--ink) !important; outline-offset: 3px; }
+:where(.olist, .term, .band, .exp, .dark) :focus-visible { outline-color: var(--yel) !important; }
+/* A card is one big target (its button's ::after covers it), so the ring wraps the whole card, not the title text. */
+.pcard:has(h3 button:focus-visible) { outline: 2px solid var(--ink); outline-offset: 4px; }
+.pcard h3 button:focus-visible, .prow h3 button:focus-visible { outline: 0 !important; }
+.prow:has(h3 button:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* The airbrake graph takes the keyboard: a ring, no pointer cursor hint needed. */
+#ab:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* taste-skill review fixes (19 Nov): checker findings that hold on the real server. */
+/* Phones: the hero card spans the arena top, so the 3D/2D switch moves to the arena's open bottom edge. */
+@media (max-width: 900px) { #arena-wrap .viewsw { top: auto; bottom: 14px; } }
+/* Touch targets reach 44px without changing how they look. */
+@media (pointer: coarse) {
+  header.top nav a, .viewsw button { min-height: 44px; display: inline-flex; align-items: center; }
+  .pm::before { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+  input[type="range"] { min-height: 44px; }
+}
+/* Text contrast to 4.5:1 on the paper ground, keeping the hues. */
+#ab-model figcaption #ab-deg { color: #B83A00; }   /* beats '#ab-model figcaption b' */
+.pm.act { color: var(--ink); }
+.lampx { color: #2E7A4A; }
+
+/* ui-ux-pro-max palette check (19 Nov): orange and leaf fail as text on the light grounds (2.4-3.2:1); they stay as
+   fills, the stripe and markers. Text uses darker steps of the same hues. */
+.side .row i { color: #2E7A4A; }   /* sector tags, 5.0:1 on panel (leaf was 3.15) */
+.xp li i { color: #FFD84D; }       /* dates on the red band, 4.83:1 (yellow was 4.33) */
+
+/* Inputs take the page font (the browser default is Arial). */
+input, select, textarea { font-family: inherit; }

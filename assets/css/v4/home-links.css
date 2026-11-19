@@ -1,0 +1,15 @@
+
+@view-transition { navigation: auto; }
+/* Morph timing: the hero icon and title travel on the house ease-out; the rest of the page crossfades quickly. */
+::view-transition-group(hero-icon), ::view-transition-group(hero-title) { animation-duration: 420ms; animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
+::view-transition-old(hero-title), ::view-transition-new(hero-title) { height: 100%; width: auto; object-fit: contain; object-position: left center; }
+/* Titles differ in size and wrap, so a crossfade ghosts: drop the old snapshot and scale the new one from the card. */
+::view-transition-old(hero-title) { display: none; }
+::view-transition-new(hero-title) { animation: none; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
+.pcard h3 a{all:unset;cursor:pointer}
+.pcard h3 a::after{content:"";position:absolute;inset:0}
+.pcard:has(h3 a:focus-visible){outline:2px solid var(--ink);outline-offset:4px}
+.pcard h3 a:focus-visible{outline:0!important}

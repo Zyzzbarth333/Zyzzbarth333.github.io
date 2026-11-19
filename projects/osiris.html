@@ -1,73 +1,55 @@
-<!DOCTYPE html>
-<html lang="en-AU">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light">
-    <title>OSIRIS flight computer · Isaac Johan Ziebarth</title>
-    <meta name="description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="OSIRIS flight computer · Isaac Johan Ziebarth">
-    <meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
-    <meta property="og:url" content="https://zyzzbarth333.github.io/projects/osiris.html">
-    <link rel="canonical" href="https://zyzzbarth333.github.io/projects/osiris.html">
-    <meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-top.jpg">
-    <meta name="twitter:card" content="summary">
-    <meta name="theme-color" content="#BB0700">
-    <link rel="icon" href="../favicon.ico" sizes="48x48">
-    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
-    <link rel="manifest" href="../site.webmanifest">
-    <link rel="preload" href="../assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="../assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="../assets/css/style.css?v=a3becdad">
-    <script>
-        // Hide .reveal content only once JS runs; if site.js never loads, show everything.
-        document.documentElement.classList.add('js');
-        setTimeout(function () { if (!window.revealReady) document.documentElement.classList.remove('js'); }, 2500);
-    </script>
-    <script data-goatcounter="https://zyzzbarth333.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-</head>
-<body id="top">
-    <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
-        <div class="header-inner">
-            <nav class="main-nav" aria-label="Main">
-                <ul class="nav-links">
-                    <li><a href="../index.html">Home</a></li>
-                    <li><a href="../index.html#projects" class="is-current">Projects</a></li>
-                    <li><a href="../index.html#contact">Contact</a></li>
-                </ul>
-            </nav>
-            <a class="site-title" href="../index.html">Isaac Johan Ziebarth</a>
-            <ul class="social-links">
-                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener" aria-label="LinkedIn (opens in a new tab)" title="LinkedIn"><svg class="icon-social" viewBox="0 0 448 512" aria-hidden="true" focusable="false"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"/></svg></a></li>
-                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener" aria-label="GitHub (opens in a new tab)" title="GitHub"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
-                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener" aria-label="Printables (opens in a new tab)" title="Printables"><svg class="icon-social" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.678 4.8 12 9.6v9.6l8.322-4.8V4.8L12 0ZM12 19.2l-8.322-4.8V24Z"/></svg></a></li>
-                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener" aria-label="MakerWorld (opens in a new tab)" title="MakerWorld"><svg class="icon-social" viewBox="0 0 23.7708 24.001" aria-hidden="true" focusable="false"><path d="M17.3515 0L11.8854 2.1609L6.41929 0L0 2.53822V21.4628L6.41929 24.001L11.8854 21.8401L17.3515 24.001L23.7708 21.4628V2.53822L17.3515 0ZM17.3515 1.03184L22.8176 3.19274V11.0018L17.3515 8.84192V1.03184ZM17.3515 9.87471L22.7307 12.001L17.3515 14.1272L11.9723 12.001L17.3515 9.87471ZM6.41929 1.03184L11.8854 3.19274V11.0018L6.41929 8.84192V1.03184ZM6.41929 9.87471L11.7975 12.001L6.41835 14.1272L1.04011 12.001L6.41929 9.87471ZM0.953201 20.8073V12.9982L6.41929 15.1581V22.9682L0.953201 20.8073ZM11.8854 20.8073V12.9982L17.3515 15.1581V22.9682L11.8854 20.8073Z"/></svg></a></li>
-            </ul>
-        </div>
-    </header>
-    <main id="main" class="project-page">
-        <a class="back" href="../index.html#projects">&larr; All projects</a>
-        <header class="project-head">
-            <h1>OSIRIS flight computer</h1>
-            <p class="meta">Personal project · 2026</p>
-            <p class="outcome">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes KiCad&#x27;s electrical rules check (ERC) and whose layout passes its design rules check (DRC) with <strong>0 violations</strong>.</p>
-        </header>
-        <dl class="facts">
-            <div><dt>My role</dt><dd>Sole designer</dd></div>
-            <div><dt>When</dt><dd>May 2026 – present</dd></div>
-            <div><dt>Tools</dt><dd>KiCad, STM32F411, ISM330IS, BMP581, INA228</dd></div>
-            <div><dt>Code</dt><dd>Private repository for now</dd></div>
-        </dl>
-        <nav class="on-page" aria-label="On this page"><span>On this page:</span><ul><li><a href="#meet-the-board">Meet the board</a></li><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-built">What I built</a></li><li><a href="#specifications">Specifications</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#what-s-next">What&#x27;s next</a></li></ul></nav>
+<!doctype html>
+<html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5F4F0">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/chivo-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/v4/chivo.css?v=356b4fb9">
+<title>OSIRIS flight computer · Isaac Johan Ziebarth</title>
+<meta name="description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="OSIRIS flight computer · Isaac Johan Ziebarth">
+<meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board passes KiCad&#x27;s electrical and design-rule checks with 0 violations; firmware comes next.">
+<meta property="og:url" content="https://zyzzbarth333.github.io/projects/osiris.html">
+<link rel="canonical" href="https://zyzzbarth333.github.io/projects/osiris.html">
+<meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-top.jpg">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="../favicon.ico" sizes="48x48">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<script data-goatcounter="https://zyzzbarth333.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
+<link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
+<link rel="stylesheet" href="/assets/css/v4/page.css?v=717575c1">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=c802ad59">
+</head><body>
+<a class="vh" href="#main">Skip to content</a>
+<header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
+<div class="stripe"></div>
+<main id="main" class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Home</a></li><li><a href="../index.html#projects">Projects</a></li><li aria-current="page">OSIRIS flight computer</li></ol></nav>
+<section class="hero" aria-labelledby="t">
+  <div class="hero-ic panel" data-vt="icon"><span class="icon iso" data-theme="light" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="iso-svg" viewBox="0 0 300 300" aria-hidden="true" focusable="false"><rect class="ic-bg" width="300" height="300"/><path class="iso-halo" d="M34.2 176L34.4 175L34.8 174.1L35.7 173.2L36.8 172.4L38.3 171.8L169.4 124.2L171 123.7L172.8 123.4L174.8 123.2L176.7 123.3L178.5 123.5L180.3 124L181.8 124.5L183.1 125.3L263.9 180.9L264.9 181.7L265.5 182.6L265.8 183.6L265.8 187.8L265.6 188.8L265.2 189.7L264.3 190.6L263.2 191.3L261.7 192L130.6 239.6L129 240.1L127.2 240.4L125.2 240.5L123.3 240.5L121.5 240.2L119.7 239.8L118.2 239.2L116.9 238.5L36.1 182.9L35.1 182.1L34.5 181.2L34.2 180.2Z"/><image href="/assets/img/projects/osiris-body.webp" x="0" y="0" width="300" height="300"/><g class="os-leds"><circle class="os-led os-led-green" data-led="3v3" cx="159.62" cy="151.27" r="2.6"/><circle class="os-led os-led-green" data-led="pwr" cx="134.4" cy="160.43" r="2.6"/><circle class="os-led os-led-amber" data-led="log" cx="129.35" cy="162.27" r="2.6"/><circle class="os-led os-led-amber" data-led="radio" cx="139.44" cy="158.6" r="2.6"/><circle class="os-led os-led-blue" data-led="hb" cx="155.5" cy="201.48" r="2.6"/><circle class="os-led os-led-red" data-led="arm" cx="150.45" cy="203.31" r="2.6"/><circle class="os-led os-led-red" data-led="flt" cx="145.41" cy="205.14" r="2.6"/></g><g class="os-module" data-lift="0 -38.27"><image href="/assets/img/projects/osiris-module.webp" x="0" y="0" width="300" height="300"/></g></svg></span></div>
+  <div class="hero-tx">
+    <p class="type">Personal project · 2026</p>
+    <h1 id="t" data-vt="title">OSIRIS flight computer</h1>
+    <p class="res">0 DRC violations</p>
+    <p class="out">My own flight computer design, kept apart from UQ Space&#x27;s boards as a learning project. The first board, V0, is a 4-layer bench model whose schematic passes KiCad&#x27;s electrical rules check (ERC) and whose layout passes its design rules check (DRC) with 0 violations.</p>
+    <dl class="facts"><dt>My role</dt><dd>Sole designer</dd><dt>When</dt><dd>May 2026 – present</dd><dt>Tools</dt><dd>KiCad, STM32F411, ISM330IS, BMP581, INA228</dd><dt>Code</dt><dd>Private repository for now</dd></dl>
+  </div>
+</section>
+
+<section class="wu panel" aria-labelledby="wu"><h2 id="wu">The full write-up</h2><ol class="toc"><li>Meet the board</li><li>The problem</li><li>What I built</li><li>Specifications</li><li>Result</li><li>What went wrong</li><li>What&#x27;s next</li></ol>
+  <div class="body">
         <div class="prose">
             <h2 id="meet-the-board">Meet the board</h2>
             <p>Point at a part, or tab through the list, to find it on V0. Number 7 sits on the underside.</p>
         </div>
-        <div class="board-map reveal">
-            <div class="bm-figure"><img src="../assets/img/projects/osiris-v0-top.jpg" alt="Top view of the OSIRIS V0 board with numbered markers on its main parts" width="1504" height="1568" fetchpriority="high" decoding="async"><button type="button" class="bm-mark" data-part="1" style="left:67.71%;top:46.54%" aria-label="1. IMU: ISM330IS six-axis IMU">1</button><button type="button" class="bm-mark" data-part="2" style="left:34.46%;top:46.34%" aria-label="2. Barometer: BMP581 pressure sensor">2</button><button type="button" class="bm-mark" data-part="3" style="left:55.82%;top:54.28%" aria-label="3. Power monitor: INA228 current and voltage monitor">3</button><button type="button" class="bm-mark" data-part="4" style="left:46.47%;top:24.99%" aria-label="4. 3.3 V buck: TPS54302 regulator with a 4.7 µH inductor">4</button><button type="button" class="bm-mark" data-part="5" style="left:51.23%;top:78.78%" aria-label="5. Battery input: XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET">5</button><button type="button" class="bm-mark" data-part="6" style="left:40.77%;top:49.99%" aria-label="6. Module sockets: Two 20-pin rows for the plug-in STM32F411 module">6</button><button type="button" class="bm-mark bm-under" data-part="7" style="left:58.29%;top:28.55%" aria-label="7. microSD: Hirose socket on the underside">7</button></div>
+        <div class="board-map">
+            <div class="bm-figure"><img src="/assets/img/projects/osiris-v0-top.jpg" alt="Top view of the OSIRIS V0 board with numbered markers on its main parts" width="1504" height="1568" fetchpriority="high" decoding="async"><button type="button" class="bm-mark" data-part="1" style="left:67.71%;top:46.54%" aria-label="1. IMU: ISM330IS six-axis IMU">1</button><button type="button" class="bm-mark" data-part="2" style="left:34.46%;top:46.34%" aria-label="2. Barometer: BMP581 pressure sensor">2</button><button type="button" class="bm-mark" data-part="3" style="left:55.82%;top:54.28%" aria-label="3. Power monitor: INA228 current and voltage monitor">3</button><button type="button" class="bm-mark" data-part="4" style="left:46.47%;top:24.99%" aria-label="4. 3.3 V buck: TPS54302 regulator with a 4.7 µH inductor">4</button><button type="button" class="bm-mark" data-part="5" style="left:51.23%;top:78.78%" aria-label="5. Battery input: XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET">5</button><button type="button" class="bm-mark" data-part="6" style="left:40.77%;top:49.99%" aria-label="6. Module sockets: Two 20-pin rows for the plug-in STM32F411 module">6</button><button type="button" class="bm-mark bm-under" data-part="7" style="left:58.29%;top:28.55%" aria-label="7. microSD: Hirose socket on the underside">7</button></div>
             <ol class="bm-list"><li class="bm-card" data-part="1" tabindex="0"><span class="bm-num">1</span><span class="bm-name">IMU</span><span class="bm-detail">ISM330IS six-axis IMU</span></li><li class="bm-card" data-part="2" tabindex="0"><span class="bm-num">2</span><span class="bm-name">Barometer</span><span class="bm-detail">BMP581 pressure sensor</span></li><li class="bm-card" data-part="3" tabindex="0"><span class="bm-num">3</span><span class="bm-name">Power monitor</span><span class="bm-detail">INA228 current and voltage monitor</span></li><li class="bm-card" data-part="4" tabindex="0"><span class="bm-num">4</span><span class="bm-name">3.3 V buck</span><span class="bm-detail">TPS54302 regulator with a 4.7 µH inductor</span></li><li class="bm-card" data-part="5" tabindex="0"><span class="bm-num">5</span><span class="bm-name">Battery input</span><span class="bm-detail">XT30, 2S to 4S, behind a fuse, a TVS diode and a reverse-polarity FET</span></li><li class="bm-card" data-part="6" tabindex="0"><span class="bm-num">6</span><span class="bm-name">Module sockets</span><span class="bm-detail">Two 20-pin rows for the plug-in STM32F411 module</span></li><li class="bm-card" data-part="7" tabindex="0"><span class="bm-num">7</span><span class="bm-name">microSD</span><span class="bm-detail">Hirose socket on the underside</span></li></ol>
         </div>
         <div class="prose">
@@ -86,12 +68,12 @@
             <table class="spec"><tr><th scope="row">Board</th><td>63 × 74 mm, 4 layers (V0)</td></tr><tr><th scope="row">Controller</th><td>Plug-in STM32F411 module</td></tr><tr><th scope="row">Sensors</th><td>ISM330IS IMU, BMP581 barometer</td></tr><tr><th scope="row">Power</th><td>INA228 monitor, 3.3 V buck, 2S–4S input with fuse, TVS and reverse-polarity FET</td></tr><tr><th scope="row">Storage</th><td>microSD</td></tr><tr><th scope="row">Parts</th><td>70 placed: 52 on top, 18 underneath</td></tr></table>
         </div>
         <figure class="figure figure-embed wide" data-desktop-only>
-            <iframe data-src="../assets/figures/osiris-v0-ibom.html?v=1d46f367" title="Interactive bill of materials for OSIRIS V0: hover a part in the list to light it on the board" loading="lazy" style="--ratio:1.6" data-fixed></iframe>
-            <p class="embed-phone-note">The interactive bill of materials needs a wider screen than a phone. <a class="pill" href="../assets/figures/osiris-v0-ibom.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></p>
-            <figcaption>Interactive bill of materials (BoM) for V0, generated with my eng-tools kit: hover or click a row to light that part on the board, front and back. 70 parts on 45 BoM lines. <a class="fig-open" href="../assets/figures/osiris-v0-ibom.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></figcaption>
+            <iframe data-src="/assets/figures/osiris-v0-ibom.html?v=1d46f367" title="Interactive bill of materials for OSIRIS V0: hover a part in the list to light it on the board" loading="lazy" style="--ratio:1.6" data-fixed></iframe>
+            <p class="embed-phone-note">The interactive bill of materials needs a wider screen than a phone. <a class="pill" href="/assets/figures/osiris-v0-ibom.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+            <figcaption>Interactive bill of materials (BoM) for V0, generated with my eng-tools kit: hover or click a row to light that part on the board, front and back. 70 parts on 45 BoM lines. <a class="fig-open" href="/assets/figures/osiris-v0-ibom.html" target="_blank" rel="noopener">Open it full size<span class="visually-hidden"> (opens in a new tab)</span></a></figcaption>
         </figure>
         <figure class="figure figure-embed">
-            <iframe src="../assets/figures/osiris-v0-kicad.html?v=bf23de7f" title="OSIRIS V0 board and schematic in KiCanvas: open either to pan, zoom and select parts" loading="lazy" style="--ratio:1.5"></iframe>
+            <iframe src="/assets/figures/osiris-v0-kicad.html?v=bf23de7f" title="OSIRIS V0 board and schematic in KiCanvas: open either to pan, zoom and select parts" loading="lazy" style="--ratio:1.5"></iframe>
             <figcaption>V0&#x27;s KiCad files, the board and its six schematic sheets, opened in your browser with KiCanvas. Open the board or the schematic to pan, zoom and select parts and nets. The viewer and the files load only when you open one.</figcaption>
         </figure>
         <div class="prose">
@@ -105,23 +87,15 @@
                 <li>I have not written firmware for either board yet.</li>
             </ul>
         </div>
-        <nav class="page-nav" aria-label="More projects">
-            <a class="pill pill-outline" href="../index.html#projects">&larr; All projects</a>
-            <a class="pill" href="airbrakes.html">Next: Airbrake control simulation &rarr;</a>
-        </nav>
-    </main>
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <p class="footer-name">Isaac Johan Ziebarth</p>
-            <ul class="footer-links">
-                <li><a href="https://www.linkedin.com/in/isaacjohanziebarth/" target="_blank" rel="noopener">LinkedIn<span class="visually-hidden"> (opens in a new tab)</span></a></li>
-                <li><a href="https://github.com/Zyzzbarth333" target="_blank" rel="noopener">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
-                <li><a href="https://www.printables.com/@Zyzzbarth333" target="_blank" rel="noopener">Printables<span class="visually-hidden"> (opens in a new tab)</span></a></li>
-                <li><a href="https://makerworld.com/en/@Zyzzbarth" target="_blank" rel="noopener">MakerWorld<span class="visually-hidden"> (opens in a new tab)</span></a></li>
-            </ul>
-        </div>
-        <p class="footer-bar">&copy; 2026 Isaac Johan Ziebarth. All rights reserved. <a href="https://github.com/Zyzzbarth333/Zyzzbarth333.github.io" target="_blank" rel="noopener">Site source<span class="visually-hidden"> (opens in a new tab)</span></a></p>
-    </footer>
-    <script src="../assets/js/site.js?v=77583245" defer></script>
-</body>
-</html>
+        
+    </div>
+  </section>
+<nav class="next panel" aria-label="Next project"><a href="airbrakes.html" rel="next"><span class="icon iso" data-theme="light" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="iso-svg" viewBox="0 0 300 300" aria-hidden="true" focusable="false"><rect class="ic-bg" width="300" height="300"/><path class="iso-halo" d="M78.5 230.3L80.8 224.2L85.7 218.5L93.2 213.2L102.8 208.7L114.2 205.2L127 202.6L140.6 201.2L154.7 201L168.5 202L181.7 204.2L193.6 207.4L203.9 211.6L212 216.6L217.8 222.3L221 228.3L221.5 234.4L221.5 236.1L219.2 242.1L214.3 247.9L206.8 253.1L197.2 257.6L185.8 261.2L173 263.7L159.4 265.1L145.3 265.3L131.5 264.3L118.3 262.2L106.4 258.9L96.1 254.7L88 249.7L82.2 244.1L79 238.1L78.5 231.9Z"/><image href="/assets/img/projects/airbrakes-body.webp" x="0" y="0" width="300" height="300"/><g class="ab-flaps" data-i="0" data-deg="0" visibility="visible"><image href="/assets/img/projects/airbrakes-f0.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="1" data-deg="16" visibility="hidden"><image href="/assets/img/projects/airbrakes-f16.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="2" data-deg="32" visibility="hidden"><image href="/assets/img/projects/airbrakes-f32.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="3" data-deg="48" visibility="hidden"><image href="/assets/img/projects/airbrakes-f48.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="4" data-deg="64" visibility="hidden"><image href="/assets/img/projects/airbrakes-f64.webp" x="0" y="0" width="300" height="300"/></g><g class="ab-flaps" data-i="5" data-deg="80" visibility="hidden"><image href="/assets/img/projects/airbrakes-f80.webp" x="0" y="0" width="300" height="300"/></g></svg></span><span><small>Next project</small><b>Airbrake control simulation</b></span></a></nav>
+</main>
+<script>
+document.querySelectorAll('.wu .figure-embed[data-desktop-only] iframe[data-src]').forEach(f => { if (matchMedia('(min-width: 701px)').matches) f.src = f.dataset.src; });
+document.querySelectorAll('.wu .figure-embed iframe:not([data-fixed])').forEach(f => { const fit = () => { try { const r = f.contentDocument.documentElement; r.style.overflow = 'hidden'; f.style.height = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight)) + 'px'; f.style.aspectRatio = 'auto'; } catch (e) {} }; f.addEventListener('load', () => { fit(); setTimeout(fit, 600); }); });
+</script>
+<footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
+<script src="/assets/js/site.js" defer></script>
+</body></html>
