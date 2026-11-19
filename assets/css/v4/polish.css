@@ -150,3 +150,28 @@ input, select, textarea { font-family: inherit; }
 .vh:focus, .vh:focus-visible { position: fixed !important; left: 12px !important; top: 12px !important; width: auto !important; height: auto !important; clip: auto !important; overflow: visible !important; z-index: 99; background: var(--yel); color: var(--ink); padding: 8px 12px; outline: 3px solid var(--ink); }
 /* the field log sector tag: leaf is 3.2:1 on the panel; a deeper green of the same hue reads at about 5:1 */
 .side .row i { color: #2B7044; }
+
+/* ---- design audit fixes, 20 Nov 2026 ---- */
+/* the coursework section keeps the home page's rhythm (it had no padding) */
+#coursework { padding: 100px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { #coursework { padding: 64px 0; } }
+/* preview panel: a quick crossfade, and its shape snaps instead of animating (that relaid it out every frame) */
+.pv iframe, .pv img, .pv .ph { transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pv { transition: none !important; }
+/* touch screens and one-column layouts: no hover preview (a tap opens the page), and the intro says so */
+.intro .on-touch { display: none; }
+@media (hover: none), (max-width: 1100px) { .preview2 { display: none !important; } .intro .on-hover { display: none; } .intro .on-touch { display: inline; } }
+/* analyser pins: ink on leaf (white was 3.47:1), a tight ring instead of a glow */
+#la-board .pm.act { background: var(--leaf); color: var(--ink); box-shadow: 0 0 0 4px rgb(62 155 95 / .35); }
+/* service record: the employer on its own line, and rows stack on narrow phones so dates never push off screen */
+.xp span { display: block; line-height: 1.45; margin-top: 2px; }
+@media (max-width: 480px) { .xp li { flex-direction: column; gap: 4px; } .xp i { white-space: normal; } }
+/* buttons: one primary hover (a deeper indigo, not red), a press that eases both ways, no hover stuck after a tap */
+.btn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.btn:active { transition: background-color 160ms ease, color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+@media (hover: hover) and (pointer: fine) { .btn.solid:hover, main .btn:not(.ghost):not(.x):hover { background: #220E73; border-color: #220E73; color: #fff; } }
+/* one header on every page: the same nav type, and the current page marked with an ink underline (it was 1.2:1) */
+header.top nav a { font: 600 13px var(--mono); border-radius: 0; }
+header.top nav a.on, header.top nav a[aria-current] { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+/* footers: the home page gets one; the 404's sits at the bottom of the screen */
+footer.site { padding: 28px 16px 36px; text-align: center; font: 500 12px var(--mono); color: var(--mute); border-top: 1px solid var(--line); }
