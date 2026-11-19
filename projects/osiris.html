@@ -7,24 +7,31 @@
 <link rel="preload" href="/assets/fonts/fraunces-900-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/sanchez-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/v4/chivo.css?v=356b4fb9">
-<title>OSIRIS flight computer · Isaac Johan Ziebarth</title>
-<meta name="description" content="My own flight computer design in KiCad. The V0 bench board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short I have to fix, and firmware comes after.">
+<title>OSIRIS flight computer · Isaac Ziebarth</title>
+<meta name="description" content="My own flight computer design in KiCad. The V0 board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short to fix.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="OSIRIS flight computer · Isaac Johan Ziebarth">
-<meta property="og:description" content="My own flight computer design in KiCad. The V0 bench board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short I have to fix, and firmware comes after.">
+<meta property="og:title" content="OSIRIS flight computer · Isaac Ziebarth">
+<meta property="og:description" content="My own flight computer design in KiCad. The V0 board&#x27;s schematic passes KiCad&#x27;s electrical rules check; its layout check still flags one short to fix.">
 <meta property="og:url" content="https://zyzzbarth333.github.io/projects/osiris.html">
+<meta property="og:site_name" content="Isaac Johan Ziebarth">
+<meta property="og:locale" content="en_AU">
 <link rel="canonical" href="https://zyzzbarth333.github.io/projects/osiris.html">
-<meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-v0-top.jpg">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://zyzzbarth333.github.io/assets/img/projects/osiris-share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OSIRIS flight computer: Personal project · 2026">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="OSIRIS flight computer: Personal project · 2026">
 <link rel="icon" href="../favicon.ico" sizes="48x48">
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://zyzzbarth333.github.io/"}, {"@type": "ListItem", "position": 2, "name": "Projects", "item": "https://zyzzbarth333.github.io/#projects"}, {"@type": "ListItem", "position": 3, "name": "OSIRIS flight computer", "item": "https://zyzzbarth333.github.io/projects/osiris.html"}]}</script>
 <script data-goatcounter="https://zyzzbarth333.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=a2f29934">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=16f3b07e">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -96,14 +103,15 @@
 </main>
 <script>
 // The lead figure's frame takes its figure's whole height, and keeps taking it as the figure grows (a solver that fills in
-// a table, fonts arriving), so it never shows a scrollbar of its own (Isaac, 19 Nov 2026). Embedded figures further down
-// are fitted by site.js. Frames only grow, and stop after 40 steps so a figure sized in vh units cannot chase its own
-// frame; one that is still growing then gets its scrollbar back rather than being cut off.
+// a table, fonts arriving), so it never shows a scrollbar of its own (Isaac, 19 Nov 2026), and shrinks to a short one so
+// no blank box sits under it. Embedded figures further down are fitted by site.js. Frames stop after 40 resizes so a
+// figure sized in vh units cannot chase its own frame; one still growing then gets its scrollbar back, never cut off.
 document.querySelectorAll('.fig.panel iframe').forEach(f => {
   let n = 0;
   const fit = () => { try { const d = f.contentDocument, r = d.documentElement; if (!d.body) return; r.style.overflow = 'hidden';
-    const h = Math.ceil(Math.max(r.getBoundingClientRect().height, r.scrollHeight, d.body.scrollHeight));
-    if (h > f.clientHeight + 1) { if (n++ < 40) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } else r.style.overflow = ''; } } catch (e) {} };
+    const bm = parseFloat(getComputedStyle(d.body).marginTop) + parseFloat(getComputedStyle(d.body).marginBottom);
+    const h = Math.ceil(Math.max(d.body.scrollHeight, d.body.getBoundingClientRect().height) + bm);   // the figure's own height, up or down
+    if (Math.abs(h - f.clientHeight) > 1 && h > 120) { if (n++ < 40) { f.style.height = h + 'px'; f.style.aspectRatio = 'auto'; } else r.style.overflow = ''; } } catch (e) {} };
   const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
   f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
 });
