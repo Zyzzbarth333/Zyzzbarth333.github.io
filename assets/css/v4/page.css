@@ -69,7 +69,7 @@ h1{font:900 clamp(2.4rem,4.6vw,4rem)/.98 Fraunces,Georgia,serif;letter-spacing:-
 .wu.cw .prose h2{border-top:2px solid var(--ink);padding-top:30px;margin-top:46px}.wu.cw .prose h2:first-child{border-top:0;padding-top:0;margin-top:10px}
 .wu .old{margin:30px 0 0;font:500 12px var(--mono)}.wu .old a{color:var(--mute)}
 .btn{display:inline-block;font:700 13px var(--head);text-transform:uppercase;letter-spacing:.04em;padding:12px 18px;border:2px solid var(--ink);background:var(--ind);color:#fff;text-decoration:none}
-.btn:hover{background:var(--ink)}
+@media (hover:hover){.btn:hover{background:var(--ink)}}
 .next{margin-top:56px}
 .next a{display:flex;align-items:center;gap:20px;padding:18px 22px;text-decoration:none;color:var(--ink)}
 .next .icon{width:84px;aspect-ratio:1;flex:none;background:var(--cream);border:2px solid var(--ink)}

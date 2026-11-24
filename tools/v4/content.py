@@ -124,3 +124,37 @@ def cw_cards(cw, page='', lazy=True):
         out.append(f'<li class="cwcard"><a href="{page}#{c.get("id", "")}">{img}<span class="cc">{html.escape(c.get("code", ""))} · {html.escape(c.get("year", ""))}</span>'
                    f'<b>{html.escape(c["title"])}</b><span class="who">{html.escape(c.get("who", ""))}</span></a></li>')
     return '<ul class="cwgrid">' + ''.join(out) + '</ul>'
+
+
+# Smaller projects, shown as a row of short cards under the main grid (from facts.yaml site entries, 24 Nov 2026).
+# Credits follow each entry's note in facts.yaml; no figures that facts.yaml does not have.
+ALSO = [
+    {'title': 'Belt-driven Ender 3 V2', 'kicker': 'Personal project · Apr 2023 – present',
+     'text': 'An Ender 3 V2 rebuilt with a belt-driven dual Z, linear rails and a Klipper host, tuned with an accelerometer. Input shaping settled at 45.5 Hz on X and 46.8 Hz on Y.',
+     'link': ('https://github.com/Zyzzbarth333/3d-printing-configs', 'Configs and slicer profiles on GitHub'),
+     'credit': 'Built mostly from community designs: <a href="https://github.com/kevinakasam/BeltDrivenEnder3">Kevin Akasam\'s BeltDrivenEnder3</a> and the <a href="https://www.printables.com/model/39322-hero-me-gen7-platform-release4">HERO ME Gen7</a> toolhead.'},
+    {'title': 'Armour optimiser for a combat robot', 'kicker': 'UQ MARS Robowars · Jan 2025',
+     'text': 'A Python tool that ranks layered armour for a combat robot against hammer, spinner and saw weapons under weight and cost limits. The team\'s robot fought at Robowars, World Science Festival Queensland, in March 2025.',
+     'link': ('https://github.com/Zyzzbarth333/battlebot-armour-optimiser', 'Code on GitHub')},
+    {'title': 'Gridfinity for two IKEA Alex units', 'kicker': 'Personal project · Nov 2026 – present',
+     'text': 'Gridfinity storage for two IKEA Alex drawer units, with new baseplate tiles sized to the drawers and every slot tied to the parts inventory. Drawer L1 is printed and in use; the first pair of the new 294.5 mm tiles is fit-tested.',
+     'img': ('/assets/img/projects/gridfinity-alex.webp', 'Render of two drawer units with their top drawers open, showing coloured and grey Gridfinity bins on the new baseplates'),
+     'credit': 'Bins: <a href="https://www.printables.com/model/592545">Pred\'s Gridfinity bin with label</a> (CC BY-NC 4.0); drawer L1 keeps an IKALEX plate. The baseplates and the drawer model are my own geometry.'},
+    {'title': 'Parts inventories in git', 'kicker': 'Workshop and UQ Space · Jun 2026 – present',
+     'text': 'Version-controlled parts inventories for my workshop and for UQ Space, edited as a spreadsheet and checked in git and CI. The UQ Space inventory holds 569 items across 11 sections, validated on every push.'},
+    {'title': 'An engineering assistant that stays on my laptop', 'kicker': 'Personal project · Nov 2026 – present',
+     'text': "An engineering assistant that runs entirely on my laptop's GPU, so repositories and documents never leave the machine. Ongoing."},
+]
+
+
+def also_html():
+    """The row of short cards for the smaller projects."""
+    import html as _h
+    E = _h.escape
+    out = []
+    for a in ALSO:
+        img = f'<img src="{a["img"][0]}" alt="{E(a["img"][1])}" loading="lazy" decoding="async">' if a.get('img') else ''
+        link = f'<a class="more" href="{a["link"][0]}">{E(a["link"][1])}</a>' if a.get('link') else ''
+        credit = f'<p class="credit">{a["credit"]}</p>' if a.get('credit') else ''
+        out.append(f'<li class="also-card{" has-img" if img else ""}">{img}<p class="k">{E(a["kicker"])}</p><h3>{E(a["title"])}</h3><p>{E(a["text"])}</p>{credit}{link}</li>')
+    return '<div class="also"><h3 class="also-h">Also building</h3><ul class="also-grid">' + ''.join(out) + '</ul></div>'

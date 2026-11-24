@@ -8,6 +8,7 @@ page names its hero the same way, so the browser morphs one into the other; `pag
 the way back. Browsers without support just navigate. Run from the repo root: python3 -I .impeccable/mocks/proto/build8.py
 """
 import html
+import html as H
 import re
 import sys
 from pathlib import Path
@@ -96,7 +97,7 @@ h1{font:900 clamp(2.4rem,4.6vw,4rem)/.98 Fraunces,Georgia,serif;letter-spacing:-
 .wu.cw .prose h2{border-top:2px solid var(--ink);padding-top:30px;margin-top:46px}.wu.cw .prose h2:first-child{border-top:0;padding-top:0;margin-top:10px}
 .wu .old{margin:30px 0 0;font:500 12px var(--mono)}.wu .old a{color:var(--mute)}
 .btn{display:inline-block;font:700 13px var(--head);text-transform:uppercase;letter-spacing:.04em;padding:12px 18px;border:2px solid var(--ink);background:var(--ind);color:#fff;text-decoration:none}
-.btn:hover{background:var(--ink)}
+@media (hover:hover){.btn:hover{background:var(--ink)}}
 .next{margin-top:56px}
 .next a{display:flex;align-items:center;gap:20px;padding:18px 22px;text-decoration:none;color:var(--ink)}
 .next .icon{width:84px;aspect-ratio:1;flex:none;background:var(--cream);border:2px solid var(--ink)}
@@ -191,7 +192,16 @@ def page(slug):
     here = 'Coursework' if slug == 'coursework' else 'Projects'
     # the coursework page opens with a card for each piece (Isaac, 19 Nov 2026); the cards are its index
     cw_index = f'<section class="cwidx" aria-label="All coursework">{C.cw_cards(D["coursework"], lazy=False)}</section>' if slug == 'coursework' else ''
-    toc = '' if slug == 'coursework' else f'<ol class="toc">{secs}</ol>'
+    # a side index (Isaac, 24 Nov 2026): this page's sections, then every project (or every piece of coursework), so a
+    # reader can jump within the page or across to the next topic; sticky beside the write-up on wide screens, a plain
+    # list above it on narrow ones
+    wbody = body_of(slug)
+    heads = [(i, re.sub(r'<[^>]+>', '', t)) for i, t in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', wbody, re.S)]
+    here_list = ''.join(f'<li><a href="#{i}">{E(H.unescape(t))}</a></li>' for i, t in heads)
+    others = ''.join(f'<li><a href="{q}.html"{" aria-current=page" if q == slug else ""}>{E(P[q]["title"])}</a></li>' for q in ORDER if q in P)
+    toc = (f'<nav class="rail" aria-label="On this page"><p class="rail-h">On this page</p><ol>{here_list}</ol>'
+           + ('' if slug == 'coursework' else f'<p class="rail-h">Projects</p><ol class="rail-all">{others}</ol>')
+           + '</nav>') if heads else ''
     nav = ''.join(f'<a href="{h}"{cur if n == here else ""}>{n}</a>' for n, h in NAV)
     crumb = '' if slug == 'coursework' else f'<li><a href="{HOME}#projects">Projects</a></li>'   # the home page has no coursework section to link
     hero_ic = f'<div class="hero-ic panel" style="view-transition-name:hero-icon">{p["icon"]}</div>' if p['icon'] else ''
@@ -223,15 +233,32 @@ def page(slug):
   </div>
 </section>
 {fig_panel}{cw_index}
-<section class="wu panel{' cw' if slug == 'coursework' else ''}" aria-labelledby="wu"><h2 id="wu">The full write-up</h2>{toc}
-  <div class="body">{body_of(slug)}</div>
+<section class="wu panel{' cw' if slug == 'coursework' else ''}{' has-rail' if toc else ''}" aria-labelledby="wu"><h2 id="wu">The full write-up</h2>{toc}
+  <div class="body">{wbody}</div>
   <p class="old"><a href="{ARCHIVE}/projects/{slug}.html">This page on the old site</a></p></section>
 <nav class="next panel" aria-label="Next project"><a href="{nxt['slug']}.html" rel="next">{nxt['icon']}<span><small>Next project</small><b>{E(nxt['title'])}</b></span></a></nav>
 </main>
-{FIT_JS}
+{FIT_JS}{RAIL_CSS}
 <footer>Prototype page for the real build: the template from the 19 Nov architecture plan. © Isaac Johan Ziebarth. All rights reserved.</footer>
 </body></html>
 """
+
+
+RAIL_CSS = """<style>
+.rail{font:500 13px/1.45 var(--mono);margin:0 0 18px}.rail-h{font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;font-size:12px}
+.rail ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:2px}.rail a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-left:2px solid transparent}
+.rail a:hover{background:var(--paper2,#E1DED5)}.rail a[aria-current]{border-left-color:var(--ink);font-weight:600;background:transparent}
+.rail-all a[aria-current=page]{color:var(--ind,#2E1499)}
+@media (min-width:1100px){.wu.has-rail{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:36px}.wu.has-rail>h2{grid-column:1/-1}.wu.has-rail>.old{grid-column:2}
+.rail{position:sticky;top:76px;align-self:start;max-height:calc(100svh - 96px);overflow:auto;margin:0}}
+@media (max-width:1099px){.rail-all,.rail-h+.rail-all{display:none}.rail ol{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+</style>
+<script>
+(function(){const links=[...document.querySelectorAll('.rail ol:first-of-type a[href^="#"]')];if(!links.length||!('IntersectionObserver' in window))return;
+const by=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));let cur=null;
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const a=by.get(e.target.id);if(a&&a!==cur){if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','true');cur=a;}}});},{rootMargin:'-15% 0px -70% 0px'});
+by.forEach((a,id)=>{const h=document.getElementById(id);if(h)io.observe(h);});})();
+</script>"""
 
 
 HOME_JS = """

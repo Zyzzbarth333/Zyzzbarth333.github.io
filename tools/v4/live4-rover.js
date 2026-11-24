@@ -35,6 +35,9 @@
       { kind: 'egg', look: 'speaker', name: 'A speaker humming a tune', text: 'Happy Birthday, played to nobody. Curiosity played it to itself on Mars in 2013.' },
       { kind: 'egg', look: 'rock', name: 'Some rocks', text: "These aren't the rocks you're looking for. The rover moves along." },
       { kind: 'egg', look: 'beacon2', name: 'A very old beacon', text: 'Its last message, roughly: battery low, getting dark. Logged with respect.' },
+      { kind: 'egg', look: 'qblock', name: 'A floating block with a question mark', text: 'Bumped it from below with the bucket. A coin came out. The question remains.' },
+      { kind: 'egg', look: 'mushroom', name: 'A red mushroom with white spots', text: 'A fly agaric. Poisonous to people, fascinating to rovers. Logged, not eaten. The rover still feels a bit taller.' },
+      { kind: 'egg', look: 'artifact', name: 'A humming shard', text: 'Dark metal, warm, floating a finger\'s width off the ground. Somewhere out there is another one.' },
       { kind: 'egg', look: 'roll', name: 'A sweet roll', text: 'Iced, untouched, and nobody else around. If anyone asks, the rover did not steal it.' },
       { kind: 'egg', look: 'wheel', name: 'A wheel of cheese', text: 'It rolled down a hill, as they always do. Into the bucket.' },
     ];
@@ -44,6 +47,7 @@
     let livo = true, fresh = [], view = 'cloud', gridLayer = null, gridDirty = true;
     let cost = null, search = null, rawPath = [], carrot = null, recov = null, lastSenseAt = null;   // Nav2 view: costs, the planner's search, the controller's carrot, recovery
     let ruins = null, guard = null, dragon = null, dragonAt = 0, idle = 0;
+    let decor = null, fogMask = null, fogRev = null, skyC = null, hazard = null, braziers = [], pools = [], ship = null;   // fog of war: scenery shows only on ground the rover has mapped
     let hasClaw = false, hasWord = false, shout = null, shoutCool = 0;   // nods: a claw that opens the barrow, a word the carved wall teaches   // set pieces: an old barrow, its guard, and now and then something large overhead
     let seed = 1; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
     const id = (x, y) => y * cols + x, inside = (x, y) => x >= 0 && y >= 0 && x < cols && y < rows;
@@ -72,7 +76,7 @@
       sectorT0 = performance.now(); sector++; seed = 9001 + sector * 7919; size(); paintTerrain();
       cloud = document.createElement('canvas'); cloud.width = W; cloud.height = H; cctx = cloud.getContext('2d'); tasks = []; task = null; act = null; window.__cloudReset = true;
       gridLayer = document.createElement('canvas'); gridLayer.width = W; gridLayer.height = H; gridDirty = true;
-      const N = cols * rows; nogo = new Uint8Array(N); occ = new Uint8Array(N); hgt = new Float32Array(N); known = new Uint8Array(N); cam = new Uint8Array(N); nearO = new Uint8Array(N); sand = new Uint8Array(N); cost = new Uint8Array(N); search = null; rawPath = []; carrot = null; recov = null; lastSenseAt = null;
+      const N = cols * rows; nogo = new Uint8Array(N); occ = new Uint8Array(N); hgt = new Float32Array(N); known = new Uint8Array(N); cam = new Uint8Array(N); nearO = new Uint8Array(N); sand = new Uint8Array(N); hazard = new Uint8Array(N); cost = new Uint8Array(N); search = null; rawPath = []; carrot = null; recov = null; lastSenseAt = null;
       const keeps = [...cv.parentElement.querySelectorAll('[data-keep]')].filter(el => el.offsetParent).map(rectOf);
       const blobs = Math.round(N / 370);
       for (let i = 0; i < blobs; i++) { const cx = rnd() * cols, cy = rnd() * rows, kind = i % 6, r = (kind === 0 ? 4 + rnd() * 4 : kind === 1 ? 2.5 + rnd() : 0.9 + rnd() * 1.6) * 0.2 / MPC, ring = kind === 0;
@@ -164,20 +168,20 @@
     function detect(it, quiet) {
       it.found = true; const conf = (0.88 + ((it.x * 7 + it.y * 13) % 11) / 100).toFixed(2), how = it.kind === 'aruco' ? 'ArUco, camera' : it.kind === 'cube' ? 'YOLO, camera' : 'camera';
       if (!quiet && !RM) { fx.push({ it, t0: performance.now(), conf });
-        const t = it.kind === 'aruco' ? 'scan' : it.kind === 'egg' && it.look === 'block' ? 'bump' : (['cube', 'cell'].includes(it.kind) || (it.kind === 'egg' && !['pipe', 'door', 'speaker', 'beacon2', 'rock'].includes(it.look)) || ['rock', 'meteor', 'screw', 'fossil', 'beacon'].includes(it.kind)) ? 'pick' : null;
+        const t = it.kind === 'aruco' ? 'scan' : it.kind === 'egg' && (it.look === 'block' || it.look === 'qblock') ? 'bump' : (['cube', 'cell'].includes(it.kind) || (it.kind === 'egg' && !['pipe', 'door', 'speaker', 'beacon2', 'rock'].includes(it.look)) || ['rock', 'meteor', 'screw', 'fossil', 'beacon'].includes(it.kind)) ? 'pick' : null;
         if (t) tasks.push({ it, type: t }); }
       let title, sub, body, btn = '', icon = '';
       if (it.kind === 'aruco') { const p = BY[it.slug]; nProj++; title = p.title; sub = `ArUco ${String(it.n).padStart(2, '0')} · project`; body = p.result;
         icon = (document.getElementById('ic-' + it.slug) || {}).innerHTML || ''; btn = `<button class="btn" type="button" data-open="${it.slug}">Open</button>`;  if (!quiet) { const say = document.getElementById('rv-say'); if (say) say.textContent = `Found a project: ${p.title}`; } }
       else if (it.kind === 'cube') { nFind++; title = it.label; sub = `${it.name} cube · result`; body = it.sub; }
       else if (it.kind === 'egg') { nFind++; title = it.name; sub = 'field find ★'; body = it.text;
-        if (it.look === 'block' && (quiet || RM)) { coins++; score += 100; counters(); }
+        if ((it.look === 'block' || it.look === 'qblock') && (quiet || RM)) { coins++; score += 100; counters(); }
         if (it.look === 'key') { hasKey = true; body += ' Picked up.'; }
         if (it.look === 'claw') { hasClaw = true; body += ' Picked up. Somewhere there is a door that wants it.'; }
         if (it.look === 'door') body += hasKey ? ' The rover has the key card. The door opens: behind it, more rocks.' : ' The rover has no red key card.'; }
       else if (it.kind === 'cell') { nFind++; title = it.name; sub = 'field find ★'; body = it.text; if (quiet || RM) power = 8; }
       else { nFind++; title = it.name; sub = 'field find'; body = it.text;
-        if (it.kind === 'ruin') body += hasClaw ? ' The claw\'s three symbols match the rings turned on the slab. It grinds open. Behind it: more rocks.' : ' The slab has three carved rings and a hollow shaped like a claw.';
+        if (it.kind === 'ruin') body += hasClaw ? ' The claw\'s three symbols match the rings on the mound\'s door. It grinds open. Behind it: more rocks.' : ' The mound\'s door has three carved rings and a hollow shaped like a claw.';
         if (it.kind === 'wall') { hasWord = true; body += ' The rover has learned a word. It is itching to use it.'; } }
       if (!quiet) { latest.innerHTML = `<div class="lt-ic${icon ? ' card' : ''}">${icon || glyphHTML(it)}</div><div><p class="mono">${sub} · ${how} · conf ${conf}</p><b>${title}</b><p>${body}</p>${btn}</div>`;
         if (!icon && it.kind !== 'aruco') latest.querySelector('.lt-ic').replaceChildren(thumb(it, 76)); }   // the find as the arena draws it
@@ -201,7 +205,7 @@
       const N = cols * rows, g = new Float32Array(N).fill(Infinity), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
       const open = [[0, id(sx, sy)]]; g[id(sx, sy)] = 0;
       const h = (x, y) => { const dx = Math.abs(x - gx), dy = Math.abs(y - gy); return (dx + dy) + (Math.SQRT2 - 2) * Math.min(dx, dy); };
-      const blocked = (x, y) => !inside(x, y) || nogo[id(x, y)] || known[id(x, y)] === 2 || (nearO[id(x, y)] === 2 && Math.hypot(x - sx, y - sy) > 3); let it = 0; const seen = [];
+      const blocked = (x, y) => !inside(x, y) || nogo[id(x, y)] || (hazard[id(x, y)] && known[id(x, y)]) || known[id(x, y)] === 2 || (nearO[id(x, y)] === 2 && Math.hypot(x - sx, y - sy) > 3); let it = 0; const seen = [];
       while (open.length && it++ < 60000) { let bi = 0; for (let i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
         const [, cur] = open.splice(bi, 1)[0]; if (closed[cur]) continue; closed[cur] = 1; const cx = cur % cols, cy = (cur / cols) | 0; if (seen.length < 20000) seen.push(cur);
         if (Math.abs(cx - gx) + Math.abs(cy - gy) <= 1) { search = { cells: seen, t0: performance.now() }; const out = []; let c = cur; while (c >= 0) { out.push([c % cols + .5, ((c / cols) | 0) + .5]); c = came[c]; } return out.reverse(); }
@@ -324,6 +328,13 @@
           case 'wheel': ctx.fillStyle = '#E8B33C'; ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#F7D774'; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 7.5, -.5, .4); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(30,33,38,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 7.5, .5, 5.7); ctx.stroke(); return;
           case 'claw': ctx.fillStyle = '#9A968D'; ctx.beginPath(); ctx.arc(x - 2, y + 2, 6, 0, 7); ctx.fill(); ctx.stroke(); for (const a of [-.9, -.1, .7]) { ctx.beginPath(); ctx.moveTo(x - 2 + Math.cos(a - 1.2) * 5, y + 2 + Math.sin(a - 1.2) * 5); ctx.quadraticCurveTo(x + Math.cos(a - 1.2) * 12, y + Math.sin(a - 1.2) * 12, x + 3 + Math.cos(a - .9) * 12, y - 1 + Math.sin(a - .9) * 12); ctx.lineTo(x - 2 + Math.cos(a - 1) * 5, y + 2 + Math.sin(a - 1) * 5); ctx.fill(); ctx.stroke(); }
             ctx.fillStyle = C.ink; for (const [ox, oy] of [[-4, 1], [-1, 4], [-4, 5]]) ctx.fillRect(x + ox, y + oy, 1.6, 1.6); return;
+          case 'qblock': ctx.fillStyle = '#FFC908'; ctx.fillRect(x - 8, y - 8, 16, 16); ctx.strokeRect(x - 8, y - 8, 16, 16); ctx.fillStyle = C.ink; for (const [ox, oy] of [[-6, -6], [5, -6], [-6, 5], [5, 5]]) ctx.fillRect(x + ox, y + oy, 1.5, 1.5);
+            ctx.font = '700 12px "Chivo Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('?', x, y + 4.5); ctx.textAlign = 'left'; return;
+          case 'mushroom': ctx.fillStyle = '#F5F4F0'; ctx.fillRect(x - 3, y, 6, 8); ctx.strokeRect(x - 3, y, 6, 8); ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, y + 1, 9, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#fff'; for (const [ox, oy, r] of [[-4, -3, 1.8], [2, -5, 1.5], [5, -1, 1.3], [-1, -1, 1.2]]) { ctx.beginPath(); ctx.arc(x + ox, y + oy, r, 0, 7); ctx.fill(); } return;
+          case 'artifact': { const b = Math.sin(now / 400) * 1.5; ctx.strokeStyle = 'rgba(46,20,153,.35)'; ctx.beginPath(); ctx.ellipse(x, y + 7, 9, 3, 0, 0, 7); ctx.stroke(); ctx.strokeStyle = C.ink;
+            ctx.fillStyle = '#3A3F47'; ctx.beginPath(); ctx.moveTo(x, y - 10 + b); ctx.lineTo(x + 5, y - 1 + b); ctx.lineTo(x + 1, y + 4 + b); ctx.lineTo(x - 5, y - 2 + b); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = '#C9D2FF'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - 8 + b); ctx.lineTo(x + 1, y + 2 + b); ctx.stroke(); return; }
           case 'beacon2': ctx.fillStyle = '#7D7564'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); ctx.stroke(); if (Math.sin(now / 900) > .7) { ctx.strokeStyle = C.org; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.stroke(); } return;
           default: ctx.fillStyle = '#7D7564'; for (const [ox, oy] of [[-5, 2], [3, -3], [5, 5]]) { ctx.beginPath(); ctx.arc(x + ox, y + oy, 3.5, 0, 7); ctx.fill(); ctx.stroke(); } return; } }
       ctx.beginPath(); ctx.moveTo(x - 6, y + 4); ctx.lineTo(x - 2, y - 6); ctx.lineTo(x + 6, y - 3); ctx.lineTo(x + 5, y + 5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
@@ -333,9 +344,10 @@
     const STONE = '#8F8C84', STONE_HI = 'rgba(255,255,255,.2)', INKC = '#1E2126', PINE = ['#24452E', '#2F5D3A', '#3E7A4C'];
     function solid(x, y, h) { if (inside(x, y) && x > 0 && y > 0 && x < cols - 1 && y < rows - 1) { occ[id(x, y)] = 1; hgt[id(x, y)] = Math.max(hgt[id(x, y)], h); } }
     function placeSetPieces(keeps) {
-      ruins = null; guard = null; dragon = null; dragonAt = RM ? 0 : performance.now() + (sector <= 1 ? 9000 : 5000 + rnd() * 15000);
+      ruins = null; guard = null; dragon = null; braziers = []; pools = []; ship = null; dragonAt = RM ? 0 : performance.now() + (sector <= 1 ? 9000 : 5000 + rnd() * 15000);
       if (sector > 1 && rnd() < .45) dragonAt = 0;   // now and then, not every sector
-      const R = 2.7 / MPC, ring = sector % 2 === 1, t = terrain.getContext('2d');
+      decor = document.createElement('canvas'); decor.width = W; decor.height = H;
+      const R = 2.7 / MPC, ring = sector % 2 === 1, t = decor.getContext('2d');
       for (let n = 0; n < 300 && !ruins; n++) { const cx = 4 + R + rnd() * (cols - 8 - 2 * R), cy = 4 + R + rnd() * (rows - 8 - 2 * R);
         if (!(cx > R + 2 && cy > R + 2 && cx < cols - R - 3 && cy < rows - R - 3) || Math.hypot(cx - rx, cy - ry) < R + 3 / MPC) continue;
         let ok = true; for (let y = Math.floor(cy - R - 2); y <= cy + R + 2 && ok; y++) for (let x = Math.floor(cx - R - 2); x <= cx + R + 2; x++) if (!inside(x, y) || nogo[id(x, y)]) { ok = false; break; }
@@ -349,8 +361,9 @@
           for (let i = 1; i < 8; i++) { const a = a0 + i / 8 * Math.PI * 2 + (rnd() - .5) * .12, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R, fallen = i === 3 || i === 6;
             solid(Math.floor(x), Math.floor(y), fallen ? .35 : 1.6); if (fallen) solid(Math.floor(x + Math.cos(a) * .9), Math.floor(y + Math.sin(a) * .9), .35);
             stone(t, px(x) + (fallen ? Math.cos(a) * sl * .3 : 0), px(y) + (fallen ? Math.sin(a) * sl * .3 : 0), fallen ? sw * .8 : sw, fallen ? sl * 1.5 : sl, fallen ? a + .25 : a + Math.PI / 2, fallen ? 2 : 6); }
-          solid(Math.floor(cx), Math.floor(cy), .4); slab(t, px(cx), px(cy), a0);
-          items.push({ kind: 'ruin', name: 'An old barrow ring', text: 'Standing stones, two of them fallen, round a carved slab, with an arch on the way in. The lintel is above the 1 m band the costmap keeps, so Nav2 happily plans under it.', col: STONE, x: Math.floor(cx), y: Math.floor(cy), found: false });
+          solid(Math.floor(cx), Math.floor(cy), .4); mound(t, px(cx), px(cy), a0);
+          for (let i = 0; i < 5; i++) { const a = a0 + Math.PI + (i - 2) * .45, r = 1.5 / MPC, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; urn(t, px(x), px(y), .28 / MPC * CELL); }
+          items.push({ kind: 'ruin', name: 'An old barrow ring', text: 'Standing stones, two of them fallen, round a turf mound with a sealed door, and an arch with two braziers on the way in. The lintel is above the 1 m band the costmap keeps, so Nav2 happily plans under it.', col: STONE, x: Math.floor(cx), y: Math.floor(cy), found: false });
           guard = { x: cx + .5, y: cy + 1.5, wx: cx, wy: cy, a: 0, t: 0 };
           items.push({ kind: 'guard', name: 'A barrow guard', text: 'Something in very old armour, shuffling between the stones with its eyes glowing. The costmap treats it as a moving obstacle and plans round it. It has not noticed the rover. Yet.', col: '#5C5448', x: Math.floor(cx), y: Math.floor(cy) + 1, found: false });
         } else {   // a curved wall of carved stone behind the arch
@@ -369,11 +382,25 @@
           items.push({ kind: 'wall', name: 'A carved wall', text: 'Curved stone, carved in a script nobody on the team can read. One word glows faintly. The rover learns nothing from it, but somehow feels louder.', col: STONE, x: Math.floor(cx + Math.cos(a1) * (R - 1.6)), y: Math.floor(cy + Math.sin(a1) * (R - 1.6)), found: false });
         }
         pil.forEach(([x, y]) => { solid(Math.floor(x), Math.floor(y), 2.2); stone(t, px(x), px(y), sw, sw, a0, 7); });
+        braziers = pil.map(([x, y]) => { const bx = x + Math.cos(a0) * 1.1 / MPC, by = y + Math.sin(a0) * 1.1 / MPC; solid(Math.floor(bx), Math.floor(by), .9); brazierBase(t, px(bx), px(by)); return [bx, by]; });
+        for (let i = 0; i < 6; i++) { const a = rnd() * 6.28, r = R * (.6 + rnd() * .9); snow(t, px(cx + Math.cos(a) * r), px(cy + Math.sin(a) * r), (.6 + rnd() * .8) / MPC * CELL); }
         lintel(t, px(pil[0][0]), px(pil[0][1]), px(pil[1][0]), px(pil[1][1]));
         for (let i = 0; i < 9; i++) { const a = rnd() * 6.28, r = R + 1 + rnd() * 2.5, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;   // rubble
           if (inside(x | 0, y | 0) && !nogo[id(x | 0, y | 0)] && Math.hypot(x - rx, y - ry) > 4) { solid(x | 0, y | 0, .3); stone(t, px(x), px(y), sw * .45, sw * .6, rnd() * 3, 2); } } }
+      const open = (x, y, r) => { for (let yy = Math.floor(y - r); yy <= y + r; yy++) for (let xx = Math.floor(x - r); xx <= x + r; xx++) if (!inside(xx, yy) || nogo[id(xx, yy)] || xx < 2 || yy < 2 || xx > cols - 3 || yy > rows - 3) return false;
+        return !keeps.some(k => inR(x, y, k, r + 2)) && Math.hypot(x - rx, y - ry) > r + 4 && !(ruins && Math.hypot(x - ruins.cx, y - ruins.cy) < ruins.R + r + 3); };
+      if (sector % 3 === 0) for (let n = 0; n < 200 && !ship; n++) { const L = 4.5 / MPC, x = 3 + L + rnd() * (cols - 6 - 2 * L), y = 3 + L + rnd() * (rows - 6 - 2 * L);   // a landed ship
+        if (!open(x, y, L * .7)) continue; clear(Math.floor(x), Math.floor(y), Math.ceil(L * .7)); const a = rnd() * 6.28; ship = { x, y, a, L };
+        for (let k = -L * .5; k <= L * .5; k += .5) solid(Math.floor(x + Math.cos(a) * k), Math.floor(y + Math.sin(a) * k), 2.4);
+        drawShip(t, px(x), px(y), a, L * CELL);
+        items.push({ kind: 'ship', name: 'A landed ship', text: 'Its hull still ticks as it cools. A note on the hatch: back soon, scanning everything on this planet first.', col: '#C8CCD2', x: Math.floor(x - Math.cos(a) * L * .35 + Math.sin(a) * 1.4 / MPC), y: Math.floor(y - Math.sin(a) * L * .35 - Math.cos(a) * 1.4 / MPC), found: false }); }
+      if (sector % 3 === 1) for (let n = 0; n < 200 && !pools.length; n++) { const r = 1.6 / MPC, x = 3 + r + rnd() * (cols - 6 - 2 * r), y = 3 + r + rnd() * (rows - 6 - 2 * r);   // a pool of green sludge
+        if (!open(x, y, r + 1)) continue; clear(Math.floor(x), Math.floor(y), Math.ceil(r + 1)); pools.push({ x, y, r });
+        for (let yy = Math.floor(y - r); yy <= y + r; yy++) for (let xx = Math.floor(x - r * 1.3); xx <= x + r * 1.3; xx++) if (inside(xx, yy) && Math.hypot((xx + .5 - x) / 1.3, yy + .5 - y) < r) hazard[id(xx, yy)] = 1;
+        pool(t, px(x), px(y), r * CELL);
+        items.push({ kind: 'pool', name: 'A pool of green sludge', text: 'It glows and it bubbles. The cameras saw it, so the planner treats it as a wall; the LiDAR never would have, since it is flat.', col: '#7CFC4E', x: Math.floor(x), y: Math.floor(y), found: false }); }
       for (let i = 0, n = 0; i < 60 && n < 5; i++) { const x = 3 + Math.floor(rnd() * (cols - 6)), y = 3 + Math.floor(rnd() * (rows - 6));   // a few snowy pines
-        if (nogo[id(x, y)] || occ[id(x, y)] || Math.hypot(x - rx, y - ry) < 6 || keeps.some(k => inR(x, y, k, 3)) || (ruins && Math.hypot(x - ruins.cx, y - ruins.cy) < ruins.R + 3)) continue;
+        if (nogo[id(x, y)] || occ[id(x, y)] || Math.hypot(x - rx, y - ry) < 6 || keeps.some(k => inR(x, y, k, 3)) || (ruins && Math.hypot(x - ruins.cx, y - ruins.cy) < ruins.R + 3) || (ship && Math.hypot(x - ship.x, y - ship.y) < ship.L * .7 + 2) || pools.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 3)) continue;
         solid(x, y, 2.5); pine(t, px(x + .5), px(y + .5), (1 + rnd() * .5) / MPC * CELL); n++; }
     }
     function floor(t, x, y, r) {   // the barrow's worn floor: pale flagstones, cracked, fading out at the edge
@@ -387,6 +414,7 @@
       t.fillStyle = '#6F6C65'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.save(); t.translate(h * .25, h * .45); t.rotate(ang); t.beginPath(); t.roundRect(-l / 2, -w / 2, l, w, Math.min(w, l) * .3); t.fill(); t.stroke(); t.restore(); t.rotate(ang);
       t.fillStyle = STONE; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.roundRect(-l / 2, -w / 2, l, w, Math.min(w, l) * .3); t.fill(); t.stroke();
       t.fillStyle = STONE_HI; t.beginPath(); t.roundRect(-l / 2 + 2, -w / 2 + 2, l - 4, w * .35, 2); t.fill();
+      if (h > 3) { t.fillStyle = 'rgba(255,255,255,.8)'; t.beginPath(); t.roundRect(-l / 2 + 2, -w / 2 + 1.5, l * .55, w * .3, 2); t.fill(); }
       if (h > 3) { t.strokeStyle = 'rgba(30,33,38,.45)'; t.lineWidth = 1; t.beginPath(); t.moveTo(-l * .22, -w * .12); t.lineTo(0, w * .18); t.lineTo(l * .22, -w * .12); t.stroke(); }
       t.restore(); }
     function slab(t, x, y, ang) { const l = 1.4 / MPC * CELL, w = .8 / MPC * CELL; t.save(); t.translate(x, y); t.rotate(ang);
@@ -396,12 +424,41 @@
       t.save(); t.translate((x0 + x1) / 2, (y0 + y1) / 2); t.rotate(a); t.fillStyle = 'rgba(30,33,38,.22)'; t.fillRect(-L / 2 + 9, -w / 2 + 11, L, w);
       t.fillStyle = '#9A968D'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.roundRect(-L / 2, -w / 2, L, w, 3); t.fill(); t.stroke();
       t.strokeStyle = 'rgba(30,33,38,.5)'; t.lineWidth = 1; t.beginPath(); for (let k = -L / 2 + 6; k < L / 2 - 6; k += 6) { t.lineTo(k, -w * .2); t.lineTo(k + 3, w * .2); } t.stroke(); t.restore(); }
+    function mound(t, x, y, a) {   // a turf barrow mound, snow on its crown, a stone doorway facing the arch (the door itself is drawn live)
+      const r = 1.6 / MPC * CELL; t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(6, 8, r * 1.05, r * .85, a, 0, 7); t.fill();
+      const g = t.createRadialGradient(-r * .2, -r * .3, r * .1, 0, 0, r); g.addColorStop(0, '#8A9468'); g.addColorStop(1, '#55603F'); t.fillStyle = g; t.strokeStyle = INKC; t.lineWidth = 1.5;
+      t.beginPath(); t.ellipse(0, 0, r, r * .8, a, 0, 7); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.3)'; t.lineWidth = 1; for (let k = 0; k < 26; k++) { const q = k * 2.4, d = r * (.25 + (k % 5) * .14); t.beginPath(); t.moveTo(Math.cos(q) * d, Math.sin(q) * d * .8); t.lineTo(Math.cos(q) * d + 1.5, Math.sin(q) * d * .8 - 3); t.stroke(); }
+      t.fillStyle = 'rgba(255,255,255,.85)'; t.beginPath(); t.ellipse(-r * .15, -r * .2, r * .42, r * .26, a, 0, 7); t.fill();
+      t.rotate(a); t.fillStyle = '#8F8C84'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.fillRect(r * .7, -r * .32, r * .34, r * .64); t.strokeRect(r * .7, -r * .32, r * .34, r * .64); t.restore(); }
+    function urn(t, x, y, r) { t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(2, 3, r, r * .8, 0, 0, 7); t.fill();
+      t.fillStyle = '#9A6B4C'; t.strokeStyle = INKC; t.lineWidth = 1.2; t.beginPath(); t.arc(0, 0, r, 0, 7); t.fill(); t.stroke(); t.fillStyle = '#3B2A20'; t.beginPath(); t.arc(0, 0, r * .45, 0, 7); t.fill(); t.restore(); }
+    function brazierBase(t, x, y) { const r = .32 / MPC * CELL; t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.25)'; t.beginPath(); t.ellipse(3, 4, r, r * .8, 0, 0, 7); t.fill();
+      t.fillStyle = '#3A3530'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.arc(0, 0, r, 0, 7); t.fill(); t.stroke(); t.fillStyle = '#1E1A16'; t.beginPath(); t.arc(0, 0, r * .62, 0, 7); t.fill(); t.restore(); }
+    function snow(t, x, y, r) { t.save(); t.translate(x, y); const g = t.createRadialGradient(0, 0, 0, 0, 0, r); g.addColorStop(0, 'rgba(255,255,255,.75)'); g.addColorStop(.7, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      t.fillStyle = g; t.beginPath(); for (let k = 0; k < 14; k++) { const q = k / 14 * 6.28, d = r * (.75 + ((k * 37) % 10) / 40); t.lineTo(Math.cos(q) * d, Math.sin(q) * d * .7); } t.closePath(); t.fill(); t.restore(); }
+    function drawShip(t, x, y, a, L) {   // a small landed spacecraft from above, facing a; original drawing
+      t.save(); t.translate(x, y); t.rotate(a); const w = L * .22;
+      t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(6, 9, L * .52, w * 1.6, 0, 0, 7); t.fill();
+      t.strokeStyle = INKC; t.lineWidth = 1.5; t.fillStyle = '#C8CCD2';
+      for (const sd of [-1, 1]) { t.beginPath(); t.moveTo(-L * .1, sd * w * .5); t.lineTo(-L * .32, sd * w * 2.2); t.lineTo(-L * .44, sd * w * 2.2); t.lineTo(-L * .36, sd * w * .5); t.closePath(); t.fill(); t.stroke();
+        t.fillStyle = '#5D626B'; t.fillRect(-L * .42, sd * w * 2.2 - (sd > 0 ? 0 : 4), 10, 4); t.fillStyle = '#C8CCD2'; }
+      t.beginPath(); t.moveTo(L * .5, 0); t.lineTo(L * .3, -w * .8); t.lineTo(-L * .45, -w * .8); t.lineTo(-L * .5, -w * .45); t.lineTo(-L * .5, w * .45); t.lineTo(-L * .45, w * .8); t.lineTo(L * .3, w * .8); t.closePath(); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.35)'; t.lineWidth = 1; for (let k = -.3; k < .3; k += .12) { t.beginPath(); t.moveTo(L * k, -w * .8); t.lineTo(L * k, w * .8); t.stroke(); }
+      t.fillStyle = C.ind; t.fillRect(-L * .4, -w * .12, L * .62, w * .24); t.fillStyle = '#2B3A55'; t.beginPath(); t.moveTo(L * .44, 0); t.lineTo(L * .3, -w * .45); t.lineTo(L * .22, -w * .45); t.lineTo(L * .22, w * .45); t.lineTo(L * .3, w * .45); t.closePath(); t.fill(); t.stroke();
+      t.fillStyle = '#FF5102'; for (const sd of [-.4, .4]) { t.beginPath(); t.arc(-L * .52, sd * w, w * .22, 0, 7); t.fill(); }
+      t.fillStyle = '#5D626B'; for (const [ox, oy] of [[L * .25, -w * 1.1], [L * .25, w * 1.1], [-L * .3, -w * 1.25], [-L * .3, w * 1.25]]) { t.beginPath(); t.arc(ox, oy, 3, 0, 7); t.fill(); }
+      t.restore(); }
+    function pool(t, x, y, r) { t.save(); t.translate(x, y); const g = t.createRadialGradient(0, 0, r * .2, 0, 0, r * 1.3); g.addColorStop(0, '#9CFF6A'); g.addColorStop(.6, '#4FD13A'); g.addColorStop(1, '#2C7A22');
+      t.fillStyle = 'rgba(124,252,78,.25)'; t.beginPath(); t.ellipse(0, 0, r * 1.55, r * 1.2, 0, 0, 7); t.fill();
+      t.fillStyle = g; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); for (let k = 0; k < 18; k++) { const q = k / 18 * 6.28, d = r * (1 + ((k * 53) % 9) / 40); t.lineTo(Math.cos(q) * d * 1.3, Math.sin(q) * d); } t.closePath(); t.fill(); t.stroke(); t.restore(); }
     function pine(t, x, y, r) { t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.18)'; t.beginPath(); t.ellipse(r * .5, r * .6, r, r * .8, 0, 0, 7); t.fill();
       PINE.forEach((c, i) => { const rr = r * (1 - i * .28); t.fillStyle = c; t.strokeStyle = INKC; t.lineWidth = i ? 1 : 1.5; t.beginPath();
         for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2 + i * .2, q = k % 2 ? rr * .62 : rr; t.lineTo(Math.cos(a) * q, Math.sin(a) * q); } t.closePath(); t.fill(); if (!i) t.stroke(); });
       t.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 7; k++) { const a = k * 2.4, q = r * (.25 + (k % 3) * .2); t.beginPath(); t.arc(Math.cos(a) * q, Math.sin(a) * q, 1.6, 0, 7); t.fill(); }
       t.restore(); }
-    function drawGuard(now) { if (!guard) return; const s = Math.max(.9, .6 / MPC * CELL / 16), x = guard.x * CELL, y = guard.y * CELL + Math.sin(now / 160) * .6;
+    const seen = (x, y) => inside(x | 0, y | 0) && known[id(x | 0, y | 0)];
+    function drawGuard(now, force) { if (!guard || (!force && !seen(guard.x, guard.y))) return; const s = Math.max(.9, .6 / MPC * CELL / 16), x = guard.x * CELL, y = guard.y * CELL + Math.sin(now / 160) * .6;
       ctx.save(); ctx.translate(x, y); ctx.fillStyle = 'rgba(30,33,38,.22)'; ctx.beginPath(); ctx.ellipse(3, 4, 9 * s, 7 * s, 0, 0, 7); ctx.fill(); ctx.rotate(guard.a); ctx.scale(s, s);
       ctx.strokeStyle = '#B9BEC2'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(13, 9); ctx.stroke();   // a notched old blade
       ctx.fillStyle = '#5C5448'; ctx.strokeStyle = INKC; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(-1, 0, 6, 9, 0, 0, 7); ctx.fill(); ctx.stroke();
@@ -427,6 +484,13 @@
       if (t < A) { const u = ease(t / A); return { k: 0, x: dragon.x0 + (px - dragon.x0) * u, y: dragon.y0 + (py - dragon.y0) * u, alt: 1 - u, fold: 1 - .55 * u, S: S * (1 - .2 * u) }; }
       if (t < A + Pd) return { k: 0, x: px, y: py, alt: 0, fold: .45, S: S * .8, sat: true };
       const u = Math.min(1, (t - A - Pd) / B), v = u * u; return { k: u >= 1 ? 2 : 0, x: px + (dragon.x1 - px) * v, y: py + (dragon.y1 - py) * v, alt: u, fold: .45 + .55 * u, S: S * (.8 + .2 * u) }; }
+    function drawSky(now, shadow) {   // the dragon, seen only over ground the rover has mapped
+      if (!dragon || !fogMask) return; const dpr = cv.width / W; if (!skyC) skyC = document.createElement('canvas');
+      if (skyC.width !== cv.width || skyC.height !== cv.height) { skyC.width = cv.width; skyC.height = cv.height; }
+      const g = skyC.getContext('2d'), keep = ctx; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, skyC.width, skyC.height); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx = g; try { drawDragon(now, shadow); } finally { ctx = keep; }
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(fogMask, 0, 0, W, H); g.globalCompositeOperation = 'source-over';
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(skyC, 0, 0); ctx.restore(); }
     function drawDragon(now, shadow) { if (!dragon) return; const p = dragonAt_(now); if (p.k > 1) { if (!shadow) dragon = null; return; }
       if (p.sat && !dragon.landed) { dragon.landed = true; logLine('Something very large landed on the barrow', 'the costmap marks it as a moving obstacle the size of a bus. The rover gives it room.', 'dragon'); }
       const flap = p.sat ? Math.sin(now / 900) * .15 : Math.sin(now / 280);
@@ -438,7 +502,9 @@
         g.fillStyle = '#A29E95'; g.beginPath(); g.roundRect(12, 13.5, 8, 5, 1); g.fill(); g.stroke(); return; }
       if (it.kind === 'wall') { g.lineCap = 'round'; g.strokeStyle = INKC; g.lineWidth = 8; g.beginPath(); g.arc(16, 30, 16, 3.6, 5.8); g.stroke(); g.strokeStyle = STONE; g.lineWidth = 5.5; g.stroke();
         g.lineCap = 'butt'; g.strokeStyle = '#FFC908'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(13, 12); g.lineTo(16, 15); g.lineTo(13, 18); g.moveTo(18, 12); g.lineTo(18, 18); g.stroke(); return; }
-      if (it.kind === 'guard') { const keep = guard; guard = { x: 16 / CELL, y: 16 / CELL, a: -Math.PI / 2 }; const k2 = ctx; ctx = g; drawGuard(0); ctx = k2; guard = keep; return; }
+      if (it.kind === 'guard') { const keep = guard; guard = { x: 16 / CELL, y: 16 / CELL, a: -Math.PI / 2 }; const k2 = ctx; ctx = g; drawGuard(0, true); ctx = k2; guard = keep; return; }
+      if (it.kind === 'ship') { g.save(); const k0 = ctx; ctx = g; try { drawShip(g, 16, 16, -.5, 30); } finally { ctx = k0; } g.restore(); return; }
+      if (it.kind === 'pool') { pool(g, 16, 16, 9); return; }
       if (it.kind === 'dragon') { g.save(); g.translate(17, 16); g.rotate(-.5); wyrm(g, .15, 1, '#3B3047', INKC); g.restore(); return; }
       if (it.kind === 'shout') { g.strokeStyle = C.yel; g.lineWidth = 3; g.beginPath(); g.arc(16, 16, 11, 0, 7); g.stroke(); g.strokeStyle = INKC; g.lineWidth = 1.2; g.beginPath(); g.arc(16, 16, 7, 0, 7); g.stroke(); g.fillStyle = C.ind; g.beginPath(); g.arc(16, 16, 3, 0, 7); g.fill(); return; }
       if (it.kind === 'sand') { g.fillStyle = 'rgba(226,201,143,.9)'; g.beginPath(); g.ellipse(16, 16, 13, 9, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(30,33,38,.35)'; g.lineWidth = 1; for (const o of [-3, 2]) { g.beginPath(); g.moveTo(7, 16 + o); g.quadraticCurveTo(16, 12 + o, 25, 16 + o); g.stroke(); } return; }
@@ -459,6 +525,11 @@
       drawLive(now); }
     function paintGrid(ctx, now) {
       ctx.clearRect(0, 0, W, H); if (terrain) ctx.drawImage(terrain, 0, 0);
+      if (!fogMask) { fogMask = document.createElement('canvas'); fogRev = document.createElement('canvas'); }
+      if (fogMask.width !== W || fogMask.height !== H) { fogMask.width = fogRev.width = W; fogMask.height = fogRev.height = H; }
+      { const f = fogMask.getContext('2d'); f.clearRect(0, 0, W, H); f.fillStyle = '#000';   // every mapped cell, a little oversized so the edge is soft
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (known[id(x, y)]) f.fillRect(x * CELL - 3, y * CELL - 3, CELL + 6, CELL + 6); }
+      if (decor) { const r = fogRev.getContext('2d'); r.clearRect(0, 0, W, H); r.drawImage(fogMask, 0, 0); r.globalCompositeOperation = 'source-in'; r.drawImage(decor, 0, 0); r.globalCompositeOperation = 'source-over'; ctx.drawImage(fogRev, 0, 0); }
       for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (sand[id(x, y)] && known[id(x, y)]) { ctx.fillStyle = 'rgba(226,201,143,.5)'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
       ctx.strokeStyle = 'rgba(62,155,95,.12)'; ctx.lineWidth = 1; ctx.font = '500 10px "Chivo Mono", monospace'; ctx.fillStyle = 'rgba(30,33,38,.45)';
       const M1 = CELL / MPC;   // one metre in px
@@ -505,15 +576,25 @@
         if (carrot && path.length) { ctx.strokeStyle = C.ind; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, LOOK * CELL, 0, 7); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(rx * CELL, ry * CELL); ctx.lineTo(carrot[0] * CELL, carrot[1] * CELL); ctx.stroke(); ctx.fillStyle = C.yel; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.arc(carrot[0] * CELL, carrot[1] * CELL, 4, 0, 7); ctx.fill(); ctx.stroke(); }
       }
-      drawDragon(now, true);   // its shadow is on the ground, under the rover
+      drawSky(now, true);   // its shadow is on the ground, under the rover
       drawGuard(now);
+      if (ruins && ruins.ring && seen(ruins.cx, ruins.cy)) { const r = 1.6 / MPC * CELL, a = ruins.a0, open = hasClaw && items.some(i => i.kind === 'ruin' && i.found);
+        ctx.save(); ctx.translate(ruins.cx * CELL, ruins.cy * CELL); ctx.rotate(a); ctx.fillStyle = open ? '#0E0F12' : '#4A3A2C'; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5;
+        ctx.fillRect(r * .78, -r * .22, r * .2, r * .44); ctx.strokeRect(r * .78, -r * .22, r * .2, r * .44);
+        if (!open) { ctx.strokeStyle = '#8D939B'; ctx.lineWidth = 1.5; for (const k of [-.12, 0, .12]) { ctx.beginPath(); ctx.moveTo(r * .78, r * k); ctx.lineTo(r * .98, r * k); ctx.stroke(); } ctx.fillStyle = '#C9A227'; ctx.beginPath(); ctx.arc(r * .88, 0, 2.2, 0, 7); ctx.fill(); }
+        ctx.restore(); }
+      for (const [bx, by] of braziers) if (seen(bx, by)) { const x = bx * CELL, y = by * CELL, f = Math.sin(now / 90 + bx) * 1.5, g = ctx.createRadialGradient(x, y, 0, x, y, 26);
+        g.addColorStop(0, 'rgba(255,140,40,.35)'); g.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 26, 0, 7); ctx.fill();
+        ctx.fillStyle = '#FF5102'; ctx.beginPath(); ctx.ellipse(x, y - 1, 5 + f * .4, 5 - f * .3, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#FFC908'; ctx.beginPath(); ctx.ellipse(x + f * .3, y - 1, 2.6, 2.6 + f * .3, 0, 0, 7); ctx.fill(); }
+      for (const q of pools) if (seen(q.x, q.y)) for (let k = 0; k < 5; k++) { const ph = (now / 1400 + k * .37) % 1, a = k * 2.1 + Math.floor(now / 1400 + k * .37), x = (q.x + Math.cos(a) * q.r * .6) * CELL, y = (q.y + Math.sin(a) * q.r * .45) * CELL;
+        ctx.strokeStyle = `rgba(230,255,200,${1 - ph})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, 1.5 + ph * 4, 0, 7); ctx.stroke(); }
       if (shout) { const k = Math.max(0, (now - shout) / 900); if (k > 1) shout = null; else { const r = (k * 3.2 / MPC) * CELL; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = C.yel; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r, 0, 7); ctx.stroke();
         ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r * .82, 0, 7); ctx.stroke(); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.28; ctx.beginPath(); ctx.moveTo(rx * CELL + Math.cos(a) * r * .5, ry * CELL + Math.sin(a) * r * .5); ctx.lineTo(rx * CELL + Math.cos(a) * r * .75, ry * CELL + Math.sin(a) * r * .75); ctx.stroke(); } ctx.restore(); } }
       if (path.length) { ctx.strokeStyle = C.red; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); ctx.beginPath(); ctx.moveTo(rx * CELL, ry * CELL); for (const [x, y] of path) ctx.lineTo(x * CELL, y * CELL); ctx.stroke(); ctx.setLineDash([]); }
       if (goal && userGoal) { ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc((goal[0] + .5) * CELL, (goal[1] + .5) * CELL, 7, 0, 7); ctx.stroke(); }
-      for (const it of items) if (it.found && !it.collected && !['ruin', 'wall', 'guard'].includes(it.kind) && !(act && act.it === it && act.type === 'pick' && now - act.t0 > 1100)) { const s = it === hoverIt ? 22 : 16; it.kind === 'aruco' ? drawAruco(it, s) : drawFind(it, s * .85, now); }
-      if (devil) { const x = devil.x * CELL, y = devil.y * CELL; ctx.strokeStyle = 'rgba(160,130,80,.55)'; ctx.lineWidth = 2; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x, y, 6 + k * 5, now / 200 + k, now / 200 + k + 4); ctx.stroke(); } }
-      critters.forEach(c => { const x = c.x * CELL, y = c.y * CELL, col = c.home ? 'rgba(255,255,255,.35)' : power ? (power < 2 && Math.sin(now / 90) > 0 ? '#fff' : '#5B5FD6') : c.col;
+      for (const it of items) if (it.found && !it.collected && !['ruin', 'wall', 'guard', 'ship', 'pool'].includes(it.kind) && !(act && act.it === it && act.type === 'pick' && now - act.t0 > 1100)) { const s = it === hoverIt ? 22 : 16; it.kind === 'aruco' ? drawAruco(it, s) : drawFind(it, s * .85, now); }
+      if (devil && seen(devil.x, devil.y)) { const x = devil.x * CELL, y = devil.y * CELL; ctx.strokeStyle = 'rgba(160,130,80,.55)'; ctx.lineWidth = 2; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x, y, 6 + k * 5, now / 200 + k, now / 200 + k + 4); ctx.stroke(); } }
+      critters.forEach(c => { if (!seen(c.x, c.y)) return; const x = c.x * CELL, y = c.y * CELL, col = c.home ? 'rgba(255,255,255,.35)' : power ? (power < 2 && Math.sin(now / 90) > 0 ? '#fff' : '#5B5FD6') : c.col;
         ctx.fillStyle = col; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
         for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, r = 9 + Math.sin(now / 120 + k * 2 + c.t) * 1.6; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#fff'; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.arc(x + s2 * 3, y - 1, 2.6, 0, 7); ctx.fill(); } ctx.fillStyle = C.ink; const ex = (rx - c.x) > 0 ? 1 : -1; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.arc(x + s2 * 3 + ex, y - 1, 1.2, 0, 7); ctx.fill(); } });
@@ -555,7 +636,7 @@
         if (ruins && rnd() < .6) { const px = (ruins.cx + Math.cos(ruins.a0) * ruins.R) * CELL, py = (ruins.cy + Math.sin(ruins.a0) * ruins.R) * CELL;   // it lands on the arch
           dragon.perch = [px, py]; dragon.x0 = px - Math.cos(a) * L; dragon.y0 = py - Math.sin(a) * L; dragon.x1 = px + Math.cos(a) * L; dragon.y1 = py + Math.sin(a) * L; }
         else logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.', 'dragon'); }
-      drawDragon(now, false);
+      drawSky(now, false);
       ctx.fillStyle = C.ink; ctx.fillRect(W - 120, H - 30, 1 / MPC * CELL, 4); ctx.font = '500 11px "Chivo Mono", monospace'; ctx.fillText('1 m', W - 120, H - 36);
       if (transition) { const kk = Math.min(1, (now - transition) / 1400); ctx.fillStyle = `rgba(236,234,228,${kk})`; ctx.fillRect(0, 0, W, H);
         ctx.fillStyle = C.ink; ctx.font = '700 28px "Chivo Mono", monospace'; ctx.textAlign = 'center'; ctx.globalAlpha = kk;
@@ -576,7 +657,7 @@
         tip.style.left = Math.min(px, W - 250) + 'px'; tip.style.top = py + 'px'; } else tip.hidden = true; });
     cv.addEventListener('mouseleave', () => { hoverIt = null; tip.hidden = true; });
     cv.addEventListener('click', ev => {
-      if (hoverIt && !['ruin', 'wall'].includes(hoverIt.kind)) { if (hoverIt.kind === 'aruco') openProject(hoverIt.slug); return; }
+      if (hoverIt && !['ruin', 'wall', 'ship', 'pool'].includes(hoverIt.kind)) { if (hoverIt.kind === 'aruco') openProject(hoverIt.slug); return; }
       const [fx_, fy_] = at(ev), gx = Math.floor(fx_), gy = Math.floor(fy_); if (!inside(gx, gy) || nogo[id(gx, gy)] || known[id(gx, gy)] === 2 || transition) return;
       task = null; goal = [gx, gy]; userGoal = true; path = astar(Math.floor(rx), Math.floor(ry), gx, gy) || []; if (!path.length) { goal = null; userGoal = false; } status(); });
     const lv = document.getElementById('livo'); if (lv) lv.addEventListener('change', () => { livo = lv.checked; });

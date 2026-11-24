@@ -175,3 +175,29 @@ header.top nav a { font: 600 13px var(--mono); border-radius: 0; }
 header.top nav a.on, header.top nav a[aria-current] { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
 /* footers: the home page gets one; the 404's sits at the bottom of the screen */
 footer.site { padding: 28px 16px 36px; text-align: center; font: 500 12px var(--mono); color: var(--mute); border-top: 1px solid var(--line); }
+/* the smaller projects: a row of short cards under the main grid (24 Nov 2026) */
+.also { margin-top: 56px; }
+.also-h { font: 600 13px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 0 0 14px; }
+.also-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.also-card { background: var(--panel); border: 2px solid var(--ink); padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; }
+.also-card img { width: 100%; aspect-ratio: 1000 / 726; object-fit: cover; border: 1px solid var(--line); background: #fff; margin-bottom: 6px; }
+.also-card .k { font: 500 12px var(--mono); color: var(--mute); margin: 0; }
+.also-card h3 { font-size: 1.15rem; margin: 0; }
+.also-card p { margin: 0; line-height: 1.5; }
+.also-card .credit { font-size: .85rem; color: var(--mute); }
+.also-card .credit a, .also-card .more { color: var(--ind); }
+.also-card .more { margin-top: auto; padding-top: 8px; font: 600 13px var(--mono); }
+/* OSIRIS board map: the photo keeps its shape (its height attribute stretched it), at most 640 px wide,
+   and the map wears the site's square edges instead of the old rounded cards (24 Nov 2026) */
+.bm-figure { border-radius: 0; border: 2px solid var(--ink); background: #fff; }
+.bm-figure { max-width: 640px; }   /* the markers sit by percentage on the photo, so size the frame, not the image */
+.bm-figure img { display: block; width: 100%; height: auto; }
+.bm-card { border-radius: 0; }
+@media (min-width: 900px) { .board-map { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
+/* headings: the contact heading no longer outranks the page title; the phone title is the biggest headline again */
+#contact h2 { font-size: clamp(2rem, 4vw, 3.2rem); }
+@media (max-width: 700px) { #arena-wrap .hero-copy h1 { font-size: 2.6rem !important; } }
+/* the systems panels' intros read as prose, not as data */
+#systems .note { font: 400 15px/1.55 Sanchez, Georgia, serif; }
+/* coursework cards on phones: no plot thumbnails (unreadable at that size), so the list is a third as long */
+@media (max-width: 700px) { .cwcard .th { display: none; } .cwcard { padding-top: 10px; } }

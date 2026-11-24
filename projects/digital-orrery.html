@@ -30,8 +30,8 @@
 <script data-goatcounter="https://zyzzbarth333.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
-<link rel="stylesheet" href="/assets/css/v4/page.css?v=60ed4b35">
-<link rel="stylesheet" href="/assets/css/v4/polish.css?v=16f3b07e">
+<link rel="stylesheet" href="/assets/css/v4/page.css?v=9d711069">
+<link rel="stylesheet" href="/assets/css/v4/polish.css?v=7e7063fe">
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects" aria-current="page">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -49,7 +49,7 @@
   </div>
 </section>
 <section class="fig panel" aria-label="Live figure"><div class="bar"><b>Live figure</b><span>orrery-porkchop.html</span></div><iframe src="/assets/figures/orrery-porkchop.html" title="Live figure: Digital orrery and transfer planner" loading="lazy"></iframe></section>
-<section class="wu panel" aria-labelledby="wu"><h2 id="wu">The full write-up</h2><ol class="toc"><li>The problem</li><li>What I built</li><li>Mars right now</li><li>Result</li><li>What went wrong</li><li>What&#x27;s next</li><li>Earlier version</li></ol>
+<section class="wu panel has-rail" aria-labelledby="wu"><h2 id="wu">The full write-up</h2><nav class="rail" aria-label="On this page"><p class="rail-h">On this page</p><ol><li><a href="#the-problem">The problem</a></li><li><a href="#what-i-built">What I built</a></li><li><a href="#mars-right-now">Mars right now</a></li><li><a href="#result">Result</a></li><li><a href="#what-went-wrong">What went wrong</a></li><li><a href="#what-s-next">What&#x27;s next</a></li><li><a href="#earlier-version">Earlier version</a></li></ol><p class="rail-h">Projects</p><ol class="rail-all"><li><a href="theseus.html">Theseus V rover autonomy</a></li><li><a href="havoc2-cosmos.html">HAVOC-2 firmware and COSMOS ground station</a></li><li><a href="osiris.html">OSIRIS flight computer</a></li><li><a href="airbrakes.html">Airbrake control simulation</a></li><li><a href="digital-orrery.html" aria-current=page>Digital orrery and transfer planner</a></li><li><a href="weather-station.html">Launch-site weather station</a></li><li><a href="errol.html">Operator tools for Errol, an autonomous research car</a></li><li><a href="metr4810.html">A steered cutter pod for a tunnel-boring robot</a></li><li><a href="camera-mount.html">Ball joint and mount for a security camera</a></li><li><a href="engg1100.html">Remote-controlled firefighting vehicle</a></li></ol></nav>
   <div class="body">
         <div class="prose">
             <h2 id="the-problem">The problem</h2>
@@ -118,6 +118,20 @@ document.querySelectorAll('.fig.panel iframe').forEach(f => {
   const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
   f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
 });
+</script><style>
+.rail{font:500 13px/1.45 var(--mono);margin:0 0 18px}.rail-h{font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;font-size:12px}
+.rail ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:2px}.rail a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-left:2px solid transparent}
+.rail a:hover{background:var(--paper2,#E1DED5)}.rail a[aria-current]{border-left-color:var(--ink);font-weight:600;background:transparent}
+.rail-all a[aria-current=page]{color:var(--ind,#2E1499)}
+@media (min-width:1100px){.wu.has-rail{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:36px}.wu.has-rail>h2{grid-column:1/-1}.wu.has-rail>.old{grid-column:2}
+.rail{position:sticky;top:76px;align-self:start;max-height:calc(100svh - 96px);overflow:auto;margin:0}}
+@media (max-width:1099px){.rail-all,.rail-h+.rail-all{display:none}.rail ol{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+</style>
+<script>
+(function(){const links=[...document.querySelectorAll('.rail ol:first-of-type a[href^="#"]')];if(!links.length||!('IntersectionObserver' in window))return;
+const by=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));let cur=null;
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const a=by.get(e.target.id);if(a&&a!==cur){if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','true');cur=a;}}});},{rootMargin:'-15% 0px -70% 0px'});
+by.forEach((a,id)=>{const h=document.getElementById(id);if(h)io.observe(h);});})();
 </script>
 <footer>© Isaac Johan Ziebarth. All rights reserved.</footer>
 <script src="/assets/js/site.js" defer></script>

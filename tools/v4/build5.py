@@ -18,7 +18,7 @@ from build2 import gauge  # noqa: E402
 from content import ROOT  # noqa: E402
 
 D, P, e, YEAR = B4.D, B4.P, html.escape, B4.YEAR
-FOUND = ['theseus', 'havoc2-cosmos', 'osiris', 'airbrakes', 'digital-orrery', 'weather-station', 'errol', 'metr4810']
+FOUND = ['theseus', 'havoc2-cosmos', 'osiris', 'airbrakes', 'digital-orrery', 'weather-station', 'errol', 'metr4810', 'camera-mount', 'engg1100']   # every project card has a marker
 CUBES = [
     {'key': 'rank', 'name': 'Green', 'col': '#3E9B5F', 'label': '1st of 17', 'sub': 'Theseus V, ARC 2026'},
     {'key': 'apogee', 'name': 'Blue', 'col': '#2E1499', 'label': 'About 540 m', 'sub': 'HAVOC-2 first flight'},

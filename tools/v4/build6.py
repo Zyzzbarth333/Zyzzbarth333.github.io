@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import build4 as B4  # noqa: E402
 import build5 as B5  # noqa: E402
+import content as C  # noqa: E402
 
 D, P, e, YEAR = B4.D, B4.P, html.escape, B4.YEAR
 BY = {p['slug']: p for p in P}
@@ -169,7 +170,7 @@ def home():
 <section id="projects" aria-labelledby="ph"><div class="wrap"><p class="eyebrow" style="--c:var(--yel)">02 · Projects</p><h2 id="ph">Projects</h2>
 <p class="intro"><span class="on-hover">Hover a card and its model moves; its real figure wakes up in the panel. Click for the full file.</span><span class="on-touch">Tap a card to open its write-up.</span></p>
 <div class="pj2"><ul class="pgrid">{cards}</ul>
-<div class="preview2" aria-live="polite"><div class="pv" id="pv"><div class="ph">Hover a project</div></div><div class="pv-cap"><div><b id="pv-t"></b><p id="pv-s"></p></div><button class="btn" type="button" id="pv-open" hidden>Open</button></div></div></div></div></section>
+<div class="preview2" aria-live="polite"><div class="pv" id="pv"><div class="ph">Hover a project</div></div><div class="pv-cap"><div><b id="pv-t"></b><p id="pv-s"></p></div><button class="btn" type="button" id="pv-open" hidden>Open</button></div></div></div>{C.also_html()}</div></section>
 
 <section class="systems" id="systems" aria-labelledby="sh"><div class="wrap"><p class="eyebrow" style="--c:var(--org)">03 · Systems, running</p><h2 id="sh">Two systems you can poke</h2>
 <div class="sysv"><div class="panel2"><div class="ph2"><h3>Airbrake controller, on my airbrake design</h3><span class="mono">drag the yellow target</span></div>
