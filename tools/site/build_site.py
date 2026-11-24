@@ -835,7 +835,10 @@ PROJECTS = [
              "            <p>Each group got a black box of unknown passive components and had to build a circuit after it so the output matched the box's input, from 1 Hz to 20 kHz. We measured the box's frequency response and fitted a first-order lead network, T(jω) = 0.995(jω + 815.27)/(jω + 3396.97), with a gain of 0.246 at 1 Hz and its 0.707 point between 400 and 500 Hz.</p>\n"
              "            <p>To invert it we designed an RC lag network around a 1 µF capacitor, added an LM741 buffer to stop it loading the box, and a non-inverting amplifier to make up the missing 12 dB or so. The final circuit was flat to within -0.74 and +0.43 dB from 1 Hz to 10 kHz, falling to -4.45 dB at 20 kHz.</p>",
              [('coursework/black-box-response.webp', 'Measured gain on a log frequency axis from 1 Hz to 20 kHz, inside a shaded band of plus or minus 1 dB up to 10 kHz and falling to about -4.5 dB at 20 kHz',
-               'Measured response of the black box followed by our final circuit: within about 0.7 dB of flat from 1 Hz to 10 kHz.')]),
+               'Measured response of the black box followed by our final circuit: within about 0.7 dB of flat from 1 Hz to 10 kHz.'),
+              # Corrected copy (CV chat, 25 Nov 2026): the report's own figure labelled Rf = Rs = 100 ohm, against its section 3.4 values
+              ('coursework/black-box-circuit.webp', 'Circuit diagram: an op-amp buffer, an RC network of R1 932.1 ohms, R2 294.3 ohms and C1 1 microfarad, then a non-inverting amplifier with Rf 28.3 kilohms and Rs 10 kilohms',
+               'Our inverting circuit: a buffer so it does not load the box, the RC lag network, and the non-inverting gain stage (Rf 28.3 kΩ, Rs 10 kΩ).')]),
             # Sources: task and rigs: LI:821, VT:10. Most of the work: F:466. Forced precession, 0.0557 N m, 0.43 to
             # 20.6%, 10.78% average, hand timing and gimbal effects: F:468, LI:823. CMG 200 to 800 rpm, inertia 0.0892
             # kg m2 over four runs: F:470, LI:825. No CMG errors as validation, rigs are the course's: F:472.
@@ -865,7 +868,7 @@ PROJECTS = [
                'My second board layout on the 16 x 8 LED matrix, drawn from the layout in my code. A drawing, not a photo.')]),
         ],
         figures=[], after=[],
-        credits="Team entries say what my part was; the rest was my teammates'. Course briefs, rigs, the shock tunnel and the course models belong to UQ. The ball-collecting robot's arm is adapted from Carlo Franciscone's <a href=\"https://www.thingiverse.com/thing:1454048\">EEZYbotARM Mk2</a>.",
+        credits="Team entries say what my part was; the rest was my teammates'. Course briefs, rigs, the shock tunnel and the course models belong to UQ. The ball-collecting robot's arm is adapted from <a href=\"https://www.thingiverse.com/thing:1454048\">EEZYbotARM Mk2</a> by Carlo Franciscone (daGHIZmo), <a href=\"https://creativecommons.org/licenses/by-nc/4.0/\">CC BY-NC 4.0</a>.",
     ),
 ]
 # Search titles past 60 characters lost the name; meta descriptions past 160 were cut mid-sentence (SEO audit, 19 Nov
