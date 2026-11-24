@@ -8,7 +8,7 @@
      Chart rules follow the dataviz skill: hairline grid, one hue for one series, direct labels, a table view and a hover readout. -->
 <style>
 @font-face { font-family: "Sanchez"; src: url("../fonts/sanchez-400-latin.woff2") format("woff2"); font-display: swap; }
-:root { --ink: #2E1499; --muted: #5E4FA8; --grid: #ECE9F6; --dot: #4F37C8; --hi: #E8590C; --surface: #FFFFFF; }
+:root { --ink: #2E1499; --muted: #5D626B; --grid: #E1DED5; --dot: #2E1499; --hi: #FF5102; --surface: #FFFFFF; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--surface); color: var(--ink); font: 14px/1.45 "Sanchez", Georgia, serif; }
 .wrap { padding: 14px 16px 12px; display: grid; gap: 8px; }
@@ -17,6 +17,7 @@ svg { display: block; width: 100%; height: auto; overflow: visible; }
 .grid line { stroke: var(--grid); stroke-width: 1; }
 .zero { stroke: var(--ink); stroke-width: 1; }
 .tick { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.axis-title { fill: var(--muted); font-size: 11px; }
 .name { fill: var(--ink); font-size: 12.5px; }
 .rms { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
 .dots circle { fill: var(--dot); fill-opacity: 0.42; }
@@ -38,7 +39,7 @@ svg:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 </head>
 <body>
 <div class="wrap">
-  <h3>Apogee miss on each reachable flight (m above or below the 2,900 m target)</h3>
+  <h3>Apogee miss, by controller</h3>
   <svg id="c" viewBox="0 0 640 250" tabindex="0" role="slider" aria-valuemin="1" aria-valuenow="1" aria-valuetext="No flight picked"></svg>
   <p class="readout" id="ro"></p>
   <details><summary>The four controllers as a table</summary>
@@ -62,15 +63,16 @@ function render() {
   const W = narrow ? 360 : 640, L = narrow ? 8 : 92, R = narrow ? 8 : 76;
   const LAB = narrow ? 18 : 0, ROW = narrow ? 60 : 52, STRIP = ROW - LAB;
   const sx = (v) => L + (v - X0) / (X1 - X0) * (W - L - R);
-  const H = T + ROW * D.rows.length + 26;
+  const H = T + ROW * D.rows.length + 42;
   svg.replaceChildren();
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("aria-label", `Apogee miss for each controller on the ${D.reach} reachable flights. RMS: ` + D.stats.map((s) => `${s.name} ${s.rms.toFixed(1)} m`).join(", ") + ". Arrow keys step through the flights.");   // a slider: screen readers say its value text at each step
   const g = el("g", { class: "grid" }, svg);
   for (let v = X0; v <= X1; v += 10) {
     el("line", { x1: sx(v), x2: sx(v), y1: T, y2: T + ROW * D.rows.length }, g);
-    if (v % 20 === 0) txt(svg, sx(v), H - 8, (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + (v === X1 ? " m" : ""), "tick", v === X1 && narrow ? "end" : "middle");
+    if (v % 20 === 0) txt(svg, sx(v), H - 24, (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v), "tick", "middle");
   }
+  txt(svg, sx((X0 + X1) / 2), H - 4, "apogee minus target (m)", "axis-title", "middle");
   el("line", { class: "zero", x1: sx(0), x2: sx(0), y1: T, y2: T + ROW * D.rows.length }, svg);
   const dots = el("g", { class: "dots" }, svg);
   pos = [];

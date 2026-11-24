@@ -20,8 +20,8 @@ header.top nav{margin-left:auto;display:flex;gap:4px}
 header.top nav a{font:500 13px var(--mono);text-decoration:none;padding:8px 10px;border-radius:6px;color:var(--mute)}
 header.top nav a:hover,header.top nav a:focus-visible,header.top nav a.on{color:var(--ink);background:var(--paper2);outline:0}
 .btn{display:inline-flex;align-items:center;gap:8px;font:700 15px var(--head);letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;border-radius:2px;border:2px solid var(--ink);background:none;color:var(--ink);cursor:pointer;text-decoration:none;transition:background .2s,color .2s}
-.btn:hover,.btn:focus-visible{background:var(--ink);color:var(--paper);outline:0}
-.btn.solid{background:var(--ind);border-color:var(--ind);color:#fff}.btn.solid:hover,.btn.solid:focus-visible{background:var(--red);border-color:var(--red)}
+.btn:focus-visible{background:var(--ink);color:var(--paper);outline:0}@media (hover:hover){.btn:hover{background:var(--ink);color:var(--paper)}}
+.btn.solid{background:var(--ind);border-color:var(--ind);color:#fff}.btn.solid:focus-visible{background:#220E73;border-color:#220E73}@media (hover:hover){.btn.solid:hover{background:#220E73;border-color:#220E73}}
 section{position:relative}
 .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
 .eyebrow{font:600 13px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;display:flex;align-items:center;gap:10px}

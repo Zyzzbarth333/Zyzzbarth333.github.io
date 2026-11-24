@@ -1,0 +1,675 @@
+  /* ---------- 1. Theseus V, to scale: MID-360 + two 60° cameras, camera-coverage exploration, A* with footprint inflation ---------- */
+  (function rover() {
+    const cv = document.getElementById('arena'); if (!cv) return;
+    let ctx = cv.getContext('2d');   // swapped for a moment by thumb(), to draw a find with the arena's own code
+    const logEl = document.getElementById('log'), latest = document.getElementById('latest'), tip = document.getElementById('tip');
+    const st = document.getElementById('st'), secEl = document.getElementById('sector'), cntP = document.getElementById('n-proj'), cntF = document.getElementById('n-find');
+    // real numbers: theseus_rover_hw.urdf and the Theseus V CAD; the arena is 5 cells per metre
+    const CELL = 12, MPC = 0.15, SPEED = 0.6 / MPC;                    // 15 cm cells, as KISS-SLAM's occupancy map                     // 0.6 m/s
+    const LIDAR_H = 0.39, LIDAR_DOWN = Math.tan(7 * Math.PI / 180);     // MID-360 about 0.39 m up, -7 deg lower edge of its vertical field
+    const BLIND = LIDAR_H / LIDAR_DOWN / MPC;                           // ~3.2 m: no ground returns inside this ring
+    const CAM = [{ x: -0.05, y: 0.145 }, { x: -0.05, y: -0.145 }].map(c => ({ x: c.x / MPC, y: c.y / MPC })), CAM_FOV = 1.047, CAM_H = 0.86, CAM_R = 4 / MPC;
+    const MAP_R = 10 / MPC, INFL = 0.5 / MPC, SOFT = 0.85 / MPC;                      // 10 m mapping range; ~0.5 m footprint radius
+    const INFL_R = 1.0 / MPC, LOOK = 0.8 / MPC;   // Theseus V's Nav2 params: inflation radius 1.0 m (scaling 2.5); Regulated Pure Pursuit lookahead 0.8 m
+    const SPR = { s: 0.6665, ox: 400, oy: 409 };                         // sprite px per mm, origin (chassis centre) in sprite px
+    const body = new Image(), arm = new Image(); body.src = 'theseus-top/body.webp'; arm.src = 'theseus-top/arm.webp';
+    const FUN = [
+      { kind: 'rock', name: 'Basalt sample', text: 'Scooped into the bucket for the science team.', col: '#5D626B' },
+      { kind: 'ice', name: 'Water-ice patch', text: 'Marked on the map. Cold, bright and very scientific.', col: '#8EC5E8' },
+      { kind: 'meteor', name: 'Meteorite fragment', text: 'Iron-nickel, probably. Into the bucket it goes.', col: '#7A4E2D' },
+      { kind: 'screw', name: 'A lost M3 screw', text: 'Every bench has one. Now the arena does too.', col: '#B9BEC2' },
+      { kind: 'sand', name: 'Soft sand', text: 'The wheels dig in. No spinning on the spot: back out in an arc, the way Theseus V does.', col: '#E2C98F' },
+      { kind: 'beacon', name: 'Old rover beacon', text: 'Still blinking. Battery at 3%.', col: '#FF5102' },
+      { kind: 'devil', name: 'Dust devil', text: 'The costmap marks it as a moving obstacle and plans round it.', col: '#C9B48A' },
+      { kind: 'fossil', name: 'Stromatolite', text: 'Layered rock from very old microbes. The greenhouse crew will want it.', col: '#3E9B5F' },
+    ];
+    const EGGS = [
+      { kind: 'egg', look: 'pipe', name: 'A green pipe', text: 'It goes straight down. The rover does not fit, and is quietly relieved.' },
+      { kind: 'egg', look: 'block', name: 'A floating brick', text: 'Bumped it with the bucket. A coin popped out. Nobody can explain the physics.' },
+      { kind: 'egg', look: 'door', name: 'A locked blast door', text: 'Marked with a red key card slot.' },
+      { kind: 'egg', look: 'key', name: 'A red key card', text: 'Somebody, somewhere, is going to need it.' },
+      { kind: 'egg', look: 'helmet', name: 'A horned helmet', text: 'A note inside: "I used to be an adventurer like you." The rest is smudged.' },
+      { kind: 'egg', look: 'towel', name: 'A neatly folded towel', text: 'Someone here knew exactly where theirs was.' },
+      { kind: 'egg', look: 'cube', name: 'A grey cube with a heart on it', text: 'The rover has been told it must leave the cube behind. The rover is not coping.' },
+      { kind: 'egg', look: 'wreck', name: 'Rocket wreckage', text: 'Eleven boosters, no parachute. Needed more struts.' },
+      { kind: 'egg', look: 'speaker', name: 'A speaker humming a tune', text: 'Happy Birthday, played to nobody. Curiosity played it to itself on Mars in 2013.' },
+      { kind: 'egg', look: 'rock', name: 'Some rocks', text: "These aren't the rocks you're looking for. The rover moves along." },
+      { kind: 'egg', look: 'beacon2', name: 'A very old beacon', text: 'Its last message, roughly: battery low, getting dark. Logged with respect.' },
+      { kind: 'egg', look: 'qblock', name: 'A floating block with a question mark', text: 'Bumped it from below with the bucket. A coin came out. The question remains.' },
+      { kind: 'egg', look: 'mushroom', name: 'A red mushroom with white spots', text: 'A fly agaric. Poisonous to people, fascinating to rovers. Logged, not eaten. The rover still feels a bit taller.' },
+      { kind: 'egg', look: 'artifact', name: 'A humming shard', text: 'Dark metal, warm, floating a finger\'s width off the ground. Somewhere out there is another one.' },
+      { kind: 'egg', look: 'roll', name: 'A sweet roll', text: 'Iced, untouched, and nobody else around. If anyone asks, the rover did not steal it.' },
+      { kind: 'egg', look: 'wheel', name: 'A wheel of cheese', text: 'It rolled down a hill, as they always do. Into the bucket.' },
+    ];
+    let nogo, W, H, cols, rows, occ, hgt, known, cam, nearO, sand, rx, ry, rh = -Math.PI / 2, path = [], goal = null, userGoal = false, items = [], fx = [], targets = [], rays = [], trail = [];
+    let sector = 0, queue = [...DATA.found], cubeQ = [...DATA.cubes], nProj = 0, nFind = 0, terrain = null, tg = null, transition = 0, devil = null;
+    let cloud = null, cctx = null, tasks = [], task = null, act = null, chaseT = 0, coins = 0, score = 0, hasKey = false, critters = [], power = 0, eggQ = [], houston = 0, pause = 0;
+    let livo = true, fresh = [], view = 'cloud', gridLayer = null, gridDirty = true;
+    let cost = null, search = null, rawPath = [], carrot = null, recov = null, lastSenseAt = null;   // Nav2 view: costs, the planner's search, the controller's carrot, recovery
+    let ruins = null, guard = null, dragon = null, dragonAt = 0, idle = 0;
+    let decor = null, fogMask = null, fogRev = null, skyC = null, hazard = null, braziers = [], pools = [], ship = null;   // fog of war: scenery shows only on ground the rover has mapped
+    let hasClaw = false, hasWord = false, shout = null, shoutCool = 0;   // nods: a claw that opens the barrow, a word the carved wall teaches   // set pieces: an old barrow, its guard, and now and then something large overhead
+    let seed = 1; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const id = (x, y) => y * cols + x, inside = (x, y) => x >= 0 && y >= 0 && x < cols && y < rows;
+    const arucoBits = n => { let s = (n * 2654435761) >>> 0; const b = []; for (let i = 0; i < 16; i++) { s = (s * 1103515245 + 12345) >>> 0; b.push((s >> 16) & 1); } return b; };
+    const rectOf = el => { const r = el.getBoundingClientRect(), s = cv.getBoundingClientRect();
+      return { x0: Math.floor((r.left - s.left) / CELL) - 1, y0: Math.floor((r.top - s.top) / CELL) - 1, x1: Math.ceil((r.right - s.left) / CELL) + 1, y1: Math.ceil((r.bottom - s.top) / CELL) + 1 }; };
+    const inR = (x, y, k, m) => x >= k.x0 - m && x <= k.x1 + m && y >= k.y0 - m && y <= k.y1 + m;
+    function clear(cx, cy, r) { for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) if (inside(x, y) && x > 0 && y > 0 && x < cols - 1 && y < rows - 1) { occ[id(x, y)] = 0; hgt[id(x, y)] = 0; } }
+    const Q = (window.__cloudQ = window.__cloudQ || []);
+    window.__rover = { get x() { return rx * MPC; }, get y() { return ry * MPC; }, get h() { return rh; }, get livo() { return livo; } };
+
+    // phones draw at 1x: the arena is pixel art, and 2x cost a third of the frame rate
+    function size() { const dpr = Math.min(innerWidth < 700 ? 1 : 2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.floor(W / CELL); rows = Math.floor(H / CELL); }
+    const tval = (x, y) => { const gw = tg.gw, gx = x / 60, gy = y / 60, x0 = gx | 0, y0 = gy | 0, fx_ = gx - x0, fy_ = gy - y0, s = v => v * v * (3 - 2 * v), g = tg.g;
+      const a = g[y0 * gw + x0] || 0, b = g[y0 * gw + x0 + 1] || 0, c = g[(y0 + 1) * gw + x0] || 0, d = g[(y0 + 1) * gw + x0 + 1] || 0; return a + (b - a) * s(fx_) + (c - a) * s(fy_) + (a - b - c + d) * s(fx_) * s(fy_); };
+    function paintTerrain() {
+      terrain = document.createElement('canvas'); terrain.width = W; terrain.height = H; const t = terrain.getContext('2d');
+      const gw = Math.ceil(W / 60) + 2, gh = Math.ceil(H / 60) + 2; tg = { gw, g: [] }; for (let i = 0; i < gw * gh; i++) tg.g.push(rnd());
+      for (let y = 0; y < H; y += 6) for (let x = 0; x < W; x += 6) { const v = tval(x, y); t.fillStyle = `rgba(${150 + v * 40},${130 + v * 30},${100 + v * 20},${0.05 + v * 0.07})`; t.fillRect(x, y, 6, 6); }
+    }
+    const trueCol = (px, py, h) => { if (h > 0) { const k = 0.75 + 0.5 * Math.min(1, h); return `rgb(${(96 * k) | 0},${(88 * k) | 0},${(80 * k) | 0})`; }
+      const v = tval(px, py); return `rgb(${(198 + v * 30) | 0},${(178 + v * 26) | 0},${(140 + v * 18) | 0})`; };
+    let sectorT0 = 0;   // a sector lasts at least 25 s: on a phone the card leaves only a strip, covered in a second
+    function newSector() {
+      sectorT0 = performance.now(); sector++; seed = 9001 + sector * 7919; size(); paintTerrain();
+      cloud = document.createElement('canvas'); cloud.width = W; cloud.height = H; cctx = cloud.getContext('2d'); tasks = []; task = null; act = null; window.__cloudReset = true;
+      gridLayer = document.createElement('canvas'); gridLayer.width = W; gridLayer.height = H; gridDirty = true;
+      const N = cols * rows; nogo = new Uint8Array(N); occ = new Uint8Array(N); hgt = new Float32Array(N); known = new Uint8Array(N); cam = new Uint8Array(N); nearO = new Uint8Array(N); sand = new Uint8Array(N); hazard = new Uint8Array(N); cost = new Uint8Array(N); search = null; rawPath = []; carrot = null; recov = null; lastSenseAt = null;
+      const keeps = [...cv.parentElement.querySelectorAll('[data-keep]')].filter(el => el.offsetParent).map(rectOf);
+      const blobs = Math.round(N / 370);
+      for (let i = 0; i < blobs; i++) { const cx = rnd() * cols, cy = rnd() * rows, kind = i % 6, r = (kind === 0 ? 4 + rnd() * 4 : kind === 1 ? 2.5 + rnd() : 0.9 + rnd() * 1.6) * 0.2 / MPC, ring = kind === 0;
+        const h = ring ? 0.22 : kind === 1 ? 0.6 + rnd() * 0.4 : 0.12 + rnd() * 0.4;   // crater rims, boulders, rocks (m)
+        for (let y = Math.floor(cy - r - 1); y <= cy + r + 1; y++) for (let x = Math.floor(cx - r - 1); x <= cx + r + 1; x++) { if (!inside(x, y)) continue; const d = Math.hypot(x - cx, y - cy);
+          if (ring ? (d <= r && d >= r - 1.3) : d <= r) { occ[id(x, y)] = 1; hgt[id(x, y)] = Math.max(hgt[id(x, y)], h * (ring ? 1 : 1 - 0.4 * d / r)); } } }
+      for (let x = 0; x < cols; x++) for (const y of [0, rows - 1]) { occ[id(x, y)] = 1; hgt[id(x, y)] = 1; }
+      for (let y = 0; y < rows; y++) for (const x of [0, cols - 1]) { occ[id(x, y)] = 1; hgt[id(x, y)] = 1; }
+      keeps.forEach(k => { for (let y = k.y0; y <= k.y1; y++) for (let x = k.x0; x <= k.x1; x++) if (inside(x, y) && x > 0 && y > 0 && x < cols - 1 && y < rows - 1) { occ[id(x, y)] = 0; hgt[id(x, y)] = 0; } });
+      keeps.forEach(k => { for (let y = k.y0 - 2; y <= k.y1 + 2; y++) for (let x = k.x0 - 2; x <= k.x1 + 2; x++) if (inside(x, y)) nogo[id(x, y)] = 1; });   // don't drive under the panels
+      rx = Math.floor(cols * .5) + .5; ry = Math.floor(rows * .72) + .5; rh = -Math.PI / 2;
+      const clearOf = (x, y) => { for (let oy = -3; oy <= 3; oy++) for (let ox = -3; ox <= 3; ox++) if (!inside(x + ox, y + oy) || nogo[id(x + ox, y + oy)]) return false; return true; };
+      if (!clearOf(Math.floor(rx), Math.floor(ry))) {   // phones: the start point sits under the hero card, so start in the nearest open ground instead
+        let bp = null, bd = Infinity; for (let y = 4; y < rows - 4; y++) for (let x = 4; x < cols - 4; x++) { if (!clearOf(x, y)) continue; const d = Math.hypot(x - rx, y - ry); if (d < bd) { bd = d; bp = [x, y]; } }
+        if (bp) { rx = bp[0] + .5; ry = bp[1] + .5; } }
+      clear(Math.floor(rx), Math.floor(ry), 8);
+      for (const it of [...items].reverse()) if (!it.found) {   // unfound markers and cubes go back in their queues first
+        if (it.kind === 'aruco') queue.unshift(it.slug); else if (it.kind === 'cube') { const { x, y, found, bits, kind, ...cube } = it; cubeQ.unshift(cube); } }
+      const want = [];
+      for (let i = 0; i < 2 && queue.length; i++) { const slug = queue.shift(); want.push({ kind: 'aruco', slug, n: DATA.found.indexOf(slug) + 1 }); }
+      if (cubeQ.length) want.push({ kind: 'cube', ...cubeQ.shift() });
+      for (let i = 0; i < 3; i++) want.push({ ...FUN[(sector * 3 + i) % FUN.length] });
+      for (let e = 0; e < 3; e++) {   // three eggs a sector, from a queue shuffled once per visit (it used to be one, always the towel first)
+        if (!eggQ.length) { eggQ = EGGS.map((_, i) => i); for (let i = eggQ.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [eggQ[i], eggQ[j]] = [eggQ[j], eggQ[i]]; } }
+        want.push({ ...EGGS[eggQ.shift()] }); }
+      if (sector % 2 === 1 && !hasClaw) want.push({ kind: 'egg', look: 'claw', name: 'A carved stone claw', text: 'Three animal symbols are carved on its palm. It looks like it opens something old.' });
+      const chase = sector % 4 === 0; if (chase) want.push({ kind: 'cell', name: 'A power cell', text: 'Fully charged. The dust sprites suddenly look nervous.', col: '#FFC908' });
+      { const eg = want.filter(w => w.kind === 'egg'), rest = want.filter(w => w.kind !== 'egg'); want.length = 0;   // eggs early in the order, so a phone's few spots get one
+        rest.forEach((w, i) => { want.push(w); if (i % 3 === 0 && eg.length) want.push(eg.shift()); }); want.push(...eg); }
+      houston = sector % 5 === 3 ? 9 : 0;
+      items = []; trail = []; devil = null; critters = []; power = 0; idle = 0;
+      placeSetPieces(keeps);
+      const spacing = Math.max(9, Math.sqrt(N / (want.length * 2.2)));
+      want.forEach(it => { let px, py, t = 0;
+        const clearAround = (x, y) => { for (let oy = -4; oy <= 4; oy++) for (let ox = -4; ox <= 4; ox++) if (!inside(x + ox, y + oy) || occ[id(x + ox, y + oy)]) return false; return true; };
+        const bad = (x, y, sp, near) => !clearAround(x, y) || keeps.some(k => inR(x, y, k, 3)) || nogo[id(x, y)] || Math.hypot(x - rx, y - ry) < near || items.some(q => Math.hypot(q.x - x, q.y - y) < sp);
+        do { px = 4 + Math.floor(rnd() * (cols - 8)); py = 4 + Math.floor(rnd() * (rows - 8)); t++; }
+        while (t < 1500 && bad(px, py, t < 600 ? spacing : t < 1100 ? spacing / 2 : 3, t < 600 ? 12 : 4));   // loosen spacing and start distance (a phone's strip is narrow)
+        if (bad(px, py, 3, 4)) return;   // nowhere the rover can see it (a phone's narrow strip): leave it out rather than hide it under a panel
+        const o = { ...it, x: px, y: py, found: false, bits: it.kind === 'aruco' ? arucoBits(it.n) : null };
+        if (it.kind === 'sand') for (let y = py - 4; y <= py + 4; y++) for (let x = px - 5; x <= px + 5; x++) if (inside(x, y) && Math.hypot((x - px) / 1.3, y - py) < 4) sand[id(x, y)] = 1;
+        if (it.kind === 'devil') devil = { x: px + .5, y: py + .5, a: rnd() * 6.28 };
+        items.push(o); });
+      if (chase) { const cs = ['#BB0700', '#FF5102', '#2E1499', '#3E9B5F'];
+        [[4, 4], [cols - 5, 4], [4, rows - 5], [cols - 5, rows - 5]].forEach(([x, y], i) => { clear(x, y, 2); critters.push({ x: x + .5, y: y + .5, hx: x + .5, hy: y + .5, col: cs[i], t: i }); });
+        clearTimeout(chaseT); chaseT = setTimeout(() => logLine('Four dust sprites have taken an interest in the rover.', 'event'), 600); }
+      path = []; goal = null; userGoal = false; targets = [];
+      secEl.textContent = String(sector).padStart(2, '0'); sense(); status();
+    }
+    function status() { st.innerHTML = transition ? `sector ${String(sector).padStart(2, '0')} covered · rolling on` : userGoal ? 'driving to your goal' : 'covering sector ' + String(sector).padStart(2, '0') + ' with the cameras';
+      cntP.textContent = `${nProj}/${DATA.found.length}`; cntF.textContent = nFind; }
+    function markOcc(x, y) { if (known[id(x, y)] === 2) return; known[id(x, y)] = 2; const R = Math.ceil(Math.max(6, INFL_R));
+      for (let oy = -R; oy <= R; oy++) for (let ox = -R; ox <= R; ox++) { const nx = x + ox, ny = y + oy; if (!inside(nx, ny)) continue; const d = Math.hypot(ox, oy);
+        if (d <= INFL_R) { const c = d < .5 ? 254 : d <= INFL ? 253 : Math.round(252 * Math.exp(-2.5 * (d - INFL) * MPC)); if (c > cost[id(nx, ny)]) cost[id(nx, ny)] = c; }   // Nav2's inflation layer
+        if (d <= INFL) nearO[id(nx, ny)] = 2; else if (d <= SOFT && nearO[id(nx, ny)] < 1) nearO[id(nx, ny)] = 1; } }
+    const emit = (px, py, z, colour, hit) => { if (hit) fresh.push([px, py, performance.now()]); cctx.fillStyle = colour; cctx.fillRect(px - 1, py - 1, 2, 2); if (Q.length < 40000) Q.push([px / CELL * MPC, py / CELL * MPC, z, colour]); };
+    function inCam(px, py) {   // is a map point (in cells) inside either camera's view?
+      for (const c of CAM) { const cx = rx + Math.cos(rh) * c.x - Math.sin(rh) * c.y, cy = ry + Math.sin(rh) * c.x + Math.cos(rh) * c.y;
+        const dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy); if (d > CAM_R * 2) continue; const a = Math.atan2(dy, dx) - rh, da = Math.atan2(Math.sin(a), Math.cos(a)); if (Math.abs(da) <= CAM_FOV / 2) return true; }
+      return false; }
+    function sense() {
+      gridDirty = true;
+      rays = []; const ph = rnd() * .05, B = 180;
+      for (let k = 0; k < B; k++) { const a = k / B * Math.PI * 2 + ph, dx = Math.cos(a), dy = Math.sin(a); let ex = rx, ey = ry, hit = false;
+        for (let s = 0.5; s <= MAP_R; s += .33) { const x = Math.floor(rx + dx * s), y = Math.floor(ry + dy * s); if (!inside(x, y)) break; ex = rx + dx * s; ey = ry + dy * s;
+          const h = hgt[id(x, y)];
+          if (occ[id(x, y)] && h >= LIDAR_H - s * MPC * LIDAR_DOWN) { markOcc(x, y); hit = true; break; }     // tall enough to cross the lowest beam here
+          if (!occ[id(x, y)]) known[id(x, y)] = Math.max(known[id(x, y)], 1);
+          if (s > BLIND && cctx && rnd() < .03) { const px = ex * CELL + (rnd() - .5) * 5, py = ey * CELL + (rnd() - .5) * 5;
+            emit(px, py, 0, livo && inCam(ex, ey) ? trueCol(px, py, 0) : 'rgba(62,155,95,.4)'); } }
+        rays.push([ex, ey]);
+        if (hit && cctx) { const r = Math.hypot(ex - rx, ey - ry) / MAP_R, n = 2 + (rnd() * 3 | 0), hh = hgt[id(Math.floor(ex), Math.floor(ey))];
+          for (let j = 0; j < n; j++) { const jx = ex + dx * (rnd() - .5) * .4 + (rnd() - .5) * .3, jy = ey + dy * (rnd() - .5) * .4 + (rnd() - .5) * .3, px = jx * CELL, py = jy * CELL;
+            const col = livo && inCam(jx, jy) ? trueCol(px, py, hh) : r < .5 ? `rgba(46,20,153,${.9 - r * .6})` : `rgba(${(46 + (r - .5) * 400) | 0},${(20 + (r - .5) * 80) | 0},${(153 - (r - .5) * 280) | 0},.75)`;
+            emit(px, py, Math.max(0.02, hh * (0.15 + rnd() * 0.85)), col, j === 0); } } }
+      // cameras: occluded wedges mark what has been looked at, and do the detecting (a camera that sees the carved wall has seen its find)
+      for (const c of CAM) { const cx = rx + Math.cos(rh) * c.x - Math.sin(rh) * c.y, cy = ry + Math.sin(rh) * c.x + Math.cos(rh) * c.y;
+        for (let k = -12; k <= 12; k++) { const a = rh + k / 12 * CAM_FOV / 2, dx = Math.cos(a), dy = Math.sin(a);
+          for (let s = 0.5; s <= CAM_R; s += .5) { const x = Math.floor(cx + dx * s), y = Math.floor(cy + dy * s); if (!inside(x, y)) break; if (occ[id(x, y)] && hgt[id(x, y)] > 0.45) { if (ruins && ruins.cells && ruins.cells.has(id(x, y))) cam[ruins.item] = 1; break; } cam[id(x, y)] = 1; } } }
+      items.forEach(it => { const mv = it.kind === 'devil' ? devil : it.kind === 'guard' ? guard : null, ix = mv ? Math.floor(mv.x) : it.x, iy = mv ? Math.floor(mv.y) : it.y;
+        if (!it.found && inside(ix, iy) && cam[id(ix, iy)] && inCam(ix + .5, iy + .5)) detect(it); });
+    }
+    function logLine(text, sub, kind) { const li = document.createElement('li'); li.innerHTML = `<div class="row"><span class="glyph" style="background:${C.org}"></span><span><b>${text}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></div>`;
+      if (kind) li.querySelector('.glyph').replaceWith(thumb({ kind }, 22)); logEl.prepend(li); }
+    function counters() { const c = document.getElementById('coins'), sc = document.getElementById('score'); if (c) c.textContent = coins; if (sc) sc.textContent = score; }
+    function glyphHTML(it) {
+      if (it.kind === 'aruco') return '<span class="glyph aruco">' + it.bits.map(b => `<i style="background:${b ? '#fff' : '#111'}"></i>`).join('') + '</span>';
+      return `<span class="glyph" style="background:${it.col || '#FFC908'}"></span>`; }
+    function detect(it, quiet) {
+      it.found = true; const conf = (0.88 + ((it.x * 7 + it.y * 13) % 11) / 100).toFixed(2), how = it.kind === 'aruco' ? 'ArUco, camera' : it.kind === 'cube' ? 'YOLO, camera' : 'camera';
+      if (!quiet && !RM) { fx.push({ it, t0: performance.now(), conf });
+        const t = it.kind === 'aruco' ? 'scan' : it.kind === 'egg' && (it.look === 'block' || it.look === 'qblock') ? 'bump' : (['cube', 'cell'].includes(it.kind) || (it.kind === 'egg' && !['pipe', 'door', 'speaker', 'beacon2', 'rock'].includes(it.look)) || ['rock', 'meteor', 'screw', 'fossil', 'beacon'].includes(it.kind)) ? 'pick' : null;
+        if (t) tasks.push({ it, type: t }); }
+      let title, sub, body, btn = '', icon = '';
+      if (it.kind === 'aruco') { const p = BY[it.slug]; nProj++; title = p.title; sub = `ArUco ${String(it.n).padStart(2, '0')} · project`; body = p.result;
+        icon = (document.getElementById('ic-' + it.slug) || {}).innerHTML || ''; btn = `<button class="btn" type="button" data-open="${it.slug}">Open</button>`;  if (!quiet) { const say = document.getElementById('rv-say'); if (say) say.textContent = `Found a project: ${p.title}`; } }
+      else if (it.kind === 'cube') { nFind++; title = it.label; sub = `${it.name} cube · result`; body = it.sub; }
+      else if (it.kind === 'egg') { nFind++; title = it.name; sub = 'field find ★'; body = it.text;
+        if ((it.look === 'block' || it.look === 'qblock') && (quiet || RM)) { coins++; score += 100; counters(); }
+        if (it.look === 'key') { hasKey = true; body += ' Picked up.'; }
+        if (it.look === 'claw') { hasClaw = true; body += ' Picked up. Somewhere there is a door that wants it.'; }
+        if (it.look === 'door') body += hasKey ? ' The rover has the key card. The door opens: behind it, more rocks.' : ' The rover has no red key card.'; }
+      else if (it.kind === 'cell') { nFind++; title = it.name; sub = 'field find ★'; body = it.text; if (quiet || RM) power = 8; }
+      else { nFind++; title = it.name; sub = 'field find'; body = it.text;
+        if (it.kind === 'ruin') body += hasClaw ? ' The claw\'s three symbols match the rings on the mound\'s door. It grinds open. Behind it: more rocks.' : ' The mound\'s door has three carved rings and a hollow shaped like a claw.';
+        if (it.kind === 'wall') { hasWord = true; body += ' The rover has learned a word. It is itching to use it.'; } }
+      if (!quiet) { latest.innerHTML = `<div class="lt-ic${icon ? ' card' : ''}">${icon || glyphHTML(it)}</div><div><p class="mono">${sub} · ${how} · conf ${conf}</p><b>${title}</b><p>${body}</p>${btn}</div>`;
+        if (!icon && it.kind !== 'aruco') latest.querySelector('.lt-ic').replaceChildren(thumb(it, 76)); }   // the find as the arena draws it
+      const li = document.createElement('li');
+      li.innerHTML = `<${it.kind === 'aruco' ? `button type="button" data-open="${it.slug}"` : 'div'} class="row">${glyphHTML(it)}<span><b>${title}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></${it.kind === 'aruco' ? 'button' : 'div'}>`;
+      if (it.kind !== 'aruco') { const g = li.querySelector('.glyph'); if (g) g.replaceWith(thumb(it, 22)); }
+      logEl.prepend(li); while (logEl.children.length > 40) logEl.lastChild.remove();
+      status();
+    }
+    function astar(sx, sy, gx, gy) {   // plan, then smooth; the raw path and the search are kept for the Nav2 view
+      const raw = astarRaw(sx, sy, gx, gy); if (!raw) return null; rawPath = raw; return smooth(raw); }
+    function smooth(p) {   // Nav2's simple smoother: each point pulled toward its neighbours (w_smooth 0.3) and held to the plan (w_data 0.2)
+      if (p.length < 3) return p.map(q => [...q]);
+      const q = p.map(v => [...v]);
+      for (let n = 0; n < 80; n++) { let ch = 0;
+        for (let i = 1; i < q.length - 1; i++) for (const k of [0, 1]) { const o = q[i][k]; q[i][k] += .2 * (p[i][k] - q[i][k]) + .3 * (q[i - 1][k] + q[i + 1][k] - 2 * q[i][k]); ch += Math.abs(o - q[i][k]); }
+        if (ch < 1e-3) break; }
+      for (let i = 0; i < q.length; i++) { const x = Math.floor(q[i][0]), y = Math.floor(q[i][1]); if (!inside(x, y) || nogo[id(x, y)] || known[id(x, y)] === 2 || (nearO[id(x, y)] === 2 && Math.hypot(q[i][0] - p[0][0], q[i][1] - p[0][1]) > 3)) q[i] = [...p[i]]; }   // never smooth into an obstacle or its footprint ring
+      return q; }
+    function astarRaw(sx, sy, gx, gy) {
+      const N = cols * rows, g = new Float32Array(N).fill(Infinity), came = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+      const open = [[0, id(sx, sy)]]; g[id(sx, sy)] = 0;
+      const h = (x, y) => { const dx = Math.abs(x - gx), dy = Math.abs(y - gy); return (dx + dy) + (Math.SQRT2 - 2) * Math.min(dx, dy); };
+      const blocked = (x, y) => !inside(x, y) || nogo[id(x, y)] || (hazard[id(x, y)] && known[id(x, y)]) || known[id(x, y)] === 2 || (nearO[id(x, y)] === 2 && Math.hypot(x - sx, y - sy) > 3); let it = 0; const seen = [];
+      while (open.length && it++ < 60000) { let bi = 0; for (let i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
+        const [, cur] = open.splice(bi, 1)[0]; if (closed[cur]) continue; closed[cur] = 1; const cx = cur % cols, cy = (cur / cols) | 0; if (seen.length < 20000) seen.push(cur);
+        if (Math.abs(cx - gx) + Math.abs(cy - gy) <= 1) { search = { cells: seen, t0: performance.now() }; const out = []; let c = cur; while (c >= 0) { out.push([c % cols + .5, ((c / cols) | 0) + .5]); c = came[c]; } return out.reverse(); }
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = cx + dx, ny = cy + dy; if (blocked(nx, ny)) continue;
+          let pen = (sand[id(nx, ny)] ? 2 : 0) + cost[id(nx, ny)] / 252 * 1.6; if (devil && Math.hypot(nx + .5 - devil.x, ny + .5 - devil.y) < 4) pen += 6;   // inflation cost, as Nav2's planners weigh it
+          if (guard && Math.hypot(nx + .5 - guard.x, ny + .5 - guard.y) < 1.2 / MPC) pen += 6;
+          if (dragon && dragon.perch && Math.hypot((nx + .5) * CELL - dragon.perch[0], (ny + .5) * CELL - dragon.perch[1]) < 3.5 / MPC * CELL) pen += 8;
+          const ng = g[cur] + (dx && dy ? Math.SQRT2 : 1) + pen, ni = id(nx, ny); if (ng < g[ni]) { g[ni] = ng; came[ni] = cur; open.push([ng + h(nx, ny), ni]); } } }
+      search = { cells: seen, t0: performance.now(), failed: true }; return null;
+    }
+    function nextTarget() {   // camera-coverage exploration: the cheapest reachable free cell with the most unseen ground ahead
+      const dist = new Int32Array(cols * rows).fill(-1), q = [id(Math.floor(rx), Math.floor(ry))]; dist[q[0]] = 0; targets = [];
+      for (let h = 0; h < q.length; h++) { const c = q[h], cx = c % cols, cy = (c / cols) | 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy, ni = id(nx, ny);
+          if (inside(nx, ny) && dist[ni] < 0 && !nogo[ni] && known[ni] !== 2 && nearO[ni] !== 2) { dist[ni] = dist[c] + 1; q.push(ni); } } }
+      let best = null, bs = Infinity; const reach = [];
+      for (let y = 3; y < rows - 3; y += 2) for (let x = 3; x < cols - 3; x += 2) { const d = dist[id(x, y)]; if (d > 2 && !occ[id(x, y)]) reach.push([x, y]); if (d < 0 || cam[id(x, y)]) continue;
+        let gain = 0; for (let oy = -4; oy <= 4; oy++) for (let ox = -4; ox <= 4; ox++) if (inside(x + ox, y + oy) && !cam[id(x + ox, y + oy)] && !occ[id(x + ox, y + oy)]) gain++;
+        if (gain < 18) continue; targets.push([x, y]); const sc = d - gain * .35; if (sc < bs) { bs = sc; best = [x, y]; } }
+      if (!best && reach.length && performance.now() - sectorT0 < 25000) best = reach[Math.floor(Math.random() * reach.length)];   // patrol until the sector has run 25 s
+      return best;
+    }
+    function plan() { if (!goal) { const f = nextTarget(); if (!f) { if (performance.now() - sectorT0 < 25000) { idle = .8; return; }   // nowhere new to look yet: wait, then look again
+        transition = performance.now(); status(); return; } goal = f; }
+      path = astar(Math.floor(rx), Math.floor(ry), goal[0], goal[1]) || []; if (!path.length) { cam[id(goal[0], goal[1])] = 1; goal = null; userGoal = false; } }
+    let lastSense = 0, wd = null;
+    window.__dbg = () => { const sx = Math.floor(rx), sy = Math.floor(ry), nb = [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy]) => ({ nogo: nogo[id(sx+dx,sy+dy)], known: known[id(sx+dx,sy+dy)], nearO: nearO[id(sx+dx,sy+dy)], occ: occ[id(sx+dx,sy+dy)] }));
+      const g = goal; const t = nextTarget(); goal = g; return JSON.stringify({ here: { nogo: nogo[id(sx,sy)], known: known[id(sx,sy)], nearO: nearO[id(sx,sy)] }, nb, next: t, targets: targets.length, tasks: tasks.length, vis: typeof vis !== 'undefined' ? vis : 'n/a' }); };   // prototype debug
+    window.__set = () => JSON.stringify({ ruins: ruins && { cx: +ruins.cx.toFixed(1), cy: +ruins.cy.toFixed(1), ring: ruins.ring }, items: items.filter(i => ['ruin', 'wall', 'guard'].includes(i.kind) || i.look === 'claw').map(i => ({ k: i.kind === 'egg' ? i.look : i.kind, x: i.x, y: i.y, occ: occ[id(i.x, i.y)], h: hgt[id(i.x, i.y)], cam: cam[id(i.x, i.y)], found: i.found })), hasClaw, hasWord });   // prototype debug
+    window.__eggs = () => JSON.stringify(items.map(i => ({ k: i.kind === 'egg' ? i.look : i.kind, x: i.x, y: i.y, nogo: nogo[id(i.x, i.y)], occ: occ[id(i.x, i.y)], seen: cam[id(i.x, i.y)], found: i.found })));   // prototype debug
+    window.__rv = () => ({ x: +rx.toFixed(2), y: +ry.toFixed(2), sector, goal: goal ? goal.join(',') : null, path: path.length, task: task ? task.type : null, act: act ? act.type : null, transition: !!transition, pause: +pause.toFixed(1), user: userGoal, eggs: items.filter(i => i.kind === 'egg').map(i => (i.found ? '+' : '-') + i.look).join(' ') });   // prototype debug hook
+    function step(dt) {
+      if (devil) { devil.a += (rnd() - .5) * .3; const nx = devil.x + Math.cos(devil.a) * dt * 2, ny = devil.y + Math.sin(devil.a) * dt * 2; if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { devil.x = nx; devil.y = ny; } else devil.a += 2; }
+      if (guard && ruins) { guard.t -= dt;   // the barrow guard wanders between the stones
+        const near = Math.hypot(rx - guard.x, ry - guard.y) < 2.6 / MPC;
+        if (near && !guard.awake && !guard.done && !transition) { guard.awake = performance.now(); logLine('Something in the barrow woke up', 'it shuffles after the rover, slowly. It walks like someone with a bad knee.', 'guard'); }
+        if (guard.awake && performance.now() - guard.awake > 7000) { guard.awake = 0; guard.done = true; guard.t = 0; logLine('The guard lost interest', 'and went back to its stones.', 'guard'); }
+        if (guard.awake) { guard.wx = rx; guard.wy = ry; guard.t = 1; }
+        else if (guard.t <= 0 || Math.hypot(guard.x - guard.wx, guard.y - guard.wy) < .4) { const a = rnd() * 6.28, r = rnd() * ruins.R * .75; guard.wx = ruins.cx + Math.cos(a) * r; guard.wy = ruins.cy + Math.sin(a) * r; guard.t = 3 + rnd() * 4; }
+        const dx = guard.wx - guard.x, dy = guard.wy - guard.y, d = Math.hypot(dx, dy) || 1, sp = (guard.awake ? .35 : .45) / MPC * dt * (guard.awake && d < 1.2 / MPC ? 0 : 1), nx = guard.x + dx / d * sp, ny = guard.y + dy / d * sp;
+        guard.a = Math.atan2(dy, dx); if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { guard.x = nx; guard.y = ny; } else guard.t = 0; }
+      if (transition) return;
+      if (hasWord && !shout && performance.now() > shoutCool) { const R2 = 3.2 / MPC, close = q => q && Math.hypot(q.x - rx, q.y - ry) < R2;
+        if (critters.some(c => !c.home && close(c)) || (guard && guard.awake && close(guard)) || close(devil)) { shout = performance.now(); shoutCool = shout + 15000;
+          critters.forEach(c => { if (close(c)) c.home = true; }); if (guard && close(guard)) { const a = Math.atan2(guard.y - ry, guard.x - rx); guard.x += Math.cos(a) * 1.5 / MPC; guard.y += Math.sin(a) * 1.5 / MPC; if (!inside(guard.x | 0, guard.y | 0) || occ[id(guard.x | 0, guard.y | 0)]) { guard.x -= Math.cos(a) * 1.5 / MPC; guard.y -= Math.sin(a) * 1.5 / MPC; } guard.awake = 0; guard.done = true; }
+          if (close(devil)) devil = null; logLine('The rover used its word', 'Everything nearby went a long way.', 'shout'); } }
+      if (power > 0) power = Math.max(0, power - dt);
+      critters.forEach(c => { const sp = (power ? 2 : 3.2) * dt, dx = rx - c.x, dy = ry - c.y, d = Math.hypot(dx, dy) || 1, sgn = power ? -1 : 1;
+        if (c.home) { const hx = c.hx - c.x, hy = c.hy - c.y, hd = Math.hypot(hx, hy); if (hd < .3) c.home = false; else { c.x += hx / hd * 5 * dt; c.y += hy / hd * 5 * dt; } return; }
+        let nx = c.x + sgn * dx / d * sp, ny = c.y + sgn * dy / d * sp;
+        if (inside(nx | 0, ny | 0) && occ[id(nx | 0, ny | 0)]) { nx = c.x + sgn * dy / d * sp; ny = c.y - sgn * dx / d * sp; }
+        if (inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)]) { c.x = nx; c.y = ny; }
+        if (d < 3) { if (power) { score += 200; counters(); c.home = true; logLine('Dust sprite sent home. +200', 'event'); }
+          else if (!c.cool || performance.now() > c.cool) { c.cool = performance.now() + 4000; logLine('A dust sprite bumps the rover. The rover shrugs.', 'event'); } } });
+      if (houston > 0) { houston -= dt; if (houston <= 0) { pause = 2.6; logLine("Houston, we've had a problem: bus undervolt. Cycling the arming key.", 'event'); st.innerHTML = 'fault · recovering'; } }
+      if (pause > 0) { pause -= dt; if (pause <= 0) { logLine('Back up. Carrying on.', 'event'); status(); } return; }
+      if (idle > 0) { idle -= dt; return; }
+      const nowT = performance.now();
+      if (act) { const dur = act.type === 'pick' ? 2200 : 1100, it = act.it;
+        const want = Math.atan2(it.y + .5 - ry, it.x + .5 - rx), da = Math.atan2(Math.sin(want - rh), Math.cos(want - rh));
+        if (Math.abs(da) > .05) { rh += Math.sign(da) * Math.min(Math.abs(da), dt * .9); rx += Math.cos(rh) * dt * .6; ry += Math.sin(rh) * dt * .6; }   // arcs, never a spin on the spot
+        if (act.type === 'bump' && !act.coin && nowT - act.t0 > 600) { act.coin = true; coins++; score += 100; counters(); fx.push({ it, t0: nowT, coin: true }); }
+        if (nowT - act.t0 > dur) { if (act.type === 'pick') { it.collected = true; fx.push({ it, t0: nowT, txt: '+1 in the bucket' }); if (it.kind === 'cell') power = 8; }
+          if (act.type === 'scan') it.scanned = true; act = null; status(); }
+        return; }
+      if (!userGoal && !task && tasks.length) { task = tasks.shift(); goal = [task.it.x, task.it.y]; path = astar(Math.floor(rx), Math.floor(ry), goal[0], goal[1]) || []; if (!path.length) { task = null; goal = null; } }
+      if (task && Math.hypot(task.it.x + .5 - rx, task.it.y + .5 - ry) < (task.type === 'scan' ? 8 : 4.2)) { act = { ...task, t0: nowT }; task = null; path = []; goal = null;
+        st.innerHTML = act.type === 'pick' ? 'scooping up ' + (act.it.name || act.it.label || 'a find').toLowerCase() : act.type === 'scan' ? 'reading the marker' : 'tapping the brick with the bucket'; return; }
+      if (recov) {   // the behaviour tree's recovery: back up 0.3 m, then plan again
+        const k = (nowT - recov.t0) / 1200, nx = rx - Math.cos(rh) * .25 / MPC * dt, ny = ry - Math.sin(rh) * .25 / MPC * dt;
+        if (k < 1 && inside(nx | 0, ny | 0) && !occ[id(nx | 0, ny | 0)] && !nogo[id(nx | 0, ny | 0)]) { rx = nx; ry = ny; return; }
+        if (k < 1) return; recov = null; wd = null; return; }
+      if (!wd || Math.hypot(rx - wd.x, ry - wd.y) > .5) wd = { x: rx, y: ry, t: nowT };   // watchdog: 4 s without half a cell of progress
+      else if (nowT - wd.t > 4000) { if (goal) cam[id(goal[0], goal[1])] = 1; task = null; goal = null; path = []; userGoal = false; wd = null; recov = { t0: nowT };
+        const r = Math.floor(INFL) + 2; for (let y = Math.floor(ry) - r; y <= Math.floor(ry) + r; y++) for (let x = Math.floor(rx) - r; x <= Math.floor(rx) + r; x++) if (inside(x, y) && nearO[id(x, y)] === 2 && !occ[id(x, y)]) { nearO[id(x, y)] = 1; cost[id(x, y)] = Math.min(cost[id(x, y)], 200); }   // and loosen the inflation round it
+        return; }
+      if (!path.length) { if (task) { task = null; goal = null; } plan(); return; }
+      // Regulated Pure Pursuit, Theseus V's Nav2 controller: steer for a carrot on the path one lookahead (0.8 m) ahead,
+      // slower in tight turns and close to obstacles
+      while (path.length > 1 && Math.hypot(path[0][0] - rx, path[0][1] - ry) < LOOK * .5) path.shift();
+      let ci = 0; while (ci < path.length - 1 && Math.hypot(path[ci][0] - rx, path[ci][1] - ry) < LOOK) ci++;
+      const [tx, ty] = path[ci], ang = Math.atan2(ty - ry, tx - rx), da = Math.atan2(Math.sin(ang - rh), Math.cos(ang - rh)); carrot = [tx, ty];
+      const near = cost[id(Math.floor(rx), Math.floor(ry))] / 252, slow = (sand[id(Math.floor(rx), Math.floor(ry))] ? .45 : 1) * (1 - .35 * Math.min(1, near)), turn = Math.abs(da) > .9 ? .35 : 1;   // big turns are taken slowly, in an arc
+      rh += Math.sign(da) * Math.min(Math.abs(da), dt * 1.6);
+      const sp = SPEED * slow * turn * dt, d = Math.hypot(tx - rx, ty - ry), w = Math.abs(da) < .6 ? .6 : 0;   // drive along the heading as it swings onto the carrot
+      if (ci === path.length - 1 && d <= sp) { rx = tx; ry = ty; path = []; carrot = null; }
+      else { let ux = (1 - w) * (tx - rx) / d + w * Math.cos(rh), uy = (1 - w) * (ty - ry) / d + w * Math.sin(rh), un = Math.hypot(ux, uy) || 1;
+        const bx1 = Math.floor(rx + ux / un * .8), by1 = Math.floor(ry + uy / un * .8); if (!inside(bx1, by1) || occ[id(bx1, by1)] || known[id(bx1, by1)] === 2 || nearO[id(bx1, by1)] === 2) { ux = tx - rx; uy = ty - ry; un = d; }   // off the path into a footprint ring: steer straight for the carrot
+        rx += ux / un * sp; ry += uy / un * sp; }
+      if (!lastSenseAt || (nowT - lastSense > 120 && Math.hypot(rx - lastSenseAt[0], ry - lastSenseAt[1]) > .9)) { lastSense = nowT; lastSenseAt = [rx, ry]; sense(); }
+      for (let i = 0; i <= Math.min(path.length - 1, ci + 2); i++) { const bx2 = Math.floor(path[i][0]), by2 = Math.floor(path[i][1]);   // same rule as astar: inflated cells near the rover are its way out
+        if (known[id(bx2, by2)] === 2 || (nearO[id(bx2, by2)] === 2 && Math.hypot(path[i][0] - rx, path[i][1] - ry) > 3)) { path = []; break; } }
+      if (!path.length) { userGoal = false; goal = null; carrot = null; }
+      if (goal && !userGoal && !task && cam[id(goal[0], goal[1])]) { goal = null; path = []; }      // already seen: pick a better target
+      const lt = trail[trail.length - 1]; if (!lt || Math.hypot(lt[0] - rx, lt[1] - ry) > .4) { trail.push([rx, ry, rh]); if (trail.length > 1200) trail.shift(); }
+    }
+    function drawAruco(it, s) { const x0 = (it.x + .5) * CELL - s / 2, y0 = (it.y + .5) * CELL - s / 2, c = s / 6; ctx.fillStyle = '#111'; ctx.fillRect(x0, y0, s, s);
+      it.bits.forEach((b, i) => { if (b) { ctx.fillStyle = '#fff'; ctx.fillRect(x0 + c * (1 + i % 4), y0 + c * (1 + (i / 4 | 0)), c, c); } }); }
+    function drawFind(it, s, now) { const x = (it.x + .5) * CELL, y = (it.y + .5) * CELL;
+      if (it.kind === 'cube') { ctx.fillStyle = it.col; ctx.fillRect(x - s / 2, y - s / 2, s, s); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(x - s / 2, y - s / 2, s, s * .3); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(x - s / 2, y - s / 2, s, s); return; }
+      ctx.fillStyle = it.col; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5;
+      if (it.kind === 'beacon') { ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill(); ctx.stroke(); if (Math.sin(now / 250) > 0) { ctx.strokeStyle = C.org; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.stroke(); } return; }
+      if (it.kind === 'ice') { ctx.globalAlpha = .7; ctx.beginPath(); ctx.ellipse(x, y, 11, 7, .4, 0, 7); ctx.fill(); ctx.globalAlpha = 1; ctx.stroke(); return; }
+      if (it.kind === 'screw') { ctx.save(); ctx.translate(x, y); ctx.rotate(.6); ctx.fillRect(-7, -1.5, 12, 3); ctx.beginPath(); ctx.arc(-8, 0, 3.5, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore(); return; }
+      if (it.kind === 'fossil') { for (let r = 3; r <= 9; r += 3) { ctx.beginPath(); ctx.arc(x, y, r, Math.PI, 0); ctx.stroke(); } return; }
+      if (it.kind === 'sand' || it.kind === 'devil') return;
+      if (it.kind === 'cell') { ctx.fillStyle = C.yel; ctx.fillRect(x - 5, y - 8, 10, 16); ctx.strokeRect(x - 5, y - 8, 10, 16); ctx.fillStyle = C.ink; ctx.fillRect(x - 2, y - 11, 4, 3); return; }
+      if (it.kind === 'egg') { ctx.lineWidth = 1.5; ctx.strokeStyle = C.ink;
+        switch (it.look) {
+          case 'pipe': ctx.fillStyle = '#2F9E44'; ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#103b1a'; ctx.beginPath(); ctx.arc(x, y, 5.5, 0, 7); ctx.fill(); return;
+          case 'block': ctx.fillStyle = '#B5651D'; ctx.fillRect(x - 8, y - 8, 16, 16); ctx.strokeRect(x - 8, y - 8, 16, 16); ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y); ctx.moveTo(x - 4, y); ctx.lineTo(x - 4, y + 8); ctx.moveTo(x + 4, y); ctx.lineTo(x + 4, y + 8); ctx.stroke(); return;
+          case 'door': ctx.fillStyle = '#8D939B'; ctx.fillRect(x - 10, y - 6, 20, 12); ctx.strokeRect(x - 10, y - 6, 20, 12); ctx.fillStyle = hasKey ? C.leaf : C.red; ctx.fillRect(x - 10, y - 2, 20, 4); return;
+          case 'key': ctx.fillStyle = C.red; ctx.fillRect(x - 6, y - 4, 12, 8); ctx.strokeRect(x - 6, y - 4, 12, 8); ctx.fillStyle = '#fff'; ctx.fillRect(x - 3, y - 1, 6, 2); return;
+          case 'helmet': ctx.fillStyle = '#9AA0A8'; ctx.beginPath(); ctx.arc(x, y + 2, 7, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#F5F4F0'; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + s2 * 6, y - 1); ctx.quadraticCurveTo(x + s2 * 13, y - 3, x + s2 * 11, y - 11); ctx.lineTo(x + s2 * 8, y - 3); ctx.closePath(); ctx.fill(); ctx.stroke(); } return;
+          case 'towel': ctx.fillStyle = '#3B82F6'; ctx.fillRect(x - 9, y - 6, 18, 12); ctx.strokeRect(x - 9, y - 6, 18, 12); ctx.fillStyle = '#fff'; ctx.fillRect(x - 9, y - 2, 18, 2); ctx.fillRect(x - 9, y + 2, 18, 1); return;
+          case 'cube': ctx.fillStyle = '#C8CCD2'; ctx.fillRect(x - 8, y - 8, 16, 16); ctx.strokeRect(x - 8, y - 8, 16, 16); ctx.fillStyle = '#E8649A'; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); return;
+          case 'wreck': ctx.fillStyle = '#F5F4F0'; ctx.save(); ctx.translate(x, y); ctx.rotate(.5); ctx.fillRect(-10, -3, 20, 6); ctx.strokeRect(-10, -3, 20, 6); for (let k = -8; k <= 6; k += 4) { ctx.fillRect(k, 3, 3, 4); ctx.strokeRect(k, 3, 3, 4); ctx.fillRect(k, -7, 3, 4); ctx.strokeRect(k, -7, 3, 4); } ctx.restore(); return;
+          case 'speaker': ctx.fillStyle = C.ink; ctx.fillRect(x - 6, y - 4, 5, 8); ctx.beginPath(); ctx.moveTo(x - 1, y - 4); ctx.lineTo(x + 5, y - 8); ctx.lineTo(x + 5, y + 8); ctx.lineTo(x - 1, y + 4); ctx.fill(); if (Math.sin(now / 300) > 0) { ctx.fillText('♪', x + 8, y - 6); } return;
+          case 'roll': ctx.fillStyle = '#D9A15B'; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); ctx.stroke(); ctx.strokeStyle = '#FFF7DA'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 5, .3, 5.6); ctx.stroke(); ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, y, 1.8, 0, 7); ctx.fill(); return;
+          case 'wheel': ctx.fillStyle = '#E8B33C'; ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#F7D774'; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, 7.5, -.5, .4); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(30,33,38,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 7.5, .5, 5.7); ctx.stroke(); return;
+          case 'claw': ctx.fillStyle = '#9A968D'; ctx.beginPath(); ctx.arc(x - 2, y + 2, 6, 0, 7); ctx.fill(); ctx.stroke(); for (const a of [-.9, -.1, .7]) { ctx.beginPath(); ctx.moveTo(x - 2 + Math.cos(a - 1.2) * 5, y + 2 + Math.sin(a - 1.2) * 5); ctx.quadraticCurveTo(x + Math.cos(a - 1.2) * 12, y + Math.sin(a - 1.2) * 12, x + 3 + Math.cos(a - .9) * 12, y - 1 + Math.sin(a - .9) * 12); ctx.lineTo(x - 2 + Math.cos(a - 1) * 5, y + 2 + Math.sin(a - 1) * 5); ctx.fill(); ctx.stroke(); }
+            ctx.fillStyle = C.ink; for (const [ox, oy] of [[-4, 1], [-1, 4], [-4, 5]]) ctx.fillRect(x + ox, y + oy, 1.6, 1.6); return;
+          case 'qblock': ctx.fillStyle = '#FFC908'; ctx.fillRect(x - 8, y - 8, 16, 16); ctx.strokeRect(x - 8, y - 8, 16, 16); ctx.fillStyle = C.ink; for (const [ox, oy] of [[-6, -6], [5, -6], [-6, 5], [5, 5]]) ctx.fillRect(x + ox, y + oy, 1.5, 1.5);
+            ctx.font = '700 12px "Chivo Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('?', x, y + 4.5); ctx.textAlign = 'left'; return;
+          case 'mushroom': ctx.fillStyle = '#F5F4F0'; ctx.fillRect(x - 3, y, 6, 8); ctx.strokeRect(x - 3, y, 6, 8); ctx.fillStyle = C.red; ctx.beginPath(); ctx.arc(x, y + 1, 9, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#fff'; for (const [ox, oy, r] of [[-4, -3, 1.8], [2, -5, 1.5], [5, -1, 1.3], [-1, -1, 1.2]]) { ctx.beginPath(); ctx.arc(x + ox, y + oy, r, 0, 7); ctx.fill(); } return;
+          case 'artifact': { const b = Math.sin(now / 400) * 1.5; ctx.strokeStyle = 'rgba(46,20,153,.35)'; ctx.beginPath(); ctx.ellipse(x, y + 7, 9, 3, 0, 0, 7); ctx.stroke(); ctx.strokeStyle = C.ink;
+            ctx.fillStyle = '#3A3F47'; ctx.beginPath(); ctx.moveTo(x, y - 10 + b); ctx.lineTo(x + 5, y - 1 + b); ctx.lineTo(x + 1, y + 4 + b); ctx.lineTo(x - 5, y - 2 + b); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = '#C9D2FF'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - 8 + b); ctx.lineTo(x + 1, y + 2 + b); ctx.stroke(); return; }
+          case 'beacon2': ctx.fillStyle = '#7D7564'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); ctx.stroke(); if (Math.sin(now / 900) > .7) { ctx.strokeStyle = C.org; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.stroke(); } return;
+          default: ctx.fillStyle = '#7D7564'; for (const [ox, oy] of [[-5, 2], [3, -3], [5, 5]]) { ctx.beginPath(); ctx.arc(x + ox, y + oy, 3.5, 0, 7); ctx.fill(); ctx.stroke(); } return; } }
+      ctx.beginPath(); ctx.moveTo(x - 6, y + 4); ctx.lineTo(x - 2, y - 6); ctx.lineTo(x + 6, y - 3); ctx.lineTo(x + 5, y + 5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    // ---------- set pieces (Isaac, 19 Nov 2026: "an old nord ruin or something? characters? a dragon?"). Original art,
+    // nods only: an old barrow (a ring of standing stones and an arch, or a carved wall), a guard that shuffles between
+    // the stones, snowy pines, and now and then something very large overhead. The LiDAR maps the stones like any rock.
+    const STONE = '#8F8C84', STONE_HI = 'rgba(255,255,255,.2)', INKC = '#1E2126', PINE = ['#24452E', '#2F5D3A', '#3E7A4C'];
+    function solid(x, y, h) { if (inside(x, y) && x > 0 && y > 0 && x < cols - 1 && y < rows - 1) { occ[id(x, y)] = 1; hgt[id(x, y)] = Math.max(hgt[id(x, y)], h); } }
+    function placeSetPieces(keeps) {
+      ruins = null; guard = null; dragon = null; braziers = []; pools = []; ship = null; dragonAt = RM ? 0 : performance.now() + (sector <= 1 ? 9000 : 5000 + rnd() * 15000);
+      if (sector > 1 && rnd() < .45) dragonAt = 0;   // now and then, not every sector
+      decor = document.createElement('canvas'); decor.width = W; decor.height = H;
+      const R = 2.7 / MPC, ring = sector % 2 === 1, t = decor.getContext('2d');
+      for (let n = 0; n < 300 && !ruins; n++) { const cx = 4 + R + rnd() * (cols - 8 - 2 * R), cy = 4 + R + rnd() * (rows - 8 - 2 * R);
+        if (!(cx > R + 2 && cy > R + 2 && cx < cols - R - 3 && cy < rows - R - 3) || Math.hypot(cx - rx, cy - ry) < R + 3 / MPC) continue;
+        let ok = true; for (let y = Math.floor(cy - R - 2); y <= cy + R + 2 && ok; y++) for (let x = Math.floor(cx - R - 2); x <= cx + R + 2; x++) if (!inside(x, y) || nogo[id(x, y)]) { ok = false; break; }
+        if (!ok || keeps.some(k => inR(cx, cy, k, R + 3))) continue;
+        clear(Math.floor(cx), Math.floor(cy), Math.ceil(R + 2)); ruins = { cx, cy, R, ring, a0: rnd() * 6.28 }; }
+      const px = v => v * CELL, sw = .7 / MPC * CELL, sl = 1.1 / MPC * CELL;   // stones about 0.7 by 1.1 m
+      if (ruins) { const { cx, cy, a0 } = ruins;
+        const pil = [a0 - .3, a0 + .3].map(a => [cx + Math.cos(a) * R, cy + Math.sin(a) * R]);   // the arch: two pillars and a lintel
+        if (ring) {
+          floor(t, px(cx), px(cy), px(R + .9));
+          for (let i = 1; i < 8; i++) { const a = a0 + i / 8 * Math.PI * 2 + (rnd() - .5) * .12, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R, fallen = i === 3 || i === 6;
+            solid(Math.floor(x), Math.floor(y), fallen ? .35 : 1.6); if (fallen) solid(Math.floor(x + Math.cos(a) * .9), Math.floor(y + Math.sin(a) * .9), .35);
+            stone(t, px(x) + (fallen ? Math.cos(a) * sl * .3 : 0), px(y) + (fallen ? Math.sin(a) * sl * .3 : 0), fallen ? sw * .8 : sw, fallen ? sl * 1.5 : sl, fallen ? a + .25 : a + Math.PI / 2, fallen ? 2 : 6); }
+          solid(Math.floor(cx), Math.floor(cy), .4); mound(t, px(cx), px(cy), a0);
+          for (let i = 0; i < 5; i++) { const a = a0 + Math.PI + (i - 2) * .45, r = 1.5 / MPC, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; urn(t, px(x), px(y), .28 / MPC * CELL); }
+          items.push({ kind: 'ruin', name: 'An old barrow ring', text: 'Standing stones, two of them fallen, round a turf mound with a sealed door, and an arch with two braziers on the way in. The lintel is above the 1 m band the costmap keeps, so Nav2 happily plans under it.', col: STONE, x: Math.floor(cx), y: Math.floor(cy), found: false });
+          guard = { x: cx + .5, y: cy + 1.5, wx: cx, wy: cy, a: 0, t: 0 };
+          items.push({ kind: 'guard', name: 'A barrow guard', text: 'Something in very old armour, shuffling between the stones with its eyes glowing. The costmap treats it as a moving obstacle and plans round it. It has not noticed the rover. Yet.', col: '#5C5448', x: Math.floor(cx), y: Math.floor(cy) + 1, found: false });
+        } else {   // a curved wall of carved stone behind the arch
+          const a1 = a0 + Math.PI, span = 1.1; t.lineCap = 'round';
+          ruins.cells = new Set(); for (let k = -span; k <= span; k += .02) { const x = cx + Math.cos(a1 + k) * R, y = cy + Math.sin(a1 + k) * R; solid(Math.floor(x), Math.floor(y), 1.8); if (inside(x | 0, y | 0)) ruins.cells.add(id(x | 0, y | 0)); }
+          t.strokeStyle = 'rgba(30,33,38,.2)'; t.lineWidth = sw + 4; t.beginPath(); t.arc(px(cx) + 6, px(cy) + 8, px(R), a1 - span, a1 + span); t.stroke();
+          t.strokeStyle = INKC; t.lineWidth = sw + 3; t.beginPath(); t.arc(px(cx), px(cy), px(R), a1 - span, a1 + span); t.stroke();
+          t.strokeStyle = STONE; t.lineWidth = sw; t.beginPath(); t.arc(px(cx), px(cy), px(R), a1 - span, a1 + span); t.stroke();
+          t.lineCap = 'butt'; t.lineWidth = 1.4;
+          for (let k = -span + .12, j = 0; k < span - .06; k += .16, j++) {   // carved marks: angular, in no real script
+            const x = px(cx + Math.cos(a1 + k) * R), y = px(cy + Math.sin(a1 + k) * R), glow = j === 6; t.save(); t.translate(x, y); t.rotate(a1 + k + Math.PI / 2);
+            if (glow) { t.shadowColor = '#FFC908'; t.shadowBlur = 8; } t.strokeStyle = glow ? '#FFC908' : 'rgba(30,33,38,.6)'; t.beginPath();
+            const v = (j * 7) % 4; t.moveTo(-3, -3); t.lineTo(v & 1 ? 3 : 0, 0); t.lineTo(-3, 3); if (v & 2) { t.moveTo(1, -3); t.lineTo(1, 3); } t.stroke(); t.restore(); }
+          const mx = cx + Math.cos(a1) * R, my = cy + Math.sin(a1) * R;
+          ruins.item = id(Math.floor(cx + Math.cos(a1) * (R - 1.6)), Math.floor(cy + Math.sin(a1) * (R - 1.6)));
+          items.push({ kind: 'wall', name: 'A carved wall', text: 'Curved stone, carved in a script nobody on the team can read. One word glows faintly. The rover learns nothing from it, but somehow feels louder.', col: STONE, x: Math.floor(cx + Math.cos(a1) * (R - 1.6)), y: Math.floor(cy + Math.sin(a1) * (R - 1.6)), found: false });
+        }
+        pil.forEach(([x, y]) => { solid(Math.floor(x), Math.floor(y), 2.2); stone(t, px(x), px(y), sw, sw, a0, 7); });
+        braziers = pil.map(([x, y]) => { const bx = x + Math.cos(a0) * 1.1 / MPC, by = y + Math.sin(a0) * 1.1 / MPC; solid(Math.floor(bx), Math.floor(by), .9); brazierBase(t, px(bx), px(by)); return [bx, by]; });
+        for (let i = 0; i < 6; i++) { const a = rnd() * 6.28, r = R * (.6 + rnd() * .9); snow(t, px(cx + Math.cos(a) * r), px(cy + Math.sin(a) * r), (.6 + rnd() * .8) / MPC * CELL); }
+        lintel(t, px(pil[0][0]), px(pil[0][1]), px(pil[1][0]), px(pil[1][1]));
+        for (let i = 0; i < 9; i++) { const a = rnd() * 6.28, r = R + 1 + rnd() * 2.5, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;   // rubble
+          if (inside(x | 0, y | 0) && !nogo[id(x | 0, y | 0)] && Math.hypot(x - rx, y - ry) > 4) { solid(x | 0, y | 0, .3); stone(t, px(x), px(y), sw * .45, sw * .6, rnd() * 3, 2); } } }
+      const open = (x, y, r) => { for (let yy = Math.floor(y - r); yy <= y + r; yy++) for (let xx = Math.floor(x - r); xx <= x + r; xx++) if (!inside(xx, yy) || nogo[id(xx, yy)] || xx < 2 || yy < 2 || xx > cols - 3 || yy > rows - 3) return false;
+        return !keeps.some(k => inR(x, y, k, r + 2)) && Math.hypot(x - rx, y - ry) > r + 4 && !(ruins && Math.hypot(x - ruins.cx, y - ruins.cy) < ruins.R + r + 3); };
+      if (sector % 3 === 0) for (let n = 0; n < 200 && !ship; n++) { const L = 4.5 / MPC, x = 3 + L + rnd() * (cols - 6 - 2 * L), y = 3 + L + rnd() * (rows - 6 - 2 * L);   // a landed ship
+        if (!open(x, y, L * .7)) continue; clear(Math.floor(x), Math.floor(y), Math.ceil(L * .7)); const a = rnd() * 6.28; ship = { x, y, a, L };
+        for (let k = -L * .5; k <= L * .5; k += .5) solid(Math.floor(x + Math.cos(a) * k), Math.floor(y + Math.sin(a) * k), 2.4);
+        drawShip(t, px(x), px(y), a, L * CELL);
+        items.push({ kind: 'ship', name: 'A landed ship', text: 'Its hull still ticks as it cools. A note on the hatch: back soon, scanning everything on this planet first.', col: '#C8CCD2', x: Math.floor(x - Math.cos(a) * L * .35 + Math.sin(a) * 1.4 / MPC), y: Math.floor(y - Math.sin(a) * L * .35 - Math.cos(a) * 1.4 / MPC), found: false }); }
+      if (sector % 3 === 1) for (let n = 0; n < 200 && !pools.length; n++) { const r = 1.6 / MPC, x = 3 + r + rnd() * (cols - 6 - 2 * r), y = 3 + r + rnd() * (rows - 6 - 2 * r);   // a pool of green sludge
+        if (!open(x, y, r + 1)) continue; clear(Math.floor(x), Math.floor(y), Math.ceil(r + 1)); pools.push({ x, y, r });
+        for (let yy = Math.floor(y - r); yy <= y + r; yy++) for (let xx = Math.floor(x - r * 1.3); xx <= x + r * 1.3; xx++) if (inside(xx, yy) && Math.hypot((xx + .5 - x) / 1.3, yy + .5 - y) < r) hazard[id(xx, yy)] = 1;
+        pool(t, px(x), px(y), r * CELL);
+        items.push({ kind: 'pool', name: 'A pool of green sludge', text: 'It glows and it bubbles. The cameras saw it, so the planner treats it as a wall; the LiDAR never would have, since it is flat.', col: '#7CFC4E', x: Math.floor(x), y: Math.floor(y), found: false }); }
+      for (let i = 0, n = 0; i < 60 && n < 5; i++) { const x = 3 + Math.floor(rnd() * (cols - 6)), y = 3 + Math.floor(rnd() * (rows - 6));   // a few snowy pines
+        if (nogo[id(x, y)] || occ[id(x, y)] || Math.hypot(x - rx, y - ry) < 6 || keeps.some(k => inR(x, y, k, 3)) || (ruins && Math.hypot(x - ruins.cx, y - ruins.cy) < ruins.R + 3) || (ship && Math.hypot(x - ship.x, y - ship.y) < ship.L * .7 + 2) || pools.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 3)) continue;
+        solid(x, y, 2.5); pine(t, px(x + .5), px(y + .5), (1 + rnd() * .5) / MPC * CELL); n++; }
+    }
+    function floor(t, x, y, r) {   // the barrow's worn floor: pale flagstones, cracked, fading out at the edge
+      t.save(); t.translate(x, y); const g = t.createRadialGradient(0, 0, r * .2, 0, 0, r); g.addColorStop(0, 'rgba(176,170,158,.55)'); g.addColorStop(.85, 'rgba(176,170,158,.4)'); g.addColorStop(1, 'rgba(176,170,158,0)');
+      t.fillStyle = g; t.beginPath(); t.arc(0, 0, r, 0, 7); t.fill(); t.strokeStyle = 'rgba(30,33,38,.22)'; t.lineWidth = 1;
+      for (let k = 0; k < 14; k++) { const a = k / 14 * 6.28 + rnd() * .2; t.beginPath(); t.moveTo(Math.cos(a) * r * .25, Math.sin(a) * r * .25); t.lineTo(Math.cos(a + .1) * r * .6, Math.sin(a + .1) * r * .6); t.lineTo(Math.cos(a) * r * .85, Math.sin(a) * r * .85); t.stroke(); }
+      for (const q of [.25, .55]) { t.beginPath(); t.arc(0, 0, r * q, 0, 7); t.stroke(); }
+      t.restore(); }
+    function stone(t, x, y, w, l, ang, h) {   // a stone seen from above and a little to the side: shadow, side face, weathered top, a carved chevron
+      t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(h * .8, h, l / 2 + 1, w / 2 + 1, ang, 0, 7); t.fill();
+      t.fillStyle = '#6F6C65'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.save(); t.translate(h * .25, h * .45); t.rotate(ang); t.beginPath(); t.roundRect(-l / 2, -w / 2, l, w, Math.min(w, l) * .3); t.fill(); t.stroke(); t.restore(); t.rotate(ang);
+      t.fillStyle = STONE; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.roundRect(-l / 2, -w / 2, l, w, Math.min(w, l) * .3); t.fill(); t.stroke();
+      t.fillStyle = STONE_HI; t.beginPath(); t.roundRect(-l / 2 + 2, -w / 2 + 2, l - 4, w * .35, 2); t.fill();
+      if (h > 3) { t.fillStyle = 'rgba(255,255,255,.8)'; t.beginPath(); t.roundRect(-l / 2 + 2, -w / 2 + 1.5, l * .55, w * .3, 2); t.fill(); }
+      if (h > 3) { t.strokeStyle = 'rgba(30,33,38,.45)'; t.lineWidth = 1; t.beginPath(); t.moveTo(-l * .22, -w * .12); t.lineTo(0, w * .18); t.lineTo(l * .22, -w * .12); t.stroke(); }
+      t.restore(); }
+    function slab(t, x, y, ang) { const l = 1.4 / MPC * CELL, w = .8 / MPC * CELL; t.save(); t.translate(x, y); t.rotate(ang);
+      t.fillStyle = 'rgba(30,33,38,.18)'; t.fillRect(-l / 2 + 3, -w / 2 + 3, l, w); t.fillStyle = '#A29E95'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.roundRect(-l / 2, -w / 2, l, w, 3); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.45)'; t.lineWidth = 1; t.beginPath(); for (let a = 0; a < 12; a += .3) { const r = a * Math.min(l, w) * .035; t.lineTo(Math.cos(a) * r, Math.sin(a) * r); } t.stroke(); t.restore(); }
+    function lintel(t, x0, y0, x1, y1) { const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0) + 16, w = .6 / MPC * CELL;
+      t.save(); t.translate((x0 + x1) / 2, (y0 + y1) / 2); t.rotate(a); t.fillStyle = 'rgba(30,33,38,.22)'; t.fillRect(-L / 2 + 9, -w / 2 + 11, L, w);
+      t.fillStyle = '#9A968D'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.roundRect(-L / 2, -w / 2, L, w, 3); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.5)'; t.lineWidth = 1; t.beginPath(); for (let k = -L / 2 + 6; k < L / 2 - 6; k += 6) { t.lineTo(k, -w * .2); t.lineTo(k + 3, w * .2); } t.stroke(); t.restore(); }
+    function mound(t, x, y, a) {   // a turf barrow mound, snow on its crown, a stone doorway facing the arch (the door itself is drawn live)
+      const r = 1.6 / MPC * CELL; t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(6, 8, r * 1.05, r * .85, a, 0, 7); t.fill();
+      const g = t.createRadialGradient(-r * .2, -r * .3, r * .1, 0, 0, r); g.addColorStop(0, '#8A9468'); g.addColorStop(1, '#55603F'); t.fillStyle = g; t.strokeStyle = INKC; t.lineWidth = 1.5;
+      t.beginPath(); t.ellipse(0, 0, r, r * .8, a, 0, 7); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.3)'; t.lineWidth = 1; for (let k = 0; k < 26; k++) { const q = k * 2.4, d = r * (.25 + (k % 5) * .14); t.beginPath(); t.moveTo(Math.cos(q) * d, Math.sin(q) * d * .8); t.lineTo(Math.cos(q) * d + 1.5, Math.sin(q) * d * .8 - 3); t.stroke(); }
+      t.fillStyle = 'rgba(255,255,255,.85)'; t.beginPath(); t.ellipse(-r * .15, -r * .2, r * .42, r * .26, a, 0, 7); t.fill();
+      t.rotate(a); t.fillStyle = '#8F8C84'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.fillRect(r * .7, -r * .32, r * .34, r * .64); t.strokeRect(r * .7, -r * .32, r * .34, r * .64); t.restore(); }
+    function urn(t, x, y, r) { t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(2, 3, r, r * .8, 0, 0, 7); t.fill();
+      t.fillStyle = '#9A6B4C'; t.strokeStyle = INKC; t.lineWidth = 1.2; t.beginPath(); t.arc(0, 0, r, 0, 7); t.fill(); t.stroke(); t.fillStyle = '#3B2A20'; t.beginPath(); t.arc(0, 0, r * .45, 0, 7); t.fill(); t.restore(); }
+    function brazierBase(t, x, y) { const r = .32 / MPC * CELL; t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.25)'; t.beginPath(); t.ellipse(3, 4, r, r * .8, 0, 0, 7); t.fill();
+      t.fillStyle = '#3A3530'; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); t.arc(0, 0, r, 0, 7); t.fill(); t.stroke(); t.fillStyle = '#1E1A16'; t.beginPath(); t.arc(0, 0, r * .62, 0, 7); t.fill(); t.restore(); }
+    function snow(t, x, y, r) { t.save(); t.translate(x, y); const g = t.createRadialGradient(0, 0, 0, 0, 0, r); g.addColorStop(0, 'rgba(255,255,255,.75)'); g.addColorStop(.7, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      t.fillStyle = g; t.beginPath(); for (let k = 0; k < 14; k++) { const q = k / 14 * 6.28, d = r * (.75 + ((k * 37) % 10) / 40); t.lineTo(Math.cos(q) * d, Math.sin(q) * d * .7); } t.closePath(); t.fill(); t.restore(); }
+    function drawShip(t, x, y, a, L) {   // a small landed spacecraft from above, facing a; original drawing
+      t.save(); t.translate(x, y); t.rotate(a); const w = L * .22;
+      t.fillStyle = 'rgba(30,33,38,.2)'; t.beginPath(); t.ellipse(6, 9, L * .52, w * 1.6, 0, 0, 7); t.fill();
+      t.strokeStyle = INKC; t.lineWidth = 1.5; t.fillStyle = '#C8CCD2';
+      for (const sd of [-1, 1]) { t.beginPath(); t.moveTo(-L * .1, sd * w * .5); t.lineTo(-L * .32, sd * w * 2.2); t.lineTo(-L * .44, sd * w * 2.2); t.lineTo(-L * .36, sd * w * .5); t.closePath(); t.fill(); t.stroke();
+        t.fillStyle = '#5D626B'; t.fillRect(-L * .42, sd * w * 2.2 - (sd > 0 ? 0 : 4), 10, 4); t.fillStyle = '#C8CCD2'; }
+      t.beginPath(); t.moveTo(L * .5, 0); t.lineTo(L * .3, -w * .8); t.lineTo(-L * .45, -w * .8); t.lineTo(-L * .5, -w * .45); t.lineTo(-L * .5, w * .45); t.lineTo(-L * .45, w * .8); t.lineTo(L * .3, w * .8); t.closePath(); t.fill(); t.stroke();
+      t.strokeStyle = 'rgba(30,33,38,.35)'; t.lineWidth = 1; for (let k = -.3; k < .3; k += .12) { t.beginPath(); t.moveTo(L * k, -w * .8); t.lineTo(L * k, w * .8); t.stroke(); }
+      t.fillStyle = C.ind; t.fillRect(-L * .4, -w * .12, L * .62, w * .24); t.fillStyle = '#2B3A55'; t.beginPath(); t.moveTo(L * .44, 0); t.lineTo(L * .3, -w * .45); t.lineTo(L * .22, -w * .45); t.lineTo(L * .22, w * .45); t.lineTo(L * .3, w * .45); t.closePath(); t.fill(); t.stroke();
+      t.fillStyle = '#FF5102'; for (const sd of [-.4, .4]) { t.beginPath(); t.arc(-L * .52, sd * w, w * .22, 0, 7); t.fill(); }
+      t.fillStyle = '#5D626B'; for (const [ox, oy] of [[L * .25, -w * 1.1], [L * .25, w * 1.1], [-L * .3, -w * 1.25], [-L * .3, w * 1.25]]) { t.beginPath(); t.arc(ox, oy, 3, 0, 7); t.fill(); }
+      t.restore(); }
+    function pool(t, x, y, r) { t.save(); t.translate(x, y); const g = t.createRadialGradient(0, 0, r * .2, 0, 0, r * 1.3); g.addColorStop(0, '#9CFF6A'); g.addColorStop(.6, '#4FD13A'); g.addColorStop(1, '#2C7A22');
+      t.fillStyle = 'rgba(124,252,78,.25)'; t.beginPath(); t.ellipse(0, 0, r * 1.55, r * 1.2, 0, 0, 7); t.fill();
+      t.fillStyle = g; t.strokeStyle = INKC; t.lineWidth = 1.5; t.beginPath(); for (let k = 0; k < 18; k++) { const q = k / 18 * 6.28, d = r * (1 + ((k * 53) % 9) / 40); t.lineTo(Math.cos(q) * d * 1.3, Math.sin(q) * d); } t.closePath(); t.fill(); t.stroke(); t.restore(); }
+    function pine(t, x, y, r) { t.save(); t.translate(x, y); t.fillStyle = 'rgba(30,33,38,.18)'; t.beginPath(); t.ellipse(r * .5, r * .6, r, r * .8, 0, 0, 7); t.fill();
+      PINE.forEach((c, i) => { const rr = r * (1 - i * .28); t.fillStyle = c; t.strokeStyle = INKC; t.lineWidth = i ? 1 : 1.5; t.beginPath();
+        for (let k = 0; k < 18; k++) { const a = k / 18 * Math.PI * 2 + i * .2, q = k % 2 ? rr * .62 : rr; t.lineTo(Math.cos(a) * q, Math.sin(a) * q); } t.closePath(); t.fill(); if (!i) t.stroke(); });
+      t.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 7; k++) { const a = k * 2.4, q = r * (.25 + (k % 3) * .2); t.beginPath(); t.arc(Math.cos(a) * q, Math.sin(a) * q, 1.6, 0, 7); t.fill(); }
+      t.restore(); }
+    const seen = (x, y) => inside(x | 0, y | 0) && known[id(x | 0, y | 0)];
+    function drawGuard(now, force) { if (!guard || (!force && !seen(guard.x, guard.y))) return; const s = Math.max(.9, .6 / MPC * CELL / 16), x = guard.x * CELL, y = guard.y * CELL + Math.sin(now / 160) * .6;
+      ctx.save(); ctx.translate(x, y); ctx.fillStyle = 'rgba(30,33,38,.22)'; ctx.beginPath(); ctx.ellipse(3, 4, 9 * s, 7 * s, 0, 0, 7); ctx.fill(); ctx.rotate(guard.a); ctx.scale(s, s);
+      ctx.strokeStyle = '#B9BEC2'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(13, 9); ctx.stroke();   // a notched old blade
+      ctx.fillStyle = '#5C5448'; ctx.strokeStyle = INKC; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(-1, 0, 6, 9, 0, 0, 7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#3E3830'; ctx.beginPath(); ctx.arc(1, 0, 5, 0, 7); ctx.fill(); ctx.stroke();
+      const lit = guard.awake ? 1.7 : 1.1; ctx.shadowColor = '#7FD3FF'; ctx.shadowBlur = guard.awake ? 12 : 6; ctx.fillStyle = '#9BE0FF'; for (const e of [-1.8, 1.8]) { ctx.beginPath(); ctx.arc(4.2, e, lit, 0, 7); ctx.fill(); }
+      ctx.restore(); }
+    function wyrm(g, S, flap, fill, line, fold = 1) {   // a large winged reptile from above, facing +x; original drawing
+      const span = 150 * S * (.78 + .22 * flap) * fold;
+      g.fillStyle = fill; g.strokeStyle = line; g.lineWidth = 1.5;
+      for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(14 * S, sd * 8 * S); g.quadraticCurveTo(6 * S, sd * span * .7, -14 * S, sd * span);
+        for (let k = 1; k <= 3; k++) g.quadraticCurveTo((-14 - k * 9) * S, sd * span * (1 - k * .22), (-14 - k * 8) * S, sd * span * (1 - k * .3));
+        g.lineTo(-40 * S, sd * 8 * S); g.closePath(); g.fill(); if (line) { g.stroke(); g.globalAlpha *= .6; g.beginPath(); for (let k = 1; k <= 3; k++) { g.moveTo(10 * S, sd * 8 * S); g.lineTo((-14 - k * 8) * S, sd * span * (1 - k * .3)); } g.stroke(); g.globalAlpha /= .6; } }
+      g.beginPath(); g.moveTo(-44 * S, 0); for (let k = 0; k <= 12; k++) { const u = k / 12; g.lineTo((-44 - u * 110) * S, Math.sin(u * 5 + flap) * 10 * S * u + (1 - u) * 7 * S); }
+      for (let k = 12; k >= 0; k--) { const u = k / 12; g.lineTo((-44 - u * 110) * S, Math.sin(u * 5 + flap) * 10 * S * u - (1 - u) * 7 * S); } g.closePath(); g.fill(); if (line) g.stroke();
+      g.beginPath(); g.ellipse(-12 * S, 0, 36 * S, 12 * S, 0, 0, 7); g.fill(); if (line) g.stroke();
+      g.beginPath(); g.moveTo(20 * S, -6 * S); g.quadraticCurveTo(44 * S, -4 * S, 58 * S, -6 * S); g.lineTo(72 * S, 0); g.lineTo(58 * S, 6 * S); g.quadraticCurveTo(44 * S, 4 * S, 20 * S, 6 * S); g.closePath(); g.fill(); if (line) g.stroke();
+      if (line) { g.strokeStyle = line; g.lineWidth = 2; g.beginPath(); g.moveTo(58 * S, -5 * S); g.lineTo(48 * S, -13 * S); g.moveTo(58 * S, 5 * S); g.lineTo(48 * S, 13 * S); g.stroke();
+        g.fillStyle = '#FF5102'; g.beginPath(); g.arc(64 * S, -2.5 * S, 1.6 * S, 0, 7); g.arc(64 * S, 2.5 * S, 1.6 * S, 0, 7); g.fill(); } }
+    function dragonAt_(now) {   // where the dragon is, how high (1 in the sky, 0 on the ground) and how far its wings are open
+      const S = Math.max(.55, Math.min(1.1, W / 1300)), t = now - dragon.t0;
+      if (!dragon.perch) { const k = t / dragon.dur; return { k, x: dragon.x0 + (dragon.x1 - dragon.x0) * k, y: dragon.y0 + (dragon.y1 - dragon.y0) * k, alt: 1, fold: 1, S }; }
+      const [px, py] = dragon.perch, A = 2600, Pd = 6500, B = 2600, ease = u => 1 - Math.pow(1 - u, 3);
+      if (t < A) { const u = ease(t / A); return { k: 0, x: dragon.x0 + (px - dragon.x0) * u, y: dragon.y0 + (py - dragon.y0) * u, alt: 1 - u, fold: 1 - .55 * u, S: S * (1 - .2 * u) }; }
+      if (t < A + Pd) return { k: 0, x: px, y: py, alt: 0, fold: .45, S: S * .8, sat: true };
+      const u = Math.min(1, (t - A - Pd) / B), v = u * u; return { k: u >= 1 ? 2 : 0, x: px + (dragon.x1 - px) * v, y: py + (dragon.y1 - py) * v, alt: u, fold: .45 + .55 * u, S: S * (.8 + .2 * u) }; }
+    function drawSky(now, shadow) {   // the dragon, seen only over ground the rover has mapped
+      if (!dragon || !fogMask) return; const dpr = cv.width / W; if (!skyC) skyC = document.createElement('canvas');
+      if (skyC.width !== cv.width || skyC.height !== cv.height) { skyC.width = cv.width; skyC.height = cv.height; }
+      const g = skyC.getContext('2d'), keep = ctx; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, skyC.width, skyC.height); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx = g; try { drawDragon(now, shadow); } finally { ctx = keep; }
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(fogMask, 0, 0, W, H); g.globalCompositeOperation = 'source-over';
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(skyC, 0, 0); ctx.restore(); }
+    function drawDragon(now, shadow) { if (!dragon) return; const p = dragonAt_(now); if (p.k > 1) { if (!shadow) dragon = null; return; }
+      if (p.sat && !dragon.landed) { dragon.landed = true; logLine('Something very large landed on the barrow', 'the costmap marks it as a moving obstacle the size of a bus. The rover gives it room.', 'dragon'); }
+      const flap = p.sat ? Math.sin(now / 900) * .15 : Math.sin(now / 280);
+      ctx.save(); if (shadow) { ctx.translate(p.x + (8 + 82 * p.alt) * p.S, p.y + (10 + 110 * p.alt) * p.S); ctx.rotate(dragon.a); ctx.globalAlpha = .14 + .1 * (1 - p.alt); wyrm(ctx, p.S * .92, flap, INKC, null, p.fold); }
+      else { ctx.translate(p.x, p.y); ctx.rotate(dragon.a); ctx.globalAlpha = .96; wyrm(ctx, p.S, flap, '#3B3047', INKC, p.fold); }
+      ctx.restore(); }
+    function drawIcon(g, it) {   // the set pieces, small, for the log and the Latest find pane
+      if (it.kind === 'ruin') { for (let i = 0; i < 7; i++) { const a = i / 7 * 6.28; g.fillStyle = STONE; g.strokeStyle = INKC; g.lineWidth = 1.2; g.beginPath(); g.roundRect(16 + Math.cos(a) * 10 - 2.5, 16 + Math.sin(a) * 10 - 2.5, 5, 5, 1.5); g.fill(); g.stroke(); }
+        g.fillStyle = '#A29E95'; g.beginPath(); g.roundRect(12, 13.5, 8, 5, 1); g.fill(); g.stroke(); return; }
+      if (it.kind === 'wall') { g.lineCap = 'round'; g.strokeStyle = INKC; g.lineWidth = 8; g.beginPath(); g.arc(16, 30, 16, 3.6, 5.8); g.stroke(); g.strokeStyle = STONE; g.lineWidth = 5.5; g.stroke();
+        g.lineCap = 'butt'; g.strokeStyle = '#FFC908'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(13, 12); g.lineTo(16, 15); g.lineTo(13, 18); g.moveTo(18, 12); g.lineTo(18, 18); g.stroke(); return; }
+      if (it.kind === 'guard') { const keep = guard; guard = { x: 16 / CELL, y: 16 / CELL, a: -Math.PI / 2 }; const k2 = ctx; ctx = g; drawGuard(0, true); ctx = k2; guard = keep; return; }
+      if (it.kind === 'ship') { g.save(); const k0 = ctx; ctx = g; try { drawShip(g, 16, 16, -.5, 30); } finally { ctx = k0; } g.restore(); return; }
+      if (it.kind === 'pool') { pool(g, 16, 16, 9); return; }
+      if (it.kind === 'dragon') { g.save(); g.translate(17, 16); g.rotate(-.5); wyrm(g, .15, 1, '#3B3047', INKC); g.restore(); return; }
+      if (it.kind === 'shout') { g.strokeStyle = C.yel; g.lineWidth = 3; g.beginPath(); g.arc(16, 16, 11, 0, 7); g.stroke(); g.strokeStyle = INKC; g.lineWidth = 1.2; g.beginPath(); g.arc(16, 16, 7, 0, 7); g.stroke(); g.fillStyle = C.ind; g.beginPath(); g.arc(16, 16, 3, 0, 7); g.fill(); return; }
+      if (it.kind === 'sand') { g.fillStyle = 'rgba(226,201,143,.9)'; g.beginPath(); g.ellipse(16, 16, 13, 9, 0, 0, 7); g.fill(); g.strokeStyle = 'rgba(30,33,38,.35)'; g.lineWidth = 1; for (const o of [-3, 2]) { g.beginPath(); g.moveTo(7, 16 + o); g.quadraticCurveTo(16, 12 + o, 25, 16 + o); g.stroke(); } return; }
+      if (it.kind === 'devil') { g.strokeStyle = 'rgba(160,130,80,.9)'; g.lineWidth = 2; for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(16, 16, 3 + k * 3.5, k, k + 4); g.stroke(); } return; }
+      return false; }
+    function thumb(it, size) {   // a find drawn as the arena draws it (Isaac, 19 Nov 2026: the pane showed a plain square)
+      const c = document.createElement('canvas'), dpr = Math.min(2, devicePixelRatio || 1); c.width = c.height = Math.round(size * dpr); c.className = 'glyph thumb'; c.setAttribute('aria-hidden', 'true');
+      const g = c.getContext('2d'); g.setTransform(dpr * size / 32, 0, 0, dpr * size / 32, 0, 0); g.textBaseline = 'alphabetic'; g.font = '600 10px "Chivo Mono", monospace';
+      if (drawIcon(g, it) === false) { const keep = ctx; ctx = g; try { drawFind({ ...it, x: 16 / CELL - .5, y: 16 / CELL - .5 }, 20, 0); } finally { ctx = keep; } }
+      return c; }
+    let hoverIt = null;
+    function draw(now) {
+      ctx.clearRect(0, 0, W, H);
+      if (gridDirty && gridLayer) { gridDirty = false; paintGrid(gridLayer.getContext('2d'), now); }   // the map only changes when the LiDAR senses
+      if (gridLayer) ctx.drawImage(gridLayer, 0, 0);
+      if (view === 'costmap' || view === 'nav2') { fresh = fresh.filter(f => now - f[2] < 600); ctx.fillStyle = '#E0282E'; for (const [px, py] of fresh) ctx.fillRect(px - 2, py - 2, 4, 4); }
+      else if (cloud) ctx.drawImage(cloud, 0, 0);
+      drawLive(now); }
+    function paintGrid(ctx, now) {
+      ctx.clearRect(0, 0, W, H); if (terrain) ctx.drawImage(terrain, 0, 0);
+      if (!fogMask) { fogMask = document.createElement('canvas'); fogRev = document.createElement('canvas'); }
+      if (fogMask.width !== W || fogMask.height !== H) { fogMask.width = fogRev.width = W; fogMask.height = fogRev.height = H; }
+      { const f = fogMask.getContext('2d'); f.clearRect(0, 0, W, H); f.fillStyle = '#000';   // every mapped cell, a little oversized so the edge is soft
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (known[id(x, y)]) f.fillRect(x * CELL - 3, y * CELL - 3, CELL + 6, CELL + 6); }
+      if (decor) { const r = fogRev.getContext('2d'); r.clearRect(0, 0, W, H); r.drawImage(fogMask, 0, 0); r.globalCompositeOperation = 'source-in'; r.drawImage(decor, 0, 0); r.globalCompositeOperation = 'source-over'; ctx.drawImage(fogRev, 0, 0); }
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (sand[id(x, y)] && known[id(x, y)]) { ctx.fillStyle = 'rgba(226,201,143,.5)'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
+      ctx.strokeStyle = 'rgba(62,155,95,.12)'; ctx.lineWidth = 1; ctx.font = '500 10px "Chivo Mono", monospace'; ctx.fillStyle = 'rgba(30,33,38,.45)';
+      const M1 = CELL / MPC;   // one metre in px
+      for (let k = 1; k * M1 < W; k++) { const x = Math.round(k * M1) + .5; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); if (k % 2 === 0) ctx.fillText(k + ' m', x + 3, H - 6); }
+      for (let k = 1; k * M1 < H; k++) { const y = Math.round(k * M1) + .5; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const k = known[id(x, y)];
+        if (k === 0) { ctx.fillStyle = 'rgba(30,33,38,.07)'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
+        else if (k === 2) { ctx.fillStyle = 'rgba(30,33,38,.10)'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
+        else if (cam[id(x, y)]) { ctx.fillStyle = 'rgba(62,155,95,.06)'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); } }
+      if (view === 'nav2') {   // Nav2's costmap colours: lethal, inscribed, then the inflation cost falling away
+        ctx.fillStyle = '#9EA2A8'; ctx.fillRect(0, 0, W, H);
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const i = id(x, y), k = known[i]; if (!k) continue; const c = cost[i];
+          ctx.fillStyle = k === 2 ? '#111317' : c >= 253 ? 'rgba(160,40,200,.8)' : c > 0 ? `rgba(40,${(110 + c * .4) | 0},210,${(.15 + c / 252 * .6).toFixed(2)})` : '#F2F2EF'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
+      }
+      if (view === 'costmap') {   // what Nav2 plans on: ground-filtered (0.08 to 1.0 m) returns on a 15 cm grid, with inflation
+        ctx.fillStyle = '#9EA2A8'; ctx.fillRect(0, 0, W, H);
+        for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const i = id(x, y), k = known[i]; if (!k) continue;
+          ctx.fillStyle = k === 2 ? '#111317' : nearO[i] === 2 ? 'rgba(160,40,200,.75)' : nearO[i] === 1 ? 'rgba(40,170,210,.55)' : '#F2F2EF'; ctx.fillRect(x * CELL, y * CELL, CELL, CELL); }
+        ctx.strokeStyle = 'rgba(0,0,0,.06)'; for (let x = 0; x <= cols; x++) { ctx.beginPath(); ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, H); ctx.stroke(); }
+        for (let y = 0; y <= rows; y++) { ctx.beginPath(); ctx.moveTo(0, y * CELL + .5); ctx.lineTo(W, y * CELL + .5); ctx.stroke(); }
+      }
+    }
+    function drawLive(now) {
+      if (view === 'cloud') fresh = fresh.filter(f => now - f[2] < 450);   // this scan's returns flash, then settle into the cloud
+      if (view === 'cloud') for (const [px, py, t] of fresh) { const a = 1 - (now - t) / 450; ctx.fillStyle = `rgba(120,200,255,${a * .9})`; ctx.fillRect(px - 1.5, py - 1.5, 3, 3); }
+      ctx.lineWidth = 1;   // faint tread marks that fade with age: 8 alpha bands, one stroke each
+      const BANDS = 8, nT = trail.length;
+      for (let b = 0; b < BANDS; b++) { const i0 = Math.max(1, Math.floor(nT * b / BANDS)), i1 = Math.floor(nT * (b + 1) / BANDS); if (i1 <= i0) continue;
+        ctx.strokeStyle = `rgba(30,33,38,${.18 * (b + .5) / BANDS})`; ctx.beginPath();
+        for (const side of [-1, 1]) { const o = side * .37 / MPC * CELL;
+          for (let i = i0; i <= Math.min(i1, nT - 1); i++) { const [x, y, h] = trail[i], px = x * CELL + Math.cos(h + Math.PI / 2) * o, py = y * CELL + Math.sin(h + Math.PI / 2) * o;
+            i === i0 ? ctx.moveTo(trail[i - 1][0] * CELL + Math.cos(trail[i - 1][2] + Math.PI / 2) * o, trail[i - 1][1] * CELL + Math.sin(trail[i - 1][2] + Math.PI / 2) * o) : 0; ctx.lineTo(px, py); } }
+        ctx.stroke(); }
+      if (goal && !userGoal) { ctx.strokeStyle = C.org; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc((goal[0] + .5) * CELL, (goal[1] + .5) * CELL, 9, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+      // MID-360 blind ring and the two camera wedges
+      for (const c of CAM) { const cx = (rx + Math.cos(rh) * c.x - Math.sin(rh) * c.y) * CELL, cy = (ry + Math.sin(rh) * c.x + Math.cos(rh) * c.y) * CELL;
+        const gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, CAM_R * CELL); gr.addColorStop(0, 'rgba(255,201,8,.16)'); gr.addColorStop(1, 'rgba(255,201,8,0)');
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, CAM_R * CELL, rh - CAM_FOV / 2, rh + CAM_FOV / 2); ctx.closePath(); ctx.fill(); }
+      if (view === 'nav2') {
+        if (search) { const age = now - search.t0, n = Math.min(search.cells.length, Math.floor(search.cells.length * Math.min(1, age / 900))), fade = Math.max(0, 1 - Math.max(0, age - 1600) / 1400);
+          if (fade > 0) for (let i = 0; i < n; i++) { const c = search.cells[i], edge = i > n - 40; ctx.fillStyle = edge ? `rgba(255,201,8,${.85 * fade})` : `rgba(46,20,153,${.3 * fade})`; ctx.fillRect((c % cols) * CELL + 2, ((c / cols) | 0) * CELL + 2, CELL - 4, CELL - 4); } }
+        ctx.fillStyle = C.leaf; for (const [x, y] of targets) { ctx.save(); ctx.translate((x + .5) * CELL, (y + .5) * CELL); ctx.rotate(Math.PI / 4); ctx.fillRect(-2.5, -2.5, 5, 5); ctx.restore(); }   // the exploration's candidate goals
+        if (rawPath.length && path.length) { ctx.strokeStyle = 'rgba(30,33,38,.55)'; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); rawPath.forEach(([x, y], i) => i ? ctx.lineTo(x * CELL, y * CELL) : ctx.moveTo(x * CELL, y * CELL)); ctx.stroke(); ctx.setLineDash([]); }
+        if (carrot && path.length) { ctx.strokeStyle = C.ind; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, LOOK * CELL, 0, 7); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(rx * CELL, ry * CELL); ctx.lineTo(carrot[0] * CELL, carrot[1] * CELL); ctx.stroke(); ctx.fillStyle = C.yel; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.arc(carrot[0] * CELL, carrot[1] * CELL, 4, 0, 7); ctx.fill(); ctx.stroke(); }
+      }
+      drawSky(now, true);   // its shadow is on the ground, under the rover
+      drawGuard(now);
+      if (ruins && ruins.ring && seen(ruins.cx, ruins.cy)) { const r = 1.6 / MPC * CELL, a = ruins.a0, open = hasClaw && items.some(i => i.kind === 'ruin' && i.found);
+        ctx.save(); ctx.translate(ruins.cx * CELL, ruins.cy * CELL); ctx.rotate(a); ctx.fillStyle = open ? '#0E0F12' : '#4A3A2C'; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5;
+        ctx.fillRect(r * .78, -r * .22, r * .2, r * .44); ctx.strokeRect(r * .78, -r * .22, r * .2, r * .44);
+        if (!open) { ctx.strokeStyle = '#8D939B'; ctx.lineWidth = 1.5; for (const k of [-.12, 0, .12]) { ctx.beginPath(); ctx.moveTo(r * .78, r * k); ctx.lineTo(r * .98, r * k); ctx.stroke(); } ctx.fillStyle = '#C9A227'; ctx.beginPath(); ctx.arc(r * .88, 0, 2.2, 0, 7); ctx.fill(); }
+        ctx.restore(); }
+      for (const [bx, by] of braziers) if (seen(bx, by)) { const x = bx * CELL, y = by * CELL, f = Math.sin(now / 90 + bx) * 1.5, g = ctx.createRadialGradient(x, y, 0, x, y, 26);
+        g.addColorStop(0, 'rgba(255,140,40,.35)'); g.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 26, 0, 7); ctx.fill();
+        ctx.fillStyle = '#FF5102'; ctx.beginPath(); ctx.ellipse(x, y - 1, 5 + f * .4, 5 - f * .3, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#FFC908'; ctx.beginPath(); ctx.ellipse(x + f * .3, y - 1, 2.6, 2.6 + f * .3, 0, 0, 7); ctx.fill(); }
+      for (const q of pools) if (seen(q.x, q.y)) for (let k = 0; k < 5; k++) { const ph = (now / 1400 + k * .37) % 1, a = k * 2.1 + Math.floor(now / 1400 + k * .37), x = (q.x + Math.cos(a) * q.r * .6) * CELL, y = (q.y + Math.sin(a) * q.r * .45) * CELL;
+        ctx.strokeStyle = `rgba(230,255,200,${1 - ph})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(x, y, 1.5 + ph * 4, 0, 7); ctx.stroke(); }
+      if (shout) { const k = Math.max(0, (now - shout) / 900); if (k > 1) shout = null; else { const r = (k * 3.2 / MPC) * CELL; ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = C.yel; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r, 0, 7); ctx.stroke();
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(rx * CELL, ry * CELL, r * .82, 0, 7); ctx.stroke(); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.28; ctx.beginPath(); ctx.moveTo(rx * CELL + Math.cos(a) * r * .5, ry * CELL + Math.sin(a) * r * .5); ctx.lineTo(rx * CELL + Math.cos(a) * r * .75, ry * CELL + Math.sin(a) * r * .75); ctx.stroke(); } ctx.restore(); } }
+      if (path.length) { ctx.strokeStyle = C.red; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); ctx.beginPath(); ctx.moveTo(rx * CELL, ry * CELL); for (const [x, y] of path) ctx.lineTo(x * CELL, y * CELL); ctx.stroke(); ctx.setLineDash([]); }
+      if (goal && userGoal) { ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc((goal[0] + .5) * CELL, (goal[1] + .5) * CELL, 7, 0, 7); ctx.stroke(); }
+      for (const it of items) if (it.found && !it.collected && !['ruin', 'wall', 'guard', 'ship', 'pool'].includes(it.kind) && !(act && act.it === it && act.type === 'pick' && now - act.t0 > 1100)) { const s = it === hoverIt ? 22 : 16; it.kind === 'aruco' ? drawAruco(it, s) : drawFind(it, s * .85, now); }
+      if (devil && seen(devil.x, devil.y)) { const x = devil.x * CELL, y = devil.y * CELL; ctx.strokeStyle = 'rgba(160,130,80,.55)'; ctx.lineWidth = 2; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x, y, 6 + k * 5, now / 200 + k, now / 200 + k + 4); ctx.stroke(); } }
+      critters.forEach(c => { if (!seen(c.x, c.y)) return; const x = c.x * CELL, y = c.y * CELL, col = c.home ? 'rgba(255,255,255,.35)' : power ? (power < 2 && Math.sin(now / 90) > 0 ? '#fff' : '#5B5FD6') : c.col;
+        ctx.fillStyle = col; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, r = 9 + Math.sin(now / 120 + k * 2 + c.t) * 1.6; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#fff'; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.arc(x + s2 * 3, y - 1, 2.6, 0, 7); ctx.fill(); } ctx.fillStyle = C.ink; const ex = (rx - c.x) > 0 ? 1 : -1; for (const s2 of [-1, 1]) { ctx.beginPath(); ctx.arc(x + s2 * 3 + ex, y - 1, 1.2, 0, 7); ctx.fill(); } });
+      fx.filter(f => f.coin).forEach(f => { const k = (now - f.t0) / 1000; if (k > 1) return; const x = (f.it.x + .5) * CELL, y = (f.it.y + .5) * CELL - 30 * k;
+        ctx.globalAlpha = 1 - k; ctx.fillStyle = C.yel; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.ellipse(x, y - 10, 5 * Math.abs(Math.cos(k * 12)) + 1, 6, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = C.ink; ctx.font = '600 12px "Chivo Mono", monospace'; ctx.fillText('+1', x + 8, y - 14); ctx.globalAlpha = 1; });
+      fx = fx.filter(f => now - f.t0 < 1600);
+      for (const f of fx.filter(f2 => !f2.coin && !f2.txt)) { const k = (now - f.t0) / 1600, it = f.it, x = (it.x + .5) * CELL, y = (it.y + .5) * CELL, e = 1 - Math.pow(1 - Math.min(1, k * 2.2), 3);
+        const half = 46 - 30 * e, a = 1 - Math.max(0, (k - .7) / .3), col = it.kind === 'aruco' ? C.leaf : it.kind === 'cube' ? it.col : C.org;
+        ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 3; const L = 8;
+        for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.moveTo(x + sx * half, y + sy * (half - L)); ctx.lineTo(x + sx * half, y + sy * half); ctx.lineTo(x + sx * (half - L), y + sy * half); ctx.stroke(); }
+        const label = (it.kind === 'aruco' ? `aruco ${String(it.n).padStart(2, '0')}` : it.kind === 'cube' ? `yolo: ${it.name.toLowerCase()} cube` : it.kind === 'egg' ? 'yolo: unknown object' : it.kind === 'cell' ? 'yolo: power cell' : 'yolo: ' + it.kind) + ` ${f.conf}`;
+        ctx.font = '600 12px "Chivo Mono", monospace'; const w = ctx.measureText(label).width + 12;
+        const tagBg = col === '#F5F4F0' || col === '#FFC908' ? C.ink : col, tagDark = [C.ink, C.ind, C.red, '#1E2126', '#2E1499', '#BB0700'].includes(tagBg);
+        ctx.fillStyle = tagBg; ctx.fillRect(x - half, y - half - 22, w, 20); ctx.fillStyle = tagDark ? '#fff' : C.ink; ctx.fillText(label, x - half + 6, y - half - 8); ctx.globalAlpha = 1; }
+      // Theseus V from its CAD, to scale; the arm and bucket reach out for pickups
+      let reach = 0, bx = 0, by = 0, held = null;
+      if (act) { const p = (now - act.t0) / (act.type === 'pick' ? 2200 : 1100), it = act.it;
+        if (act.type === 'pick') { reach = p < .4 ? p / .4 : p < .55 ? 1 : Math.max(0, 1 - (p - .55) / .4); if (p > .5) held = { it, k: Math.min(1, (p - .5) / .2) }; }
+        if (act.type === 'bump') { reach = Math.sin(Math.PI * Math.min(1, p * 1.3)); }
+        if (act.type === 'scan') { const a = Math.max(0, 1 - Math.abs(p - .4) * 3); for (const c of CAM) { const cx = (rx + Math.cos(rh) * c.x - Math.sin(rh) * c.y) * CELL, cy = (ry + Math.sin(rh) * c.x + Math.cos(rh) * c.y) * CELL;
+          ctx.fillStyle = `rgba(255,255,255,${a * .8})`; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, CAM_R * CELL, rh - CAM_FOV / 2, rh + CAM_FOV / 2); ctx.closePath(); ctx.fill(); } } }
+      const k = CELL / MPC / 1000 / SPR.s;   // sprite px -> canvas px
+      ctx.save(); ctx.translate(rx * CELL + bx, ry * CELL + by); ctx.rotate(rh + Math.PI / 2); ctx.scale(k, k);
+      if (body.complete && body.naturalWidth) { ctx.drawImage(body, -SPR.ox, -SPR.oy); ctx.drawImage(arm, -SPR.ox, -SPR.oy - reach * 0.22 / MPC * CELL / k); }
+      else { ctx.fillStyle = C.ind; ctx.fillRect(-300, -300, 600, 600); }
+      if (held) { ctx.restore(); ctx.save(); const bxp = rx * CELL + Math.cos(rh) * (0.47 + reach * 0.22) / MPC * CELL, byp = ry * CELL + Math.sin(rh) * (0.47 + reach * 0.22) / MPC * CELL;
+        const ix = (held.it.x + .5) * CELL, iy = (held.it.y + .5) * CELL, tx = ix + (bxp - ix) * held.k, ty = iy + (byp - iy) * held.k, fake = { ...held.it, x: tx / CELL - .5, y: ty / CELL - .5 };
+        ctx.globalAlpha = 1 - held.k * .6; held.it.kind === 'aruco' ? drawAruco(fake, 14) : drawFind(fake, 12, now); }
+      ctx.restore();
+      fx.filter(f => f.txt).forEach(f => { const kk = (now - f.t0) / 1100; if (kk > 1) return; ctx.globalAlpha = 1 - kk; ctx.fillStyle = C.leaf; ctx.font = '600 13px "Chivo Mono", monospace'; ctx.fillText(f.txt, rx * CELL + 30, ry * CELL - 30 - 24 * kk); ctx.globalAlpha = 1; });
+      if (view === 'nav2' && !transition) { const bt = recov ? 'Recovery · BackUp 0.3 m' : act ? (act.type === 'scan' ? 'Wait · reading a marker' : 'Wait · arm working') : path.length ? 'FollowPath · Regulated Pure Pursuit' : 'ComputePathToPose';
+        ctx.font = '600 11px "Chivo Mono", monospace'; const tw = ctx.measureText(bt).width + 12, bx3 = Math.min(W - tw - 8, Math.max(8, rx * CELL - tw / 2)), by3 = Math.max(8, ry * CELL - 44);
+        ctx.fillStyle = recov ? C.red : C.ink; ctx.fillRect(bx3, by3, tw, 18); ctx.fillStyle = '#fff'; ctx.fillText(bt, bx3 + 6, by3 + 13); }
+      if (!RM && !dragon && dragonAt && now > dragonAt && !transition) {
+        const keeps = [...cv.parentElement.querySelectorAll('[data-keep]')].filter(el => el.offsetParent).map(rectOf); let sx = 0, sy = 0, sn = 0;   // the middle of the open ground
+        for (let y = 2; y < rows - 2; y += 3) for (let x = 2; x < cols - 2; x += 3) if (!keeps.some(k => inR(x, y, k, 0))) { sx += x; sy += y; sn++; }
+        const a = (rnd() - .5) * 1.2 + (rnd() < .5 ? 0 : Math.PI), L = Math.hypot(W, H) / 2 + 260, mx = sn ? sx / sn * CELL : W / 2, my = sn ? sy / sn * CELL : H / 2;
+        dragon = { t0: now, dur: 7500, a, x0: mx - Math.cos(a) * L, y0: my - Math.sin(a) * L, x1: mx + Math.cos(a) * L, y1: my + Math.sin(a) * L }; dragonAt = 0;
+        if (ruins && rnd() < .6) { const px = (ruins.cx + Math.cos(ruins.a0) * ruins.R) * CELL, py = (ruins.cy + Math.sin(ruins.a0) * ruins.R) * CELL;   // it lands on the arch
+          dragon.perch = [px, py]; dragon.x0 = px - Math.cos(a) * L; dragon.y0 = py - Math.sin(a) * L; dragon.x1 = px + Math.cos(a) * L; dragon.y1 = py + Math.sin(a) * L; }
+        else logLine('A very large shadow crossed the arena', 'far above the 1 m the costmap keeps, so Nav2 never saw it. The cameras did.', 'dragon'); }
+      drawSky(now, false);
+      ctx.fillStyle = C.ink; ctx.fillRect(W - 120, H - 30, 1 / MPC * CELL, 4); ctx.font = '500 11px "Chivo Mono", monospace'; ctx.fillText('1 m', W - 120, H - 36);
+      if (transition) { const kk = Math.min(1, (now - transition) / 1400); ctx.fillStyle = `rgba(236,234,228,${kk})`; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = C.ink; ctx.font = '700 28px "Chivo Mono", monospace'; ctx.textAlign = 'center'; ctx.globalAlpha = kk;
+        { const msg = `SECTOR ${String(sector).padStart(2, '0')} COVERED · ROLLING ON TO ${String(sector + 1).padStart(2, '0')}`, fit = Math.min(28, 28 * (W - 32) / ctx.measureText(msg).width);
+          ctx.font = `700 ${fit.toFixed(1)}px "Chivo Mono", monospace`; ctx.fillText(msg, W / 2, cv.clientWidth < 900 ? H * .84 : H / 2); }   // fits the width; below the hero card on phones ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+        if (kk >= 1 && now - transition > 2000) { transition = 0; newSector(); } }
+    }
+    let last = 0, vis = true;
+    let paused = false; const pb = document.getElementById('rv-pause'); if (pb) pb.addEventListener('click', () => { paused = !paused; pb.setAttribute('aria-pressed', paused); });
+    function loop(t) { const dt = Math.min(.05, (t - last) / 1000 || 0); last = t; if (vis && !paused) { step(dt / 2); step(dt / 2); draw(t); } requestAnimationFrame(loop); }
+    new IntersectionObserver(es => { vis = es[0].isIntersecting; }).observe(cv);
+    const at = ev => { const r = cv.getBoundingClientRect(); return [(ev.clientX - r.left) / CELL, (ev.clientY - r.top) / CELL, ev.clientX - r.left, ev.clientY - r.top]; };
+    cv.addEventListener('mousemove', ev => { const [gx, gy, px, py] = at(ev);
+      hoverIt = items.find(it => it.found && !it.collected && !['sand', 'devil', 'guard'].includes(it.kind) && Math.hypot(it.x + .5 - gx, it.y + .5 - gy) < 1.6) || null;
+      cv.style.cursor = hoverIt ? 'pointer' : 'crosshair';
+      if (hoverIt) { const p = hoverIt.kind === 'aruco' ? BY[hoverIt.slug] : null; tip.hidden = false;
+        tip.innerHTML = p ? `<b>${p.title}</b><span>${p.result} · click to open</span>` : `<b>${hoverIt.label || hoverIt.name}</b><span>${hoverIt.sub || hoverIt.text}</span>`;
+        tip.style.left = Math.min(px, W - 250) + 'px'; tip.style.top = py + 'px'; } else tip.hidden = true; });
+    cv.addEventListener('mouseleave', () => { hoverIt = null; tip.hidden = true; });
+    cv.addEventListener('click', ev => {
+      if (hoverIt && !['ruin', 'wall', 'ship', 'pool'].includes(hoverIt.kind)) { if (hoverIt.kind === 'aruco') openProject(hoverIt.slug); return; }
+      const [fx_, fy_] = at(ev), gx = Math.floor(fx_), gy = Math.floor(fy_); if (!inside(gx, gy) || nogo[id(gx, gy)] || known[id(gx, gy)] === 2 || transition) return;
+      task = null; goal = [gx, gy]; userGoal = true; path = astar(Math.floor(rx), Math.floor(ry), gx, gy) || []; if (!path.length) { goal = null; userGoal = false; } status(); });
+    const lv = document.getElementById('livo'); if (lv) lv.addEventListener('change', () => { livo = lv.checked; });
+    document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { view = b.dataset.view; gridDirty = true;
+      document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', x === b)); const lg = document.getElementById('sensors-note'); if (lg) lg.hidden = view !== 'costmap'; const ln = document.getElementById('nav2-note'); if (ln) ln.hidden = view !== 'nav2'; const sk = cv.parentElement.querySelector('.sensors'); if (sk) sk.hidden = view !== 'cloud'; }));
+    document.getElementById('showall').onclick = () => {
+      [...queue].forEach(slug => { detect({ kind: 'aruco', slug, n: DATA.found.indexOf(slug) + 1, bits: arucoBits(DATA.found.indexOf(slug) + 1), x: 0, y: 0 }, true); });
+      items.filter(it => it.kind === 'aruco' && !it.found).forEach(it => detect(it, true)); queue = [];
+      document.getElementById('projects').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }); };
+    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (cv.clientWidth === W && Math.abs(cv.clientHeight - H) < 160) return; sector--; newSector(); }, 300); });   // a phone's address bar showing or hiding changes the height a little: keep the sector
+    sector = Math.max(0, (+new URLSearchParams(location.search).get('sector') || 1) - 1);
+    newSector();
+    if (RM) { for (let i = 0; i < occ.length; i++) known[i] = occ[i] ? 2 : 1; cam.fill(1); items.forEach(it => { if (!it.found) detect(it, true); }); draw(0); }
+    else requestAnimationFrame(loop);
+  })();
