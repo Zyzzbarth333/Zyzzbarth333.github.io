@@ -229,6 +229,35 @@ function lid() {
 }
 
 const move = (dz) => k.translateAlong(P, [0, 0, dz]);
+
+// ---------- numbered part markers ----------
+// One number per part, at a point on that part; each sits in a group that moves with its assembly. The boards'
+// numbers fade in as the boards come out (they are inside the box when it is closed); the lid's and base's always show.
+const ORDER = ["lid", "mega", "converter", "heltec", "bme", "sd", "base"];
+const MARK_AT = {
+  lid: [-10, 20, TOP + LID_H], base: [BOX.x + 34, BOX.y, TOP * 0.42],
+  mega: [MEGA.x + 62, MEGA.y + 38, ON + 6], converter: [CONV.x + CONV.w / 2, CONV.y + 16, ON + 14],
+  heltec: [HELTEC.x + HELTEC.w / 2, HELTEC.y + 30, 38], bme: [BME.x, BME.y + BME.d / 2, 13 + 25.4 + 6], sd: [SD.x + SD.w / 2, SD.y + SD.d / 2, ON + 8],
+};
+const marker = (id) => {
+  const [x, y] = at(MARK_AT[id]), n = ORDER.indexOf(id) + 1, inner = id !== "lid" && id !== "base";
+  const cls = id === "lid" ? "ws-lid ws-mark" : id === "base" ? "ws-mark" : "ws-boards ws-mark";
+  return `<g class="${cls}" data-part="${id}"${inner ? " data-inner" : ""}><g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="ws-num"><circle r="9"/><text y="4">${n}</text></g></g></g>`;
+};
+
+// Phones get a tighter frame round the parts, with the lid lifted more steeply (height is cheap on a phone, width is
+// not), so the station fills the width.
+const PHONE_LIFT = { lid: [-20, -20, 120], boards: [0, 0, 50] };
+const PHONE_BOX = (() => {
+  const pts = [
+    ...ASSEMBLED,
+    ...lifted(k.boxCorners(BOX, TOP - 4, TOP + LID_H), PHONE_LIFT.lid),
+    ...lifted([...circleAt(ANT, 1.6, ANT_TOP), ...k.boxCorners(BME, 13, 13 + 25.4)], PHONE_LIFT.boards),
+  ].map((p) => at(p)).map(([x, y]) => [WIDTH - x, y]);   // the drawing is mirrored about the frame's centre line
+  const xs = pts.map(([x]) => x), ys = pts.map(([, y]) => y), m = 14;
+  const x0 = Math.min(...xs) - m, y0 = Math.min(...ys) - m;
+  return [x0, y0, Math.max(...xs) + m - x0, Math.max(...ys) + m - y0].map((v) => +v.toFixed(1));
+})();
 const svg = k.figureSvg({
   width: WIDTH, height: HEIGHT,
   label: "The launch-site weather station's parts, placed as in its Fusion design: a 3D-printed enclosure holding an Arduino Mega 2560, the SEN0186 weather-kit adapter behind it, a microSD breakout, a raised Heltec WiFi LoRa 32 V3 radio board whose antenna rises through the lid, and a BME280 breakout standing on the right wall behind a vent. The Arduino Mega, which runs the firmware, is the part in red. Hovering lifts the lid and then the boards out of the box.",
@@ -241,6 +270,7 @@ const svg = k.figureSvg({
     `<g data-part="base">${baseFront()}</g>`,
     `<g class="ws-lid" data-part="lid">${lid()}</g>`,
     `<g class="ws-boards" data-part="heltec">${antennaTop()}</g>`,
+    ...ORDER.map(marker),
     `</g>`,
   ],
 });
@@ -254,16 +284,28 @@ const PARTS = {
   bme: "BME280 breakout · on the right wall behind a vent; pressure, temperature and humidity over I2C",
   sd: "microSD breakout · the local log, written before anything is sent",
 };
-const ORDER = ["lid", "mega", "converter", "heltec", "bme", "sd", "base"];
-
 const live = `
 const P = ${JSON.stringify(P)};
-const LIFT = ${JSON.stringify(LIFT)};
+const LIFTS = { wide: ${JSON.stringify(LIFT)}, phone: ${JSON.stringify(PHONE_LIFT)} };
+const BOXES = { wide: "0 0 ${WIDTH} ${HEIGHT}", phone: "${PHONE_BOX.join(" ")}" };
 const PARTS = ${JSON.stringify(PARTS)};
 const ORDER = ${JSON.stringify(ORDER)};
 const stage = document.querySelector(".iso-stage");
 const svg = stage.querySelector("svg");
-const lidEl = svg.querySelector(".ws-lid");
+const lidEls = [...svg.querySelectorAll(".ws-lid")];
+const innerMarks = [...svg.querySelectorAll(".ws-mark[data-inner]")];
+const nums = [...svg.querySelectorAll(".ws-num")];
+const phoneQ = matchMedia("(max-width: 600px)");
+let LIFT = LIFTS.wide;
+// the numbers stay about 11 px on screen whatever the frame's scale (counter-mirrored, as the drawing is mirrored)
+function fit() {
+  const phone = phoneQ.matches;
+  LIFT = phone ? LIFTS.phone : LIFTS.wide;
+  svg.setAttribute("viewBox", phone ? BOXES.phone : BOXES.wide);
+  const ppu = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+  if (ppu) nums.forEach((g) => g.setAttribute("transform", "scale(" + (-1 / ppu).toFixed(3) + " " + (1 / ppu).toFixed(3) + ")"));
+  place();
+}
 const boardEls = [...svg.querySelectorAll(".ws-boards")];
 const readout = document.querySelector("[data-readout]");
 const still = matchMedia("(prefers-reduced-motion: reduce)");
@@ -293,9 +335,12 @@ function pick(id) {
 }
 function place() {
   const l = springs.lid.x, b = springs.boards.x;
-  l > 0.0005 ? lidEl.setAttribute("transform", translateAlong(P, LIFT.lid.map((v) => v * l))) : lidEl.removeAttribute("transform");
+  const tl = l > 0.0005 ? translateAlong(P, LIFT.lid.map((v) => v * l)) : "";
+  lidEls.forEach((g) => (tl ? g.setAttribute("transform", tl) : g.removeAttribute("transform")));
   const t = b > 0.0005 ? translateAlong(P, LIFT.boards.map((v) => v * b)) : "";
   boardEls.forEach((g) => (t ? g.setAttribute("transform", t) : g.removeAttribute("transform")));
+  const o = Math.max(0, Math.min(1, (b - 0.35) / 0.5));   // the boards' numbers show once they are clear of the box
+  innerMarks.forEach((g) => { g.style.opacity = o.toFixed(2); g.style.visibility = o > 0 ? "" : "hidden"; });
 }
 function rest() {   // snap both assemblies home at once
   apart = false;
@@ -360,37 +405,62 @@ stage.addEventListener("keydown", (ev) => {
   else return;
   ev.preventDefault();
 });
+// the key under the drawing: pointing at or focusing a name takes the station apart and picks that part
+const key = document.querySelector(".ws-key");
+key.querySelectorAll("button").forEach((b) => {
+  const on = () => { setApart(true); pick(b.dataset.pick); };
+  b.addEventListener("pointerenter", on); b.addEventListener("focus", on); b.addEventListener("click", on);
+});
+key.addEventListener("pointerleave", (ev) => { if (ev.pointerType === "mouse") { setApart(false); pick(null); } });
+key.addEventListener("focusout", (ev) => { if (!key.contains(ev.relatedTarget)) { setApart(false); pick(null); } });
 pick(null);
-place();
+fit();
+phoneQ.addEventListener("change", fit);
+new ResizeObserver(fit).observe(svg);
 `;
 
 const css = `
 html{color-scheme:light!important;background:transparent!important}body{background:transparent!important}
-/* the site's card-icon palette (style.css, .card .icon.iso): white faces, a lavender ramp, indigo outlines, one red accent */
+/* the site's palette: white faces on the panel, a neutral ramp from paper, ink and mute outlines, the Mega in red,
+   a picked part in indigo */
 body.iso[data-theme="light"]{
-  --anatomy-card:#ffffff;--anatomy-paper:#ffffff;--anatomy-face:#ffffff;--anatomy-top:#ffffff;
-  --anatomy-shade-0:#cfc7ec;--anatomy-shade-1:#ddd7f2;--anatomy-shade-2:#e9e5f7;--anatomy-shade-3:#f4f2fb;
-  --anatomy-lit-top:#fff3f0;--anatomy-lit-shade:#f6d8d2;
-  --anatomy-hi:#2E1499;--anatomy-mid:#6E5CC4;--anatomy-lo:#A99EDB;--anatomy-faint:#D9D3F0;--anatomy-lit:#BB0700;
-  --anatomy-halo:#2E1499;--anatomy-halo-opacity:.22;--anatomy-dot:#2E1499;
-  --anatomy-text:#2E1499;--anatomy-muted:#5E4FA8}
+  --anatomy-page:#F5F4F0;--anatomy-card:#F5F4F0;--anatomy-paper:#ffffff;--anatomy-face:#ffffff;--anatomy-top:#ffffff;
+  --anatomy-shade-0:#D6D3CA;--anatomy-shade-1:#E1DED5;--anatomy-shade-2:#ECEAE4;--anatomy-shade-3:#F5F4F0;
+  --anatomy-lit-top:#FBEDEB;--anatomy-lit-shade:#F1D2CE;
+  --anatomy-hi:#1E2126;--anatomy-mid:#5D626B;--anatomy-lo:rgb(93 98 107 / .55);--anatomy-faint:rgb(93 98 107 / .28);--anatomy-lit:#BB0700;
+  --anatomy-halo:#1E2126;--anatomy-halo-opacity:.18;--anatomy-dot:#1E2126;
+  --anatomy-red:#BB0700;--anatomy-green:#3E9B5F;--anatomy-blue:#2E1499;
+  --anatomy-text:#1E2126;--anatomy-strong:#1E2126;--anatomy-muted:#5D626B}
 .iso-page{width:100%!important;margin:0!important}
 /* the plate is the whole frame: no outline rule and no margin round it (the kit's would show as grey rules in the iframe) */
 .iso-figure{margin:0}
-.iso-plate{padding:44px 24px;border-radius:12px;box-shadow:none}
+.iso-plate{padding:44px 24px 40px;border-radius:0;box-shadow:none}
 .iso-plate-corners{inset:16px 22px}
-/* a picked part: indigo-deep edges on a lavender fill; the rest steps well back. Red stays on the Mega alone. */
+/* a picked part: indigo edges on an indigo-tinted fill; the rest steps well back. Red stays on the Mega alone. */
 .iso-svg [data-part][data-on]{
-  --anatomy-paper:#f1eefb;--anatomy-top:#e4dff6;
-  --anatomy-shade-0:#b4a8e1;--anatomy-shade-1:#c4bae8;--anatomy-shade-2:#d3cbef;--anatomy-shade-3:#e0daf4;
-  --anatomy-hi:#220E73;--anatomy-mid:#4A36B0;--anatomy-lo:#6E5CC4;--anatomy-faint:#A99EDB;--anatomy-dot:#220E73;--anatomy-weight:.9px}
-.iso-svg [data-part][data-on] .iso-solid:not([data-lit])>.iso-edge{stroke:#220E73}
+  --anatomy-paper:#F1EEFA;--anatomy-top:#E6E1F5;
+  --anatomy-shade-0:#BDB4E0;--anatomy-shade-1:#CBC4E7;--anatomy-shade-2:#D9D3EE;--anatomy-shade-3:#E6E1F5;
+  --anatomy-hi:#2E1499;--anatomy-mid:#2E1499;--anatomy-lo:rgb(46 20 153 / .6);--anatomy-faint:rgb(46 20 153 / .3);--anatomy-dot:#2E1499;--anatomy-weight:.9px}
+.iso-svg [data-part][data-on] .iso-solid:not([data-lit])>.iso-edge{stroke:#2E1499}
 .iso-svg[data-focus] [data-part]:not([data-on]){
-  --anatomy-top:#ffffff;--anatomy-shade-0:#eeebf8;--anatomy-shade-1:#f2f0fa;--anatomy-shade-2:#f6f4fc;--anatomy-shade-3:#faf9fd;
-  --anatomy-hi:#cec6eb;--anatomy-mid:#d9d3f0;--anatomy-lo:#e3dff4;--anatomy-faint:#efecf8;--anatomy-dot:#c4bbe8;
-  --anatomy-lit:#e6aaa2;--anatomy-lit-top:#fffaf9;--anatomy-lit-shade:#fbeeeb;--anatomy-halo-opacity:.06}
+  --anatomy-top:#ffffff;--anatomy-shade-0:#EFEDE8;--anatomy-shade-1:#F2F1EC;--anatomy-shade-2:#F6F5F1;--anatomy-shade-3:#FAF9F7;
+  --anatomy-hi:rgb(30 33 38 / .25);--anatomy-mid:rgb(30 33 38 / .2);--anatomy-lo:rgb(30 33 38 / .14);--anatomy-faint:rgb(30 33 38 / .08);--anatomy-dot:rgb(30 33 38 / .25);
+  --anatomy-lit:rgb(187 7 0 / .35);--anatomy-lit-top:#FFFAF9;--anatomy-lit-shade:#FBEEEB;--anatomy-halo-opacity:.06}
+/* numbered markers: ink discs, Chivo Mono numbers; a picked part's turns indigo */
+@font-face{font-family:"Chivo Mono";src:url("../fonts/chivo-mono-latin.woff2") format("woff2");font-weight:500 600;font-display:swap}
+.ws-num circle{fill:#1E2126;stroke:#F5F4F0;stroke-width:1.5}
+.ws-num text{fill:#F5F4F0;font:600 11.5px "Chivo Mono",ui-monospace,monospace;text-anchor:middle}
+.iso-svg [data-part][data-on] .ws-num circle{fill:#2E1499}
+.iso-svg[data-focus] .ws-mark:not([data-on]){opacity:.45}
+/* the key: every part named, without a hover */
+.ws-key{list-style:none;margin:0;padding:6px 24px 14px;background:var(--anatomy-card);display:flex;flex-wrap:wrap;gap:4px 18px}
+.ws-key button{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:2px 0;border:0;background:none;cursor:pointer;color:#1E2126;font:500 12.5px/1.2 "Chivo Mono",ui-monospace,monospace;text-align:left}
+.ws-key b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#1E2126;color:#F5F4F0;font-weight:600;font-size:11.5px;flex:none}
+.ws-key button:hover,.ws-key button:focus-visible{color:#2E1499;text-decoration:underline;text-underline-offset:.2em}
+.ws-key button:hover b,.ws-key button:focus-visible b{background:#2E1499}
+.ws-key button:focus-visible{outline:2px solid #2E1499;outline-offset:2px}
 .iso-stage{outline:none;cursor:default}
-.iso-stage:focus-visible{box-shadow:0 0 0 3px #2E1499;border-radius:10px}
+.iso-stage:focus-visible{box-shadow:0 0 0 3px #2E1499}
 @font-face{font-family:"Sanchez";src:url("../fonts/sanchez-400-latin.woff2") format("woff2");font-display:swap}
 .iso-plate-corner,.iso-plate-corner[data-corner]{font-family:"Sanchez",Georgia,serif;font-size:12.5px;line-height:1.3;letter-spacing:0;text-transform:none}
 .iso-plate-corner[data-corner="fig"],.iso-plate-corner[data-corner="title"]{display:none}
@@ -398,7 +468,9 @@ body.iso[data-theme="light"]{
 .iso-plate-corner[data-corner="hint"]{top:0;bottom:auto;left:0}
 .iso-plate-corner[data-corner="readout"]{top:auto;bottom:0;left:0;right:0;text-align:right;white-space:normal;text-wrap:balance}
 @media (max-width:600px){
-  .iso-plate{padding:46px 8px}
+  .iso-plate{padding:40px 8px 44px}
+  .ws-key{display:grid;grid-template-columns:1fr 1fr;padding:4px 12px 12px;gap:2px 12px}
+  .ws-key button{font-size:12px}
   .iso-plate-corners{inset:12px 12px}
   .iso-plate-corner[data-corner="hint"]{bottom:auto}
   .iso-plate-corner,.iso-plate-corner[data-corner]{font-size:11.5px}}
@@ -414,7 +486,9 @@ const body = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="group" aria-label="Weather station parts. Focus to take it apart; arrow keys name each part; Space puts it back together.">${svg}</div>`,
 });
 
-const page = k.pageHtml({ title: "Weather station, apart", theme, body, script: kitScript() + live })
+const NAME = (id) => PARTS[id].split(" · ")[0];
+const keyHtml = `<ol class="ws-key" aria-label="Parts">${ORDER.map((id, i) => `<li><button type="button" data-pick="${id}"><b>${i + 1}</b>${NAME(id)}</button></li>`).join("")}</ol>`;
+const page = k.pageHtml({ title: "Weather station, apart", theme, body: body.replace("</figure>", keyHtml + "</figure>"), script: kitScript() + live })
   .replace("</style>", css + "</style>")
   .replace("<head>", "<head><!-- Drawn with the Anatomy kit (MIT License, Copyright (c) 2026 Ryan): see LICENSE-anatomy-kit.txt beside this file. -->");
 writeFileSync(OUT, page);

@@ -63,7 +63,7 @@ PAGE = r'''<!doctype html>
      hue, direct labels, a linked cursor and a table view. -->
 <style>
 @font-face { font-family: "Sanchez"; src: url("../fonts/sanchez-400-latin.woff2") format("woff2"); font-display: swap; }
-:root { --ink: #2E1499; --line: #4F37C8; --muted: #5E4FA8; --grid: #ECE9F6; --pick: #E8590C; --surface: #FFFFFF; }
+:root { --ink: #2E1499; --line: #2E1499; --muted: #5D626B; --grid: #E1DED5; --pick: #FF5102; --surface: #FFFFFF; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--surface); color: var(--ink); font: 14px/1.45 "Sanchez", Georgia, serif; }
 .wrap { padding: 14px 16px 14px; display: grid; gap: 14px; }
@@ -72,7 +72,7 @@ svg { display: block; width: 100%; height: auto; overflow: visible; }
 .grid line { stroke: var(--grid); stroke-width: 1; }
 .tick, .axis-title { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .note { fill: var(--muted); font-size: 11.5px; }
-.val { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+.val { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }   /* a halo, so the crosshair never runs through it */
 .contour { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-linejoin: round; }
 .cross { stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.35; }
 .ring { fill: none; stroke: var(--pick); stroke-width: 2; }
@@ -80,7 +80,7 @@ svg { display: block; width: 100%; height: auto; overflow: visible; }
 #plot { touch-action: pan-y; }   /* a finger scrolls the page up and down; a tap or sideways drag picks a transfer */
 #plot:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .below { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 24px; align-items: center; }
-.orbit { fill: none; stroke: #D9D3F0; stroke-width: 1.5; }
+.orbit { fill: none; stroke: #5D626B; stroke-opacity: 0.4; stroke-width: 1.5; }
 .arc { fill: none; stroke: var(--pick); stroke-width: 3; stroke-linecap: round; }
 #orbits .note { font-size: 20px; }
 dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; font-variant-numeric: tabular-nums; }
@@ -125,7 +125,7 @@ th { color: var(--muted); }
       <button type="button" class="link" data-dest="mars" aria-pressed="true">Mars</button> ·
       <button type="button" class="link" data-dest="jupiter" aria-pressed="false">Jupiter</button></p>
     <p class="wins" id="wins" aria-live="polite">Launch windows 2026–2040, found by the orrery's search: <span class="muted">searching…</span></p>
-    <h3 id="head">Total Δv from a 200 km Earth orbit to a 400 km orbit of Mars</h3>
+    <h3 id="head">Total Δv, Earth to Mars</h3>
     <svg id="plot" tabindex="0" role="group" aria-roledescription="porkchop plot"></svg><p class="sr" id="say" aria-live="polite"></p>
   </div>
   <div class="below">
@@ -138,11 +138,12 @@ th { color: var(--muted); }
         <dt>Total Δv</dt><dd id="r-dv">–</dd>
         <dt>Departure C3</dt><dd id="r-c3">–</dd>
       </dl>
+      <p class="hint" id="conv">Δv runs from a 200 km Earth orbit to escape speed at Mars periapsis, not a bound orbit.</p>
       <p class="hint" id="hint">Working out the transfers in your browser…</p>
     </div>
   </div>
   <details><summary>Every launch window as a table, beside NASA's Trajectory Browser</summary>
-    <div class="tw"><table><thead><tr><th>Leave Earth</th><th id="tb-arr">Arrive at Mars</th><th>Flight time (days)</th><th>C3 (km²/s²)</th><th>Injection (km/s)</th><th>Arrival (km/s)</th><th>Total Δv (km/s)</th><th>NASA's total (km/s)</th></tr></thead><tbody id="tb"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>Leave Earth</th><th id="tb-arr">Arrive at Mars</th><th>Flight time (days)</th><th>C3 (km²/s²)</th><th>Injection (km/s)</th><th>Arrival (to escape speed, km/s)</th><th>Total Δv (km/s)</th><th>NASA's total (km/s)</th></tr></thead><tbody id="tb"></tbody></table></div>
   </details>
 </div>
 <script type="module">
@@ -252,7 +253,7 @@ function draw() {
     if (clear(rights[mid])) txt(plot, rights[mid][0] - 10, rights[mid][1] + 4, "Type I", "note", "end");
   }
   el("circle", { cx: X(m.iDep), cy: Y(m.iTof), r: 3.5, fill: "#2E1499" }, plot);
-  txt(plot, X(m.iDep) + 8, Y(m.iTof) + 4, `${m.dv.toFixed(2)} km/s`, "val");
+  txt(plot, X(m.iDep) + 8, Y(m.iTof) - 8, `${m.dv.toFixed(2)} km/s`, "val");   // above the crosshair, not on it
   marks = {
     v: el("line", { class: "cross", y1: T, y2: T + geo.ph }, plot), h: el("line", { class: "cross", x1: L, x2: L + geo.pw }, plot),
     ring: el("circle", { class: "ring", r: 5.5 }, plot),
@@ -283,7 +284,7 @@ function drawOrbits() {
   rings.forEach((pts) => el("path", { class: "orbit", d: pts.map((r, k) => { const p = P(r); return (k ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join("") }, orb));
   el("circle", { cx: 0, cy: 0, r: 8, fill: "#FFC908", stroke: "#2E1499", "stroke-width": 1.5 }, orb);
   arc = el("path", { class: "arc" }, orb);
-  eDot = el("circle", { r: 7, fill: "#2E1499" }, orb); mDot = el("circle", { r: 7, fill: "#E8590C" }, orb);
+  eDot = el("circle", { r: 7, fill: "#2E1499" }, orb); mDot = el("circle", { r: 7, fill: "#FF5102" }, orb);
   eLab = txt(orb, 0, 0, "Earth", "note"); mLab = txt(orb, 0, 0, C.name, "note");
 }
 
@@ -325,7 +326,8 @@ function run(k, win) {
   depStart = win ? new Date(Math.floor(win.depMs / DAY_MS - C.span / 2) * DAY_MS) : new Date(Date.UTC(C.start[0], C.start[1], C.start[2]));
   depDays = range(0, C.span, C.step); tofDays = range(C.tof[0], C.tof[1], C.tof[2]);
   arrival = { key: k, mu: BODIES[k].mu, rPark: BODIES[k].rPeri, capture: false };   // capture is added below, NASA's way
-  setText("head", `Total Δv from a 200 km Earth orbit to capture at ${C.name}`);
+  setText("head", `Total Δv, Earth to ${C.name}`);
+  setText("conv", `Δv runs from a 200 km Earth orbit to escape speed at ${C.name} periapsis, not a bound orbit.`);
   setText("r-arr-l", `Arrive at ${C.name}`); setText("tb-arr", `Arrive at ${C.name}`);
   setText("hint", `Working out ${(depDays.length * tofDays.length).toLocaleString("en-AU")} transfers in your browser…`);
   document.querySelectorAll(".dest button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.dest === k)));
