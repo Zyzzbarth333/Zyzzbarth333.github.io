@@ -72,7 +72,7 @@ def visible(text):
 
 
 r_git = subprocess.run(['git', '-C', repo, 'ls-files', '*.html'], capture_output=True, text=True)
-tracked = r_git.stdout.split()
+tracked = [f for f in r_git.stdout.split() if not f.startswith('tools/')]   # build templates are not pages
 if r_git.returncode or not tracked:   # not a checkout, or no pages added to git: nothing would be scanned, so say so and fail
     print(f'no tracked HTML pages to scan in {repo} ({(r_git.stderr.strip() or "git ls-files found none")[:160]})'); sys.exit(2)
 texts = {f: visible((Path(repo) / f).read_text(errors='replace')) for f in tracked}

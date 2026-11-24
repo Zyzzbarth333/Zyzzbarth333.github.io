@@ -740,11 +740,11 @@ PROJECTS = [
              [(P + 'crank-arm-section.webp', 'Section along the crank arm showing the closed internal cavity, its thin skins and its angled ends',
                'Section along the arm: the closed internal cavity, its 2 mm skins and the ends angled 50° above horizontal, so it prints without internal supports.'),
               (P + 'crank-arm-render.webp', 'Render of the final crank arm with its two powder-escape holes in the side wall',
-               'The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.',
+               'The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.'),
               # Source: IMG:40 (12c-3, "Optional"); 408 MPa, SF 2.11, 1800 N: F:563, LI:646. Image checked: no Fusion
               # browser or file name in view (LI:637 warns the file name carries the student number).
               ('coursework/crank-arm-fea.webp', 'Fusion 360 stress plot of the crank arm, blue at the bosses and green to yellow along the arm, with a colour scale topping out at 408 MPa',
-               'Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.'))]),
+               'Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.')]),
             # Sources: gyro pendulum role, 1.1 s swing-up in sim, not on the rig: LI:621. Helicopter: hover model,
             # Simulink model for sim and rig, teammates led LQR tuning, Kalman filter and feedforward, flew under
             # joystick, disturbances pushed in by hand: LI:623. Bicycle: unstable at 5 m/s: VO:15, VO:33; poles and

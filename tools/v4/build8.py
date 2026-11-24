@@ -216,6 +216,7 @@ def page(slug):
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="../icons.css">
 <style>{PAGE_CSS}</style>
 <link rel="stylesheet" href="../polish.css">
+{RAIL_STYLE}
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="{HOME}"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main">{nav}</nav></header>
@@ -244,7 +245,7 @@ def page(slug):
 """
 
 
-RAIL_CSS = """<style>
+RAIL_STYLE = """<style>
 .rail{font:500 13px/1.45 var(--mono);margin:0 0 18px}.rail-h{font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;font-size:12px}
 .rail ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:2px}.rail a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-left:2px solid transparent}
 .rail a:hover{background:var(--paper2,#E1DED5)}.rail a[aria-current]{border-left-color:var(--ink);font-weight:600;background:transparent}
@@ -252,8 +253,10 @@ RAIL_CSS = """<style>
 @media (min-width:1100px){.wu.has-rail{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:36px}.wu.has-rail>h2{grid-column:1/-1}.wu.has-rail>.old{grid-column:2}
 .rail{position:sticky;top:76px;align-self:start;max-height:calc(100svh - 96px);overflow:auto;margin:0}}
 @media (max-width:1099px){.rail-all,.rail-h+.rail-all{display:none}.rail ol{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
-</style>
-<script>
+</style>"""
+
+
+RAIL_CSS = """<script>
 (function(){const links=[...document.querySelectorAll('.rail ol:first-of-type a[href^="#"]')];if(!links.length||!('IntersectionObserver' in window))return;
 const by=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));let cur=null;
 const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const a=by.get(e.target.id);if(a&&a!==cur){if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','true');cur=a;}}});},{rootMargin:'-15% 0px -70% 0px'});

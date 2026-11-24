@@ -32,6 +32,15 @@
 <link rel="stylesheet" href="/assets/css/iso-kit.css"><link rel="stylesheet" href="/assets/css/v4/icons.css?v=fbe6aacd">
 <link rel="stylesheet" href="/assets/css/v4/page.css?v=9d711069">
 <link rel="stylesheet" href="/assets/css/v4/polish.css?v=7e7063fe">
+<style>
+.rail{font:500 13px/1.45 var(--mono);margin:0 0 18px}.rail-h{font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;font-size:12px}
+.rail ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:2px}.rail a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-left:2px solid transparent}
+.rail a:hover{background:var(--paper2,#E1DED5)}.rail a[aria-current]{border-left-color:var(--ink);font-weight:600;background:transparent}
+.rail-all a[aria-current=page]{color:var(--ind,#2E1499)}
+@media (min-width:1100px){.wu.has-rail{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:36px}.wu.has-rail>h2{grid-column:1/-1}.wu.has-rail>.old{grid-column:2}
+.rail{position:sticky;top:76px;align-self:start;max-height:calc(100svh - 96px);overflow:auto;margin:0}}
+@media (max-width:1099px){.rail-all,.rail-h+.rail-all{display:none}.rail ol{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+</style>
 </head><body>
 <a class="vh" href="#main">Skip to content</a>
 <header class="top"><a class="nm" href="../index.html"><span class="mk">IJZ</span>Isaac Johan Ziebarth</a><nav aria-label="Main"><a href="../index.html#projects">Projects</a><a href="../index.html#systems">Systems</a><a href="coursework.html" aria-current="page">Coursework</a><a href="../index.html#about">About</a><a href="../index.html#contact">Contact</a></nav></header>
@@ -101,9 +110,13 @@
             <img src="/assets/img/projects/crank-arm-section.webp" alt="Section along the crank arm showing the closed internal cavity, its thin skins and its angled ends" width="1600" height="637" loading="lazy" decoding="async">
             <figcaption>Section along the arm: the closed internal cavity, its 2 mm skins and the ends angled 50° above horizontal, so it prints without internal supports.</figcaption>
         </figure>
-        <figure class="figure wide">
-            <a class="fig-link" href="/assets/diagrams/('coursework/crank-arm-fea.webp', 'Fusion 360 stress plot of the crank arm, blue at the bosses and green to yellow along the arm, with a colour scale topping out at 408 MPa', 'Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.')" target="_blank" rel="noopener" aria-label="Render of the final crank arm with its two powder-escape holes in the side wall (opens the interactive diagram) (opens in a new tab)"><img src="/assets/img/projects/crank-arm-render.webp" alt="Render of the final crank arm with its two powder-escape holes in the side wall" width="1600" height="752" loading="lazy" decoding="async"></a>
-            <figcaption>The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall. <a class="fig-open" href="/assets/diagrams/('coursework/crank-arm-fea.webp', 'Fusion 360 stress plot of the crank arm, blue at the bosses and green to yellow along the arm, with a colour scale topping out at 408 MPa', 'Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.')" target="_blank" rel="noopener">Open the interactive diagram<span class="visually-hidden"> (opens in a new tab)</span></a></figcaption>
+        <figure class="figure">
+            <img src="/assets/img/projects/crank-arm-render.webp" alt="Render of the final crank arm with its two powder-escape holes in the side wall" width="1600" height="752" loading="lazy" decoding="async">
+            <figcaption>The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.</figcaption>
+        </figure>
+        <figure class="figure">
+            <img src="/assets/img/coursework/crank-arm-fea.webp" alt="Fusion 360 stress plot of the crank arm, blue at the bosses and green to yellow along the arm, with a colour scale topping out at 408 MPa" width="1290" height="620" loading="lazy" decoding="async">
+            <figcaption>Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.</figcaption>
         </figure>
             <h2 id="control-design-for-three-rigs">Control design for three rigs</h2>
             <p class="meta">METR6203 Control Engineering 2 · 2025 · two team assignments and one on my own</p>
@@ -234,16 +247,7 @@ document.querySelectorAll('.fig.panel iframe').forEach(f => {
   const hook = () => { fit(); try { const d = f.contentDocument, ro = new ResizeObserver(fit); ro.observe(d.documentElement); ro.observe(d.body); if (d.fonts) d.fonts.ready.then(fit); } catch (e) {} };
   f.addEventListener('load', hook); try { if (f.contentDocument && f.contentDocument.readyState === 'complete' && f.contentDocument.URL !== 'about:blank') hook(); } catch (e) {}
 });
-</script><style>
-.rail{font:500 13px/1.45 var(--mono);margin:0 0 18px}.rail-h{font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;font-size:12px}
-.rail ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:2px}.rail a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-left:2px solid transparent}
-.rail a:hover{background:var(--paper2,#E1DED5)}.rail a[aria-current]{border-left-color:var(--ink);font-weight:600;background:transparent}
-.rail-all a[aria-current=page]{color:var(--ind,#2E1499)}
-@media (min-width:1100px){.wu.has-rail{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:36px}.wu.has-rail>h2{grid-column:1/-1}.wu.has-rail>.old{grid-column:2}
-.rail{position:sticky;top:76px;align-self:start;max-height:calc(100svh - 96px);overflow:auto;margin:0}}
-@media (max-width:1099px){.rail-all,.rail-h+.rail-all{display:none}.rail ol{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
-</style>
-<script>
+</script><script>
 (function(){const links=[...document.querySelectorAll('.rail ol:first-of-type a[href^="#"]')];if(!links.length||!('IntersectionObserver' in window))return;
 const by=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));let cur=null;
 const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const a=by.get(e.target.id);if(a&&a!==cur){if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','true');cur=a;}}});},{rootMargin:'-15% 0px -70% 0px'});

@@ -306,7 +306,7 @@ def noindex(p):
     return bool(re.search(r'<meta\s+name="robots"\s+content="[^"]*noindex', p.read_text(errors='replace'), re.I))
 
 
-published = [REPO / f for f in git('ls-files', '*.html').splitlines() if not f.startswith('assets/')] or pages()
+published = [REPO / f for f in git('ls-files', '*.html').splitlines() if not f.startswith(('assets/', 'tools/'))] or pages()   # tools/ holds build templates, not pages
 indexable = {rel(p) for p in published if p.exists() and not noindex(p)}
 search = {'listed': 0, 'missing': [], 'extra': [], 'canonical_ok': 0, 'robots_ok': False}
 site_base = None
