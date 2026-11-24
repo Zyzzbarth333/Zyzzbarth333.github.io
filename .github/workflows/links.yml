@@ -21,6 +21,7 @@ jobs:
         with:
           args: >-
             --no-progress --offline --include-fragments --root-dir ${{ github.workspace }}
+            --exclude-path tools
             './**/*.html' README.md CONTRIBUTING.md
           fail: true
           jobSummary: true
