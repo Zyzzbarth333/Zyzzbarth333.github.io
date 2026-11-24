@@ -159,8 +159,12 @@
       items.forEach(it => { const mv = it.kind === 'devil' ? devil : it.kind === 'guard' ? guard : null, ix = mv ? Math.floor(mv.x) : it.x, iy = mv ? Math.floor(mv.y) : it.y;
         if (!it.found && inside(ix, iy) && cam[id(ix, iy)] && inCam(ix + .5, iy + .5)) detect(it); });
     }
+    function pushLog(li) {   // the same line twice in a row becomes one row with a count
+      const top = logEl.firstElementChild, key = li.textContent;
+      if (top && top.dataset.key === key) { const n = (+top.dataset.n || 1) + 1; top.dataset.n = n; let c = top.querySelector('.rep'); if (!c) { c = document.createElement('small'); c.className = 'rep'; (top.querySelector('b') || top).after(c); } c.textContent = ` ×${n}`; return; }
+      li.dataset.key = key; logEl.prepend(li); while (logEl.children.length > 40) logEl.lastChild.remove(); }
     function logLine(text, sub, kind) { const li = document.createElement('li'); li.innerHTML = `<div class="row"><span class="glyph" style="background:${C.org}"></span><span><b>${text}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></div>`;
-      if (kind) li.querySelector('.glyph').replaceWith(thumb({ kind }, 22)); logEl.prepend(li); }
+      if (kind) li.querySelector('.glyph').replaceWith(thumb({ kind }, 22)); pushLog(li); }
     function counters() { const c = document.getElementById('coins'), sc = document.getElementById('score'); if (c) c.textContent = coins; if (sc) sc.textContent = score; }
     function glyphHTML(it) {
       if (it.kind === 'aruco') return '<span class="glyph aruco">' + it.bits.map(b => `<i style="background:${b ? '#fff' : '#111'}"></i>`).join('') + '</span>';
@@ -172,7 +176,7 @@
         if (t) tasks.push({ it, type: t }); }
       let title, sub, body, btn = '', icon = '';
       if (it.kind === 'aruco') { const p = BY[it.slug]; nProj++; title = p.title; sub = `ArUco ${String(it.n).padStart(2, '0')} · project`; body = p.result;
-        icon = (document.getElementById('ic-' + it.slug) || {}).innerHTML || ''; btn = `<button class="btn" type="button" data-open="${it.slug}">Open</button>`;  if (!quiet) { const say = document.getElementById('rv-say'); if (say) say.textContent = `Found a project: ${p.title}`; } }
+        icon = (document.getElementById('ic-' + it.slug) || {}).innerHTML || ''; btn = `<a class="btn" href="projects/${it.slug}.html">Open</a>`;  if (!quiet) { const say = document.getElementById('rv-say'); if (say) say.textContent = `Found a project: ${p.title}`; } }
       else if (it.kind === 'cube') { nFind++; title = it.label; sub = `${it.name} cube · result`; body = it.sub; }
       else if (it.kind === 'egg') { nFind++; title = it.name; sub = 'field find ★'; body = it.text;
         if ((it.look === 'block' || it.look === 'qblock') && (quiet || RM)) { coins++; score += 100; counters(); }
@@ -186,9 +190,9 @@
       if (!quiet) { latest.innerHTML = `<div class="lt-ic${icon ? ' card' : ''}">${icon || glyphHTML(it)}</div><div><p class="mono">${sub} · ${how} · conf ${conf}</p><b>${title}</b><p>${body}</p>${btn}</div>`;
         if (!icon && it.kind !== 'aruco') latest.querySelector('.lt-ic').replaceChildren(thumb(it, 76)); }   // the find as the arena draws it
       const li = document.createElement('li');
-      li.innerHTML = `<${it.kind === 'aruco' ? `button type="button" data-open="${it.slug}"` : 'div'} class="row">${glyphHTML(it)}<span><b>${title}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></${it.kind === 'aruco' ? 'button' : 'div'}>`;
+      li.innerHTML = `<${it.kind === 'aruco' ? `a href="projects/${it.slug}.html"` : 'div'} class="row">${glyphHTML(it)}<span><b>${title}</b><em>${sub}</em></span><i>S${String(sector).padStart(2, '0')}</i></${it.kind === 'aruco' ? 'a' : 'div'}>`;
       if (it.kind !== 'aruco') { const g = li.querySelector('.glyph'); if (g) g.replaceWith(thumb(it, 22)); }
-      logEl.prepend(li); while (logEl.children.length > 40) logEl.lastChild.remove();
+      pushLog(li);
       status();
     }
     function astar(sx, sy, gx, gy) {   // plan, then smooth; the raw path and the search are kept for the Nav2 view

@@ -201,3 +201,17 @@ footer.site { padding: 28px 16px 36px; text-align: center; font: 500 12px var(--
 #systems .note { font: 400 15px/1.55 Sanchez, Georgia, serif; }
 /* coursework cards on phones: no plot thumbnails (unreadable at that size), so the list is a third as long */
 @media (max-width: 700px) { .cwcard .th { display: none; } .cwcard { padding-top: 10px; } }
+/* phone polish (25 Nov 2026) */
+/* the Latest find pane keeps one height, so the field log under it stops jumping as finds come in */
+#latest { min-height: 214px; }
+#latest p:not(.mono) { display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+#log .rep { font: 600 11px var(--mono); color: var(--mute); }
+#log a.row { color: inherit; text-decoration: none; }
+/* breadcrumbs: ink links with a touch-sized target (they were 14 px tall and fainter than the current page) */
+.crumbs a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+@media (pointer: coarse) { .crumbs a { display: inline-block; padding: 12px 2px; margin: -12px 0; } }
+/* the hero card on phones: no second grey band behind its eyebrow and paragraph */
+#arena-wrap .hero-copy p, #arena-wrap .hero-copy .eyebrow { background: none; }
+/* project pages on phones: the hero icon no longer fills the first screen */
+@media (max-width: 700px) { .hero-ic { max-width: 180px; } }
+@media (max-width: 700px) { #arena-wrap .hero-copy { background: var(--panel); } }   /* solid, so the mapped ground does not show through as bands */
