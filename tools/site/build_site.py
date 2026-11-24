@@ -666,12 +666,12 @@ PROJECTS = [
         # the LinkedIn texts it checked. Held: aero4470-reentry (Q12). Skipped: mech3200, engg1700. No marks, no course
         # material, schlieren or facility images, no names. Images: the CV workspace's linkedin-images/, as WebP.
         slug='coursework', card=None, coursework=True,
-        kicker='UQ coursework · 2025 – 2026', title='Selected coursework', team=False,
-        summary='Nine pieces of coursework from my UQ degree: propulsion, hypersonics, control, robotics, functional safety, computer vision and design for metal 3D printing.',
-        outcome='Nine pieces of coursework from my degree at UQ, newest first. Each says whether it was mine alone or a team effort, and what my part was.',
-        facts=[('Courses', 'AERO4450, AERO4470, METR6203, METR4202, METR4201, METR3100, ELEC4630, MATE7015'),
-               ('When', '2025 – 2026'),
-               ('Tools', 'Python, MATLAB and Simulink, ROS 2, fastai, Fusion 360')],
+        kicker='UQ coursework · 2022 – 2026', title='Selected coursework', team=False,
+        summary='Fifteen pieces of coursework from my UQ degree: propulsion, hypersonics, control, robotics, functional safety, computer vision, circuits, machine design and design for metal 3D printing.',
+        outcome='Fifteen pieces of coursework from my degree at UQ, newest first. Each says whether it was mine alone or a team effort, and what my part was.',
+        facts=[('Courses', 'AERO4450, AERO4470, MATE7015, METR6203, METR4202, METR4201, METR3100, ELEC4630, MECH3301, METR2800, ELEC2004, MECH2210, MECH2100, CSSE2010'),
+               ('When', '2022 – 2026'),
+               ('Tools', 'Python, MATLAB and Simulink, ROS 2, fastai, Fusion 360, Excel, C on AVR')],
         index=[('Scramjet cycle with nitrous augmentation', 'AERO4450 · 2026'),
                ('Reflected shock tunnel analysis', 'AERO4470 · 2026'),
                ('Cold gas thruster against nozzle theory', 'AERO4450 · 2026'),
@@ -680,22 +680,48 @@ PROJECTS = [
                ('Autonomous exploration and marker search', 'METR4202 · 2025'),
                ('Furuta pendulum balance controller', 'METR4201 · 2025'),
                ('Functional safety case for a LiDAR check', 'METR3100 · 2025'),
-               ('Road signs and rice leaf disease', 'ELEC4630 · 2025')],
+               ('Road signs and rice leaf disease', 'ELEC4630 · 2025'),
+               ('Foam packaging for an egg drop', 'MECH3301 · 2024'),
+               ('Ball-collecting robot', 'METR2800 · 2024'),
+               ('Inverting a black-box circuit', 'ELEC2004 · 2023'),
+               ('Gyroscopic precession tests', 'MECH2210 · 2023'),
+               ('Spur gearbox to AGMA methods', 'MECH2100 · 2023'),
+               ('Snakes and Ladders on an AVR', 'CSSE2010 · 2022')],
         lead=None,
         sections=[
+            # Sources: 164.6 MJ/kg and K_X ~0.032 at 1000 K, 0.5 bar: F:438, VT:59. Mach 10 check 7.2%, Mcrit 10.65,
+            # about 11% at Mach 13, Isp 637 s at M10.65 to 458 s at M15: F:441, VT:54-55. "Isp above 450 s to about
+            # Mach 15" and "margin below 0.5 past Mach 13" are the wording F:444 requires. Team split: F:436, LI:781.
+            # Figure 2: IMG:52; values 289.1 and 246.5 kJ/mol: VT:59 (Table 3).
             ('Scramjet cycle with nitrous augmentation',
              '<p class="meta">AERO4450 Aerospace Propulsion · 2026 · Part 1 on my own, final report in a team of 2</p>\n'
-             "            <p>A 1-D cycle analysis of a scramjet that burns part of its hydrogen with on-board nitrous oxide to keep thrust up at higher Mach numbers. The combustion part was mine alone: in Python I worked out the heat release of hydrogen burning with nitrous oxide, 164.6 MJ/kg. For the final report, where I did most of the work, we built the cycle model and matched the lecture's Mach 10 example to within 7.2% on thrust. Without nitrous the critical Mach number was 10.65; at Mach 13, burning about 11% of the hydrogen with nitrous oxide restored the brief's 0.5 thrust margin. It is a simulation of a fictional scenario.</p>",
+             "            <p>A 1-D cycle analysis of a scramjet that burns part of its hydrogen with on-board nitrous oxide to keep thrust up at higher Mach numbers. The combustion part was mine alone: in Python I worked out the heat release of hydrogen burning with nitrous oxide, 164.6 MJ/kg, and the equilibrium of nitrous oxide decomposition, with an equilibrium constant of about 0.032 at 1000 K and 0.5 bar.</p>\n"
+             "            <p>For the final report, where I did most of the work, we built the cycle model and matched the lecture's Mach 10 example to within 7.2% on thrust. Without nitrous the critical Mach number was 10.65; at Mach 13, burning about 11% of the hydrogen with nitrous oxide restored the brief's 0.5 thrust margin. Specific impulse fell from 637 s at Mach 10.65 to 458 s at Mach 15, above the 450 s rocket reference, though the thrust margin drops below 0.5 past Mach 13. It is a simulation of a fictional scenario.</p>",
              [('coursework/scramjet-margin-isp.webp', 'Two plots against flight Mach number from 8 to 15: thrust margin and specific impulse, each with and without nitrous augmentation',
-               'Thrust margin and specific impulse against flight Mach number, with and without augmentation.')]),
+               'Thrust margin and specific impulse against flight Mach number, with and without augmentation.'),
+              ('coursework/scramjet-heat-release.webp', 'Heat released per mole of hydrogen falling in a straight line from 289.1 kJ/mol at an air-breathing ratio of 0.5 to 246.5 kJ/mol at 1.0',
+               'From my Part 1 combustion analysis: each mole of hydrogen releases more heat the more of it burns with nitrous oxide instead of air.')]),
+            # Sources: shots, fills, staff-run facility, solo write-up: F:454, F:458, VT:69, LI:800. Calibration, shock
+            # detection, Ms values, Cantera cross-check, uncertainty: F:454, LI:802. Test times 0.5 / 0.2 ms: VT:73
+            # (F:458 bars only claiming LONGER windows). Plate pressures and sigmas (0.91/0.60 equilibrium, 0.29/0.15
+            # calorically perfect, attributed per F:456 and VT:75). 39.2 +/- 2.0 deg at 85 kPa, too close to call:
+            # F:456, LI:804. No schlieren or facility image (F:458). Figure 2: IMG:54.
             ('Reflected shock tunnel analysis',
              '<p class="meta">AERO4470 Hypersonics · 2026 · my own report on shots taken for our class group</p>\n'
-             "            <p>An analysis of shots taken for our class group in UQ's Drummond reflected shock tunnel with a Mach 7 nozzle, at fills of 15 and 85 kPa. In Python I calibrated the wall pressure transducers in place, detected shock arrival automatically and measured shock Mach numbers of 3.676 ± 0.088 and 2.671 ± 0.047, carrying the uncertainty through every step. The measured plate pressures, 6.39 ± 1.15 and 12.39 ± 1.36 kPa, sat within one standard deviation of both the equilibrium and the calorically perfect predictions.</p>",
+             "            <p>An analysis of shots taken for our class group in UQ's Drummond reflected shock tunnel with a Mach 7 nozzle, at fills of 15 and 85 kPa. Course staff ran the facility; the analysis and the report were mine. In Python I calibrated the wall pressure transducers in place, detected shock arrival automatically and measured shock Mach numbers of 3.676 ± 0.088 and 2.671 ± 0.047, carrying the uncertainty through every step. I took the stagnation and nozzle exit conditions from the equilibrium chart and cross-checked them with Cantera.</p>\n"
+             "            <p>The useful test windows were 0.5 and 0.2 ms. The measured plate pressures, 6.39 ± 1.15 and 12.39 ± 1.36 kPa, sat within one standard deviation of both gas models: 0.91 and 0.60 sigma from the equilibrium prediction, 0.29 and 0.15 sigma from the calorically perfect one. The 39.2 ± 2.0° shock angle I measured at 85 kPa was too close to call between the two.</p>",
              [('coursework/shock-tunnel-plate-pressure.webp', 'Two traces of plate pressure against time, one for each fill pressure, with the useful test window shaded on each',
-               'Pressure on the test plate at both fills, with the test windows marked.')]),
+               'Pressure on the test plate at both fills, with the test windows marked.'),
+              ('coursework/shock-tunnel-xt.webp', 'Two distance-time wave diagrams of the tunnel, one per fill, showing the incident shock, contact surface, expansion fan and reflected shock, with the test window shaded at the nozzle entrance',
+               'Wave diagrams of the tunnel for the 15 and 85 kPa fills, scaled from my measured shock speeds.')]),
+            # Sources: back pressures, Summerfield, 44-86%, R2 0.995, scatter 0.8 N: F:383, LI:720-722. Group of 8 and
+            # "most of the analysis, notebook behind every figure and table": F:381, VO:100. 12 firings, exit Mach 2.94,
+            # Summerfield onset 25.1 kPa: VO:118, VO:121. "Pointed to firing repeatability": LI:722. "Did not find the
+            # cause" keeps F:385 (never claim the cause was found). No Cd figure (F:385).
             ('Cold gas thruster against nozzle theory',
              '<p class="meta">AERO4450 Aerospace Propulsion · 2026 · lab in a group of 8</p>\n'
-             '            <p>Firing a small cold gas thruster into back pressures from 1.35 to 81.35 kPa and comparing its thrust with isentropic nozzle theory, using the Summerfield criterion for flow separation. I did most of the analysis and wrote the notebook behind every figure and table, including the thrust-stand calibration (R² 0.995). Measured thrust ran 44 to 86% below theory, and repeat firings scattered by up to 0.8 N, more than the instrument uncertainty.</p>',
+             '            <p>Firing a small cold gas thruster into back pressures from 1.35 to 81.35 kPa and comparing its thrust with isentropic nozzle theory, using the Summerfield criterion for flow separation. I did most of the analysis and wrote the notebook behind every figure and table: the thrust-stand calibration (R² 0.995), the steady thrust from each of the 12 firings, the theory and the uncertainty. For the ideal nozzle the theory gives an exit Mach number of 2.94 and separation from 25.1 kPa back pressure.</p>\n'
+             '            <p>Measured thrust ran 44 to 86% below theory across the underexpanded, overexpanded and separated regimes. Repeat firings scattered by up to 0.8 N, more than the instrument uncertainty, which pointed to firing repeatability as the main source of variation. We did not pin down the cause of the gap to theory.</p>',
              [('coursework/cold-gas-thrust.webp', 'Measured thrust points with error bars well below the falling line of isentropic theory, against back pressure from 0 to 100 kPa',
                'Measured thrust against isentropic nozzle theory across the back-pressure range.')]),
             ('Titanium crank arm for metal 3D printing',
@@ -714,35 +740,132 @@ PROJECTS = [
              [(P + 'crank-arm-section.webp', 'Section along the crank arm showing the closed internal cavity, its thin skins and its angled ends',
                'Section along the arm: the closed internal cavity, its 2 mm skins and the ends angled 50° above horizontal, so it prints without internal supports.'),
               (P + 'crank-arm-render.webp', 'Render of the final crank arm with its two powder-escape holes in the side wall',
-               'The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.')]),
+               'The final design rendered in Fusion 360 (not built), with the 2 powder-escape holes in the side wall.',
+              # Source: IMG:40 (12c-3, "Optional"); 408 MPa, SF 2.11, 1800 N: F:563, LI:646. Image checked: no Fusion
+              # browser or file name in view (LI:637 warns the file name carries the student number).
+              ('coursework/crank-arm-fea.webp', 'Fusion 360 stress plot of the crank arm, blue at the bosses and green to yellow along the arm, with a colour scale topping out at 408 MPa',
+               'Von Mises stress in my static study at the 1800 N test load: a peak of 408 MPa, a safety factor of 2.11. A design only, not built.'))]),
+            # Sources: gyro pendulum role, 1.1 s swing-up in sim, not on the rig: LI:621. Helicopter: hover model,
+            # Simulink model for sim and rig, teammates led LQR tuning, Kalman filter and feedforward, flew under
+            # joystick, disturbances pushed in by hand: LI:623. Bicycle: unstable at 5 m/s: VO:15, VO:33; poles and
+            # 3.44% overshoot on the linear model: F:393, LI:625. No settling time (F:393).
+            # Figures 2-3: IMG:78, IMG:79; 0.002 rad step: VO:15.
             ('Control design for three rigs',
              '<p class="meta">METR6203 Control Engineering 2 · 2025 · two team assignments and one on my own</p>\n'
-             '            <p>On a gyro-actuated inverted pendulum I was responsible for the MATLAB and Simulink model, the LQR capture controller and integration, with Stateflow switching between an energy-based swing-up and balance. In simulation it swung up in about 1.1 s and was caught, but we ran out of time to get the swing-up working on the rig. On a Quanser 3-DOF helicopter I built the linearised hover model and the Simulink model that joins the observer, controller and plant, and the controller flew under joystick control. On my own, I designed a state feedback controller and observer for a linearised Whipple bicycle; in simulation its step response overshot by 3.4%.</p>',
+             '            <p>On a gyro-actuated inverted pendulum I was responsible for the MATLAB and Simulink model, the LQR capture controller and integration, with Stateflow switching between an energy-based swing-up and balance. In simulation it swung up in about 1.1 s and was caught, but we ran out of time to get the swing-up working on the rig.</p>\n'
+             '            <p>On a Quanser 3-DOF helicopter I built the linearised hover model the LQG controller is designed around, and the Simulink model that joins the observer, controller and plant. Teammates led the LQR tuning, the Kalman filter and the feedforward. On the rig the controller flew under joystick control and rejected disturbances pushed in by hand.</p>\n'
+             '            <p>On my own, I designed a state feedback controller and a full-state observer for a linearised Whipple bicycle, which is unstable at the 5 m/s analysed. I placed the closed-loop poles at -2, -10 and -1 ± j and the observer poles at -8, -16 and -4 ± j. In simulation on the linear model the step response overshot by 3.4%.</p>',
              [('coursework/gyro-pendulum-stateflow.webp', 'Stateflow chart with three states, swing up, capture and swing down, and the angle conditions that move between them',
-               'The Stateflow logic I wrote for the gyro pendulum: swing up, capture once it is near upright, and swing down to retry.')]),
+               'The Stateflow logic I wrote for the gyro pendulum: swing up, capture once it is near upright, and swing down to retry.'),
+              ('coursework/helicopter-simulink.webp', 'Simulink diagram with blocks for the reference input, integral controller, state feedback controller, helicopter plant, Kalman filter and an observer switch',
+               'The Simulink model I built for the 3-DOF helicopter, joining the reference, integral and state feedback controller, plant and Kalman filter.'),
+              ('coursework/bicycle-response.webp', 'Five plots over 10 s: tilt angle, steer angle tracking a 0.002 rad reference, tilt rate, steer rate and steering torque, all settling',
+               'Simulated response of my bicycle controller to a 0.002 rad steering command, on the linear model.')]),
+            # Sources: task, SLAM Toolbox, Nav2, integration lead, frontier detector, ranking, blacklisting, stuck
+            # detection, coverage monitor, ArUco with a teammate, camera support, Nav2 tuning, integration, 81 of 101
+            # commits: LI:597-599, F:306.
             ('Autonomous exploration and marker search',
              '<p class="meta">METR4202 Robotics and Automation · 2025 · team of 4</p>\n'
-             "            <p>A TurtleBot3 had to explore a map it had never seen and find the ArUco markers placed around it, with nobody driving. It maps with SLAM Toolbox and drives with Nav2. As the team's integration lead I wrote the exploration and recovery side: a frontier detector that scores each frontier by how much unknown space a ray cast says it would reveal, goal ranking and blacklisting, stuck detection with recovery, and a coverage monitor. I made 81 of the team's 101 commits.</p>",
+             "            <p>A TurtleBot3 had to explore a map it had never seen and find the ArUco markers placed around it, with nobody driving. It maps with SLAM Toolbox and drives with Nav2. As the team's integration lead I wrote the exploration and recovery side: a frontier detector that scores each frontier by how much unknown space a ray cast says it would reveal, goal ranking and blacklisting so the robot gives up on goals it can't reach, stuck detection with recovery, and a coverage monitor.</p>\n"
+             "            <p>I also worked with a teammate on the ArUco localisation that places each marker on the map, added hardware support for the camera, tuned Nav2 and brought the packages together into one system. I made 81 of the team's 101 commits.</p>",
              [('coursework/metr4202-architecture.webp', 'Node diagram: SLAM Toolbox feeds the frontier detector and exploration monitor, which drive a Nav2 controller, alongside ArUco marker detection',
                'How the nodes fit together: mapping, my frontier detector and exploration monitor, marker detection and Nav2.')]),
+            # Sources: hand model, MATLAB check, root-locus zeros, 0.040 s and 16.3%: F:359, LI:687. Unstable pole at
+            # s = 7.2239: VS:117, VS:132. Arm drift, outer PD plus filter, no drift: LI:689, VS:122-123. 1 V step
+            # disturbance, about 2 deg, settled within about a second: LI:689, VS:125. Simulation only on the course's
+            # model, gains not the rig's: F:361.
             ('Furuta pendulum balance controller',
              '<p class="meta">METR4201 Control Engineering 1 · 2025 · on my own, in simulation</p>\n'
-             "            <p>Balancing an inverted pendulum on a motor-driven rotating arm. I derived the motor and gearbox model by hand, checked it in MATLAB, and placed a PID controller's zeros on the root locus. In simulation it met the brief's limits of 0.2 s peak time and 20% overshoot, with 0.040 s and 16.3%. An outer PD loop with a low-pass filter then held the arm at its set angle with no drift. It is a simulated design, on the course's nonlinear Simulink model rather than the rig.</p>",
+             "            <p>Balancing an inverted pendulum on a motor-driven rotating arm. I derived the motor and gearbox model by hand, checked it in MATLAB, and placed a PID controller's two zeros on the root locus to stabilise a plant with an unstable pole at s = 7.22. In simulation it met the brief's limits of 0.2 s peak time and 20% overshoot, with 0.040 s and 16.3%.</p>\n"
+             "            <p>The single loop kept the pendulum upright but let the arm drift, so I added an outer PD loop with a low-pass filter for cascade control, which held the arm at its set angle with no drift. A 1 V step disturbance moved the pendulum about 2° before it settled within about a second. It is a simulated design, on the course's nonlinear Simulink model rather than the rig.</p>",
              [('coursework/furuta-step-response.webp', 'Step response of the pendulum angle rising to its set point inside the shaded region allowed by the peak-time and overshoot limits',
                'Simulated step response against the peak-time and overshoot limits.')]),
+            # Sources: brief framing: LI:739. All analysis and report Isaac's: F:401, F:403. 249,660 cars, 8
+            # derailments, 97.5%, 0.018%, SIL 1, 1oo2 0.2 and 365, 2oo2 9: F:406. 7 UCAs, 16 loss scenarios, 300 ms,
+            # 21-day interval: F:409; "rule of thumb, not a full SIL calculation" and fictional, no hardware: F:412.
+            # Figure 2: IMG:49 (rendered from the report's own TikZ source).
             ('Functional safety case for a LiDAR check',
              '<p class="meta">METR3100 Control System Implementation · 2025 · team of 5; I did the analysis and wrote the report</p>\n'
-             '            <p>A fictional mine wanted a LiDAR check to catch partly dumped ore cars before they derail. Event trees over 249,660 cars a year showed the human supervisor alone still let 8 derailments a year through, and that the LiDAR needed 97.5% detection with a 0.018% false-flag rate, which is SIL 1. A 1oo2 voting design cut derailments to 0.2 a year but used all 365 unnecessary re-dumps the brief allowed. An STPA found 7 unsafe control actions and 16 loss scenarios, and I recommended a 300 ms command timing limit.</p>',
+             '            <p>A fictional mine wanted a LiDAR check to catch partly dumped ore cars before they derail, and the brief asked how good the sensor had to be and how to build it in. Event trees over 249,660 cars a year showed the human supervisor alone still let 8 derailments a year through, and that the LiDAR needed 97.5% detection with a 0.018% false-flag rate, which is SIL 1. A 1oo2 voting design cut derailments to 0.2 a year but used all 365 unnecessary re-dumps the brief allowed, while 2oo2 still let 9 derailments through.</p>\n'
+             '            <p>An STPA found 7 unsafe control actions and 16 loss scenarios. I recommended a 300 ms command timing limit and a 21-day proof-test interval, the second from a rule of thumb rather than a full SIL calculation. Every input came from the brief; there was no hardware or field data.</p>',
              [('coursework/ore-car-event-tree.webp', 'Event tree from 249,660 ore cars a year through the supervisor and the LiDAR, ending in yearly counts of re-dumps, unnecessary re-dumps and derailments',
-               "Event tree for the 1oo2 design over a year of ore cars. Steve is the human supervisor in the course's fictional case.")]),
+               "Event tree for the 1oo2 design over a year of ore cars. Steve is the human supervisor in the course's fictional case."),
+              ('coursework/ore-car-control-structure.webp', 'STPA control structure: a human supervisor and an automated LiDAR controller both send re-dump commands to the re-dump mechanism, fed by a camera, strain gauges and a 2D LiDAR scanner, with critical paths in red',
+               "STPA control structure for the 1oo2 design, with the critical control paths in red. Steve is the course's fictional supervisor.")]),
+            # Sources: 3,268 templates, 7 shapes, HSV, Canny, overlap and chamfer, ~10 photos, >90% yellow diamonds,
+            # red octagon up to 0.98: F:422, LI:761; 60/40 weighting: VS:208; sky and water false positives: VS:213,
+            # LI:761. Hough road edge and wheels: F:424 (text only; F:428 bars the still itself). Rice: F:426, LI:763.
+            # Not beating the benchmark: F:428.
             ('Road signs and rice leaf disease',
              '<p class="meta">ELEC4630 Computer Vision and Deep Learning · 2025 · on my own</p>\n'
-             "            <p>For road signs I built a MATLAB bank of 3,268 templates across 7 sign shapes, found candidates with colour masks and edges, and scored each match on template overlap and chamfer distance; on the course's 10 or so test photos it found the yellow diamond signs more than 90% of the time. On a Kaggle rice leaf disease task in fastai, tuning took a ResNet26d from 88.1% to 97.0%, and my best ConvNeXt Large scored 98.387%, just short of the brief's 98.846% benchmark.</p>",
+             "            <p>For road signs I built a MATLAB bank of 3,268 templates across 7 sign shapes, found candidates with HSV colour masks and Canny edges, and scored each match 60% on template overlap and 40% on chamfer distance. On the course's 10 or so test photos it found the yellow diamond signs more than 90% of the time and the red octagon at up to 0.98 confidence, though sky and water gave false positives. I also used Hough transforms to find a road edge and a car's two wheels in a still image.</p>\n"
+             "            <p>On a Kaggle rice leaf disease task in fastai, tuning the learning rate and epochs took a ResNet26d from 88.1% to 97.0%, and my best ConvNeXt Large scored 98.387%, just short of the brief's 98.846% benchmark.</p>",
              [('coursework/rice-lr-finder.webp', 'Loss against learning rate on a log scale, falling to a minimum near 0.1, with two suggested starting points marked',
                'Learning-rate finder for the ConvNeXt classifier, with its suggested starting points.')]),
+            # Sources: brief (1 m intact, 2 m crack, minimum foam): LI:705. Most of the work incl. Python: F:369,
+            # LI:707. Five foams, Instron, blue polyethylene, two-layer package, 1 m intact, 2 m cracked: F:371.
+            # 0.54 J at 1 m and 100 N crushing force: V22:174-175, LI:707. One drop per height: V22:172 (F:373 bars
+            # claiming repeats). No thickness, no agreement with theory (F:373). Figure: IMG:46.
+            ('Foam packaging for an egg drop',
+             '<p class="meta">MECH3301 Materials Selection · 2024 · team of 2; I did most of the work</p>\n'
+             "            <p>Protective packaging, modelled on a helmet, that had to keep an egg intact from a 1 m drop but let it crack from 2 m, using as little foam as possible. We tested five foams in compression on an Instron, and I processed the load and displacement data in Python. Comparing the foams' energy absorption pointed to a blue polyethylene foam.</p>\n"
+             "            <p>From the egg's impact energy, about 0.54 J at 1 m, and its roughly 100 N crushing force, we sized a two-layer package, built it and drop-tested it once at each height. The egg came through the 1 m drop with no visible damage and cracked at 2 m, which was the target.</p>",
+             [('coursework/foam-stress-strain.webp', 'Stress against strain for five foams: four with flat plateaus that rise steeply past 80% strain, and the blue foam climbing steadily to about 0.13 MPa by 60% strain',
+               'Compression tests on the five foams, which led us to the blue polyethylene foam.')]),
+            # Sources: course title, Warman task, 6 balls, 120 mm hole, 120 s: LI:959; no remote control: RF:67.
+            # Team of 6, rover, mecanum wheels, arm, claw, drop tube; one of 2 on mechanical; sourcing, integration
+            # and assembly; Fusion 360; adapted open-source arm; printed on own printer: LI:961. Mass ~1.8 kg of 6 kg,
+            # did not deposit all 6, tennis-ball nap: LI:963. "Built to the task as a course project", no win or
+            # placing claimed: RF:110-111. Not "led design" (RF:106, F:472).
+            # Figures: IMG:66, IMG:67; optional IMG:68.
+            ('Ball-collecting robot',
+             '<p class="meta">METR2800 Mechatronic System Design Project I · 2024 · team of 6; I was one of 2 on the mechanical subsystem</p>\n'
+             "            <p>Built to the 2024 Warman Design and Build Competition task as a course project: from a single start action, with no remote control, the robot has to collect 6 tennis balls and drop them down a 120 mm hole within 120 seconds. Our team of 6 built a rover on 4 mecanum wheels with a servo arm and claw that loads balls into a central drop tube.</p>\n"
+             "            <p>I was one of 2 people on the mechanical subsystem and was responsible for sourcing parts and for integration and assembly. We modelled the chassis, claw and drop tube in Fusion 360 and adapted the open-source EEZYbotARM Mk2 arm, and I printed the parts on my own 3D printer. The finished robot weighed about 1.8 kg against a 6 kg limit. At the final demonstration it did not deposit all 6 balls: the nap on the new tennis balls created friction that stopped them depositing one after another.</p>",
+             [('coursework/metr2800-render.webp', 'Render of the robot: a purple chassis with a funnel-topped drop tube, four yellow mecanum wheels and an orange arm with a white claw',
+               'Our robot in Fusion 360, with the open-source EEZYbotARM Mk2 arm in orange. Colours are for display.'),
+              ('coursework/metr2800-ball-pickup.webp', 'The printed robot on a lab bench, its arm holding a tennis ball in the claw above the red chassis',
+               'Our robot picking up a tennis ball, May 2024.')]),
+            # Sources: task: LI:843. Most of the work: F:480, LI:845. Lead-network fit, 0.246 at 1 Hz, 0.707 point
+            # between 400 and 500 Hz: F:482, LI:845. RC lag on 1 uF, LM741 buffer, non-inverting stage, ~12 dB:
+            # F:484, LI:845. -0.74 to +0.43 dB to 10 kHz, -4.45 dB at 20 kHz: F:484, LI:847. No perfect inversion,
+            # no "flat to 20 kHz", no high-pass: F:486. Figure 1: IMG:58.
+            ('Inverting a black-box circuit',
+             '<p class="meta">ELEC2004 · 2023 · team of 2; I did most of the work</p>\n'
+             "            <p>Each group got a black box of unknown passive components and had to build a circuit after it so the output matched the box's input, from 1 Hz to 20 kHz. We measured the box's frequency response and fitted a first-order lead network, T(jω) = 0.995(jω + 815.27)/(jω + 3396.97), with a gain of 0.246 at 1 Hz and its 0.707 point between 400 and 500 Hz.</p>\n"
+             "            <p>To invert it we designed an RC lag network around a 1 µF capacitor, added an LM741 buffer to stop it loading the box, and a non-inverting amplifier to make up the missing 12 dB or so. The final circuit was flat to within -0.74 and +0.43 dB from 1 Hz to 10 kHz, falling to -4.45 dB at 20 kHz.</p>",
+             [('coursework/black-box-response.webp', 'Measured gain on a log frequency axis from 1 Hz to 20 kHz, inside a shaded band of plus or minus 1 dB up to 10 kHz and falling to about -4.5 dB at 20 kHz',
+               'Measured response of the black box followed by our final circuit: within about 0.7 dB of flat from 1 Hz to 10 kHz.')]),
+            # Sources: task and rigs: LI:821, VT:10. Most of the work: F:466. Forced precession, 0.0557 N m, 0.43 to
+            # 20.6%, 10.78% average, hand timing and gimbal effects: F:468, LI:823. CMG 200 to 800 rpm, inertia 0.0892
+            # kg m2 over four runs: F:470, LI:825. No CMG errors as validation, rigs are the course's: F:472.
+            # Figure: IMG:56.
+            ('Gyroscopic precession tests',
+             '<p class="meta">MECH2210 · 2023 · team of 2; I did most of the work</p>\n'
+             "            <p>A dynamics lab measuring gyroscopic precession on a precision gyroscope and on an ECP Model 750 control moment gyroscope, both the course's rigs, and comparing it with Euler's equations for steady precession. On the precision gyroscope we timed forced precession at three spin rates and compared it with the rate predicted from the 0.0557 N m gravity moment. The predictions were off by 0.43 to 20.6%, 10.78% on average, which we traced to hand timing and gimbal effects the model left out.</p>\n"
+             "            <p>On the control moment gyroscope we ran free and forced precession at 200 to 800 rpm and used the encoder data to estimate the inertia about the precession axis, which averaged 0.0892 kg m² over four runs.</p>",
+             [('coursework/gyro-precession.webp', 'Measured and predicted precession rate against spin rate at three points from about 450 to 1010 rad/s, both falling, with the gap widening at higher spin',
+               'Forced precession of the precision gyroscope against spin rate, measured and predicted.')]),
+            # Sources: all figures F:509, F:511, LI:879-883. Personalised inputs, not a free design, no Pass 2 values,
+            # no CAD, build or test: F:513. Figure: IMG:80.
+            ('Spur gearbox to AGMA methods',
+             '<p class="meta">MECH2100 · 2023 · on my own</p>\n'
+             '            <p>Sizing a three-shaft, five-gear spur reduction gearbox from my own course-issued set of inputs: 6.9 kW at 1700 rpm in and a nominal 100 rpm out. Working in Excel to the Mott and AGMA methods, I used two 23:95 reduction stages with module 4 gears and a 48 mm face width, for an output of 99.65 rpm. The tightest gear safety factors were 2.446 in bending and 1.126 in contact.</p>\n'
+             '            <p>I sized the shafts for fatigue, with a lowest safety factor of 9.2 against the required 3, and chose 6009 bearings for an 8000-hour L10 life. The finished gearbox came to 172.1 kg, with an estimated 241 kg CO2e and 2995 MJ of embodied energy. It is a calculated design only, with no CAD, build or test.</p>',
+             [('coursework/gearbox-summary.webp', 'Table of the five gears with tooth counts 23, 95, 23, 95 and 57 and their bending and contact safety factors, above a summary of input, output, gears, shafts, bearings and mass',
+               'Summary of my gearbox design, drawn from my design spreadsheet.')]),
+            # Sources: template, ATmega324A, LED matrix, buttons, terminal, the features added: F:536, LI:916-918.
+            # About half the features, not complete, never link the code: F:538. Figure: IMG:81 (a drawing of the
+            # layout from Isaac's code, not a photo).
+            ('Snakes and Ladders on an AVR',
+             '<p class="meta">CSSE2010 · 2022 · on my own</p>\n'
+             "            <p>Extending the course's 2,000-line C template into a Snakes and Ladders game on an ATmega324A microcontroller, with an 8x16 LED matrix, push buttons and a serial terminal. I added a start screen, button moves of one or two squares along the board's back-and-forth rows, a flashing player cursor that restarts after each move, and a dice roll started and stopped from a button or the terminal.</p>\n"
+             "            <p>Tokens climb ladders and slide down snakes, the game announces the winner and restarts, and a second board layout loads from the terminal. It all runs on the course's drivers for the LED matrix, buttons and serial port. About half of the brief's features are done, so it is not a complete game, and the code stays private as the brief requires.</p>",
+             [('coursework/snakes-ladders-board.webp', 'A 16 by 8 grid of LED dots with snakes in red, ladders in green and the start and finish in yellow',
+               'My second board layout on the 16 x 8 LED matrix, drawn from the layout in my code. A drawing, not a photo.')]),
         ],
         figures=[], after=[],
-        credits="Team entries say what my part was; the rest was my teammates'. Course briefs, rigs, the shock tunnel and the course models belong to UQ.",
+        credits="Team entries say what my part was; the rest was my teammates'. Course briefs, rigs, the shock tunnel and the course models belong to UQ. The ball-collecting robot's arm is adapted from Carlo Franciscone's <a href=\"https://www.thingiverse.com/thing:1454048\">EEZYbotARM Mk2</a>.",
     ),
 ]
 # Search titles past 60 characters lost the name; meta descriptions past 160 were cut mid-sentence (SEO audit, 19 Nov
