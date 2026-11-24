@@ -1,0 +1,54 @@
+/* Card icons: Anatomy-kit models recoloured to the site palette (needs iso-kit.css). */
+.card .icon.iso {
+    --anatomy-paper: #ffffff; --anatomy-face: #ffffff; --anatomy-top: #ffffff;
+    --anatomy-shade-0: #cfc7ec; --anatomy-shade-1: #ddd7f2; --anatomy-shade-2: #e9e5f7; --anatomy-shade-3: #f4f2fb;
+    --anatomy-lit-top: #fff3f0; --anatomy-lit-shade: #f6d8d2;
+    --anatomy-hi: #2E1499; --anatomy-mid: #6E5CC4; --anatomy-lo: #A99EDB; --anatomy-faint: #D9D3F0; --anatomy-lit: #BB0700;
+    --anatomy-halo: #2E1499; --anatomy-halo-opacity: .22; --anatomy-dot: #2E1499;
+}
+.card .icon .ic-bg { fill: #FFF7DA; }
+.card .icon .or-sun .iso-top, .card .icon .or-sun .iso-shade, .card .icon .or-sun .iso-fill { fill: #FFC908; }
+.card .icon .rk-flame, .card .icon .ev-flame { fill: #FF5102; }
+.card .icon .os-led { fill: #BB0700; }
+.card .icon .ev-jet-core { fill: none; stroke: #7E9BE6; stroke-width: 2.8; stroke-linecap: round; opacity: 0.85; }
+.card .icon .ev-jet-flow { fill: none; stroke: #EAF0FF; stroke-width: 1.1; stroke-linecap: round; stroke-dasharray: 3 6; }
+.card .icon .ev-drop, .card .icon .ev-splash { fill: #7E9BE6; }
+.card .icon .ev-spray, .card .icon .ev-steam .ev-puff { opacity: 0; }
+.card .icon .ev-puff { fill: #FFFFFF; stroke: #A99EDB; stroke-width: 0.8; }
+.card .icon .ev-flame-in { fill: #FFC908; }
+.card .icon .ev-water .iso-fill, .card .icon .ev-water .iso-top, .card .icon .ev-water .iso-shade { fill: #9FB6F0; fill-opacity: 0.55; }
+.card .icon .ev-water { transform-box: fill-box; transform-origin: 50% 100%; }
+.card .icon .rk-flame { opacity: 0; transform-box: fill-box; transform-origin: 50% 0%; }
+.card .icon .et-fault { fill: none; stroke: #BB0700; stroke-width: 1.4; }
+.card .icon .et-led { fill: #BB0700; }
+.card .icon .et-lead { fill: none; stroke: #BB0700; stroke-width: 1.6; stroke-linecap: round; }
+.card .icon .cm-dark .iso-fill, .card .icon .cm-dark .iso-top, .card .icon .cm-dark .iso-shade { fill: #5B4BB0; }
+.card .icon .cm-glass .iso-fill, .card .icon .cm-glass .iso-top, .card .icon .cm-glass .iso-shade { fill: #2E1499; }
+.card .icon .ws-arm { stroke: #6E5CC4; stroke-width: 1.4; stroke-linecap: round; }
+.card .icon .ws-fin { fill: #ffffff; stroke: #2E1499; stroke-width: 1; stroke-linejoin: round; }
+.card .icon .ws-shaft { stroke: #2E1499; stroke-width: 1.5; stroke-linecap: round; }
+.card .icon .ws-head { fill: #BB0700; stroke: #2E1499; stroke-width: 0.8; stroke-linejoin: round; }
+.card .icon .ws-cap { fill: #ffffff; stroke: #2E1499; stroke-width: 1; }
+.card .icon .ev-glass .iso-fill, .card .icon .ev-glass .iso-top, .card .icon .ev-glass .iso-shade { fill-opacity: 0.3; }
+.card .icon .ev-dark .iso-fill, .card .icon .ev-dark .iso-top, .card .icon .ev-dark .iso-shade { fill: #4B3BA8; }
+.card .icon .ev-tyre .iso-fill, .card .icon .ev-tyre .iso-top, .card .icon .ev-tyre .iso-shade { fill: #3B2C8F; }
+.card .icon .ev-hub .iso-fill, .card .icon .ev-hub .iso-top, .card .icon .ev-hub .iso-shade { fill: #FFC908; }
+.card .icon .ev-red .iso-fill, .card .icon .ev-red .iso-top, .card .icon .ev-red .iso-shade { fill: #E8584F; }
+.card .icon .ev-blue .iso-fill, .card .icon .ev-blue .iso-top, .card .icon .ev-blue .iso-shade { fill: #6E5CC4; }
+.card .icon .ev-hose-o { fill: none; stroke: #2E1499; stroke-width: 3.6; stroke-linecap: round; }
+.card .icon .ev-hose { fill: none; stroke: #EDEAF8; stroke-width: 2; stroke-linecap: round; }
+.card .icon .rv-tyre .iso-fill, .card .icon .rv-tyre .iso-top, .card .icon .rv-tyre .iso-shade { fill: #3B2C8F; }
+.card .icon .rv-mount .iso-fill, .card .icon .rv-mount .iso-top, .card .icon .rv-mount .iso-shade { fill: #E8584F; }
+.card .icon .er-ring { fill: none; stroke: #BB0700; stroke-width: 1.2; opacity: 0; }   /* Errol: LiDAR scan rings, hidden at rest */
+.card .icon .er-head { fill: #FFC908; } .card .icon .er-tail { fill: #BB0700; } .card .icon .er-lidar-dot { fill: #ffffff; }
+.card .icon .er-seam { fill: none; stroke: #A99EDB; stroke-width: 0.8; }
+.card .icon .er-handle { fill: none; stroke: #6E5CC4; stroke-width: 1.4; stroke-linecap: round; }
+/* METR4810: the pod steers on hover (two drawn poses, crossfaded), the bore path and mouth in the block */
+.card .icon .mt-bore { fill: none; stroke: #BB0700; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: .8; }
+.card .icon .mt-mouth { fill: #2E1499; opacity: .55; }
+.card .icon .mt-steer { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {      /* reduced motion keeps the pod straight */
+    .card .icon .mt-steer, .card .icon .mt-straight { transition: opacity .6s ease; }
+    .card:hover .icon .mt-steer, .card:focus-within .icon .mt-steer { opacity: 1; }
+    .card:hover .icon .mt-straight, .card:focus-within .icon .mt-straight { opacity: 0; }
+}

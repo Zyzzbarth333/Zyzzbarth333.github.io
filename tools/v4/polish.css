@@ -1,0 +1,177 @@
+/* Shared polish for Live v4 and the v3 archive (19 Nov): phone fixes (mobile-native) and motion fixes
+   (improve-animations / animation-performance). Loaded last, so it overrides the page CSS. */
+
+/* No grey/blue flash on tap; no landscape font inflation. Pull-to-refresh is left on: this is a scrolling document. */
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+
+/* Taps fire at once (no double-tap-zoom wait); control labels can't be long-press selected. */
+button, a, [role="button"], .btn, .k, .placard, .pm, .viewsw button, .olist button { touch-action: manipulation; }
+button, [role="button"], .btn, .k, .pill, .viewsw button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.btn:active, .k:active, .viewsw button:active { transform: scale(0.97); transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Small viewport units: heroes never sit under the URL bar; the dialog tracks the visible area. */
+@media (min-width: 1101px) { .ex { height: min(84svh, 820px); } }   /* narrower, the hero stacks and takes its own height */
+#explore:not(:has(.ex)) { height: min(88svh, 860px); }
+.fl-chart { height: calc(100svh - 100px); }
+dialog.full, dialog.file, dialog.pull, dialog.mon { max-height: calc(100dvh - 24px); }
+dialog.full { height: min(820px, calc(100dvh - 24px)); }
+
+/* Fixed and sticky chrome clears the notch and the home indicator (needs viewport-fit=cover). */
+header.top { padding-top: env(safe-area-inset-top, 0px); }
+.proto-switch { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+
+/* The airbrake graph scrubs sideways but must let the page scroll vertically on a phone. */
+#ab { touch-action: pan-y; }
+
+/* Touch has no hover: undo hover lifts on coarse pointers so a tapped card doesn't stay lifted. */
+@media (hover: none), (pointer: coarse) {
+  .pcard:hover { transform: none; }
+  .pcard:hover::before { transform: translate(0, 0); opacity: 0; }
+  .card:hover .icon, .prow:hover { transform: none; }
+}
+
+/* One easing token for UI motion. */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Reduced motion: no blinking, sliding or lifting; the canvases already stop themselves in JS. */
+@media (prefers-reduced-motion: reduce) {
+  .top-bulletin b::before, .bulletin .tag i { animation: none !important; }
+  .dlog li, .side li, #latest, dialog[open], dialog[open]::backdrop { animation: none !important; }
+  .pcard, .pcard::before, .prow, .placard, .gauge .needle { transition: none !important; }
+  .pcard:hover, .pcard:focus-within, .pcard.on { transform: none !important; }
+  .pv iframe, .pv img, #ab-model .abf { transition: none !important; }
+  html { scroll-behavior: auto !important; }
+}
+
+/* break-ui fixes (19 Nov) */
+.pcard .pill { margin-top: auto !important; }          /* pills sit on one line across a row, whatever the title length */
+.pcard .r { margin-bottom: 10px; }
+.full .live .nofig { position: absolute; inset: 0; display: grid; place-items: center; background: #FFF7DA; }
+.full .live .nofig .icon { display: block; width: min(60%, 420px); aspect-ratio: 1; }
+@media (max-width: 1100px) { .full .side2, .full .side { padding-top: 64px; } }   /* clear the Close button on narrow screens */
+
+/* emil-design-eng pass (19 Nov): keyboard focus that always shows, on light and dark panels. */
+:where(a, button, input, select, summary, [tabindex="0"]):focus-visible { outline: 2px solid var(--ink) !important; outline-offset: 3px; }
+:where(.olist, .term, .band, .exp, .dark) :focus-visible { outline-color: var(--yel) !important; }
+/* A card is one big target (its button's ::after covers it), so the ring wraps the whole card, not the title text. */
+.pcard:has(h3 button:focus-visible) { outline: 2px solid var(--ink); outline-offset: 4px; }
+.pcard h3 button:focus-visible, .prow h3 button:focus-visible { outline: 0 !important; }
+.prow:has(h3 button:focus-visible) { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* The airbrake graph takes the keyboard: a ring, no pointer cursor hint needed. */
+#ab:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* taste-skill review fixes (19 Nov): checker findings that hold on the real server. */
+/* Phones: the hero card spans the arena top, so the 3D/2D switch moves to the arena's open bottom edge. */
+@media (max-width: 900px) { #arena-wrap .viewsw { top: auto; bottom: 14px; } }
+/* Touch targets reach 44px without changing how they look. */
+@media (pointer: coarse) {
+  header.top nav a, .viewsw button { min-height: 44px; display: inline-flex; align-items: center; }
+  .pm::before { content: ""; position: absolute; inset: -8px; border-radius: 50%; }
+  input[type="range"] { min-height: 44px; }
+}
+/* Text contrast to 4.5:1 on the paper ground, keeping the hues. */
+#ab-model figcaption #ab-deg { color: #B83A00; }   /* beats '#ab-model figcaption b' */
+.pm.act { color: var(--ink); }
+.lampx { color: #2E7A4A; }
+
+/* ui-ux-pro-max palette check (19 Nov): orange and leaf fail as text on the light grounds (2.4-3.2:1); they stay as
+   fills, the stripe and markers. Text uses darker steps of the same hues. */
+.side .row i { color: #2E7A4A; }   /* sector tags, 5.0:1 on panel (leaf was 3.15) */
+.xp li i { color: #FFD84D; }       /* dates on the red band, 4.83:1 (yellow was 4.33) */
+
+/* Inputs take the page font (the browser default is Arial). */
+input, select, textarea { font-family: inherit; }
+
+/* Phones: five header links don't fit beside the name, so they move to a second row that scrolls sideways if it must. */
+@media (max-width: 520px) {
+  header.top { height: auto; flex-wrap: wrap; row-gap: 0; padding: 8px 14px 4px; }
+  header.top .nm { font-size: 1rem; }
+  header.top nav { margin: 0 -6px; width: calc(100% + 12px); overflow-x: auto; scrollbar-width: none; gap: 0; }
+  header.top nav a { white-space: nowrap; padding: 9px 6px; font-size: 12px; }
+  header.top nav a[href="#contact"] { display: block; }   /* the home sheet hid it when the links shared a row with the name */
+}
+
+/* Projects: on wide screens two card columns and a bigger preview panel, shaped to the figure it shows (its aspect ratio
+   comes from the project's data), never taller than the window. */
+@media (min-width: 1101px) {
+  .pj2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+  .pgrid { grid-template-columns: repeat(2, 1fr); }
+}
+.pv { max-height: calc(100vh - 230px); transition: aspect-ratio .35s cubic-bezier(.23, 1, .32, 1); }
+@media (prefers-reduced-motion: reduce) { .pv { transition: none; } }
+
+/* Experience: one column, as on the old site. */
+.xp { grid-template-columns: 1fr; max-width: 860px; }
+
+/* About: the Now / Also now / Next up boxes as one panel of three cards, each a label row, a title and a line, padded
+   and shadowed like the coursework terminal below so the two line up. */
+.nowp { position: relative; box-shadow: 6px 6px 0 var(--ink); }
+.nowp::before { content: ""; position: absolute; left: -2px; right: -2px; top: -2px; height: 6px; background: var(--stripe); }
+.nowp .sp { display: flex; flex-direction: column; gap: 8px; padding: 22px 20px 20px; }
+.nowp .k { display: flex; align-items: center; gap: 10px; min-height: 18px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--mute); }
+.nowp .k .lampx { font: 600 11px var(--mono); letter-spacing: .06em; }
+.nowp b { font: 900 1.2rem/1.15 Fraunces, Georgia, serif; color: var(--ink); }
+.nowp p { margin: 0; font-size: .95rem; line-height: 1.5; color: var(--mute); }
+.term { margin-top: 30px; }
+
+/* Coursework cards (home section and the coursework page's index): figure thumbnail, code and year, title, who did it. */
+.cwgrid { list-style: none; margin: 30px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }   /* nine pieces: three rows of three */
+.cwcard a { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 0 0 16px; text-decoration: none; color: var(--ink);
+  background: var(--panel); border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); transition: transform .18s cubic-bezier(.23, 1, .32, 1), box-shadow .18s cubic-bezier(.23, 1, .32, 1); }
+.cwcard .th { display: block; aspect-ratio: 4 / 3; background: #fff; border-bottom: 2px solid var(--ink); overflow: hidden; }
+.cwcard .th img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.cwcard .cc { padding: 6px 14px 0; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+.cwcard b { padding: 0 14px; font: 900 1.05rem/1.2 Fraunces, Georgia, serif; }
+.cwcard .who { padding: 0 14px; font: 500 12px/1.45 var(--mono); color: #2E7A4A; }
+@media (hover: hover) { .cwcard a:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); } }
+.cwcard a:focus-visible { outline: 3px solid var(--ind); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .cwcard a { transition: none; } .cwcard a:hover { transform: none; } }
+.cwmore { margin: 26px 0 0; }
+@media (max-width: 760px) { .cwgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 420px) { .cwgrid { grid-template-columns: 1fr; } }
+
+/* Screen-reader-only text, such as the "(opens in a new tab)" after outside links. */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* a find drawn as the arena draws it, in the field log and the Latest find pane (19 Nov 2026) */
+.glyph.thumb { border: 0; background: none; padding: 0; }
+#latest .lt-ic canvas.thumb { width: 76px; height: 76px; }
+.dlog canvas.thumb, #log canvas.thumb { width: 22px; height: 22px; flex: none; }
+/* phones and tablets: the map notes sit just above the view switch, full width, not over the hero (19 Nov 2026) */
+@media (max-width: 900px) { #arena-wrap .snote { top: auto; bottom: 68px; left: 16px; right: 16px; max-width: none; } }
+/* phones: the hero card sits in the flow at the top of the arena, with 440 px of open ground under it for the rover
+   (it used to cover all but about 100 px, so the rover found nothing) (19 Nov 2026) */
+@media (max-width: 700px) { #arena-wrap { height: auto !important; padding-bottom: 440px; } #arena-wrap .hero-copy { position: relative !important; left: auto !important; right: auto !important; top: auto !important; margin: 12px !important; } }
+/* the cloud view's key hides with the other views (it is display:flex, which would beat [hidden]) */
+#arena-wrap .sensors[hidden] { display: none; }
+/* one column: the airbrake render takes the column's width (it shrank to 0 x 0) */
+@media (max-width: 1100px) { #ab-model { width: 100%; } }
+/* the home skip link shows when it has focus, as on the project pages */
+.vh:focus, .vh:focus-visible { position: fixed !important; left: 12px !important; top: 12px !important; width: auto !important; height: auto !important; clip: auto !important; overflow: visible !important; z-index: 99; background: var(--yel); color: var(--ink); padding: 8px 12px; outline: 3px solid var(--ink); }
+/* the field log sector tag: leaf is 3.2:1 on the panel; a deeper green of the same hue reads at about 5:1 */
+.side .row i { color: #2B7044; }
+
+/* ---- design audit fixes, 20 Nov 2026 ---- */
+/* the coursework section keeps the home page's rhythm (it had no padding) */
+#coursework { padding: 100px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { #coursework { padding: 64px 0; } }
+/* preview panel: a quick crossfade, and its shape snaps instead of animating (that relaid it out every frame) */
+.pv iframe, .pv img, .pv .ph { transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+.pv { transition: none !important; }
+/* touch screens and one-column layouts: no hover preview (a tap opens the page), and the intro says so */
+.intro .on-touch { display: none; }
+@media (hover: none), (max-width: 1100px) { .preview2 { display: none !important; } .intro .on-hover { display: none; } .intro .on-touch { display: inline; } }
+/* analyser pins: ink on leaf (white was 3.47:1), a tight ring instead of a glow */
+#la-board .pm.act { background: var(--leaf); color: var(--ink); box-shadow: 0 0 0 4px rgb(62 155 95 / .35); }
+/* service record: the employer on its own line, and rows stack on narrow phones so dates never push off screen */
+.xp span { display: block; line-height: 1.45; margin-top: 2px; }
+@media (max-width: 480px) { .xp li { flex-direction: column; gap: 4px; } .xp i { white-space: normal; } }
+/* buttons: one primary hover (a deeper indigo, not red), a press that eases both ways, no hover stuck after a tap */
+.btn { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.btn:active { transition: background-color 160ms ease, color 160ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+@media (hover: hover) and (pointer: fine) { .btn.solid:hover, main .btn:not(.ghost):not(.x):hover { background: #220E73; border-color: #220E73; color: #fff; } }
+/* one header on every page: the same nav type, and the current page marked with an ink underline (it was 1.2:1) */
+header.top nav a { font: 600 13px var(--mono); border-radius: 0; }
+header.top nav a.on, header.top nav a[aria-current] { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+/* footers: the home page gets one; the 404's sits at the bottom of the screen */
+footer.site { padding: 28px 16px 36px; text-align: center; font: 500 12px var(--mono); color: var(--mute); border-top: 1px solid var(--line); }

@@ -1,0 +1,272 @@
+diff --git a/packages/suite-base/src/SharedRoot.tsx b/packages/suite-base/src/SharedRoot.tsx
+index a4d4f09..c74861c 100644
+--- a/packages/suite-base/src/SharedRoot.tsx
++++ b/packages/suite-base/src/SharedRoot.tsx
+@@ -36,6 +36,7 @@ export function SharedRoot(
+     enableLaunchPreferenceScreen,
+     extensionLoaders,
+     extraProviders,
++    layoutLoaders,
+   } = props;
+ 
+   const contextValue = useMemo(
+@@ -50,6 +51,7 @@ export function SharedRoot(
+       enableLaunchPreferenceScreen,
+       extensionLoaders,
+       extraProviders,
++      layoutLoaders,
+       onAppBarDoubleClick,
+     }),
+     [
+@@ -63,6 +65,7 @@ export function SharedRoot(
+       enableLaunchPreferenceScreen,
+       extensionLoaders,
+       extraProviders,
++      layoutLoaders,
+       onAppBarDoubleClick,
+     ],
+   );
+diff --git a/packages/suite-base/src/StudioApp.tsx b/packages/suite-base/src/StudioApp.tsx
+index 629099d..4601d2d 100644
+--- a/packages/suite-base/src/StudioApp.tsx
++++ b/packages/suite-base/src/StudioApp.tsx
+@@ -53,6 +53,7 @@ export function StudioApp(): React.JSX.Element {
+   const {
+     dataSources,
+     extensionLoaders,
++    layoutLoaders,
+     nativeAppMenu,
+     nativeWindow,
+     deepLinks,
+@@ -89,7 +90,7 @@ export function StudioApp(): React.JSX.Element {
+ 
+   // Alerts provider also must come before other, dependent contexts.
+   providers.unshift(<AlertsContextProvider />);
+-  providers.unshift(<CurrentLayoutProvider />);
++  providers.unshift(<CurrentLayoutProvider loaders={layoutLoaders} />);
+   providers.unshift(<LayoutManagerProvider />);
+   // The layout manager stores favorites in the user profile, so it is nested inside it.
+   providers.unshift(<UserProfileLocalStorageProvider />);
+diff --git a/packages/suite-base/src/components/MessagePipeline/store.ts b/packages/suite-base/src/components/MessagePipeline/store.ts
+index 54a0827..8efa5b4 100644
+--- a/packages/suite-base/src/components/MessagePipeline/store.ts
++++ b/packages/suite-base/src/components/MessagePipeline/store.ts
+@@ -170,7 +170,9 @@ export function createMessagePipelineStore({
+         }
+         return await player.callService(service, request);
+       },
+-      async fetchAsset(uri, options) {
++      async fetchAsset(rawUri, options) {
++        // Resolve a relative URL (such as a model shipped beside a static deployment) against the page.
++        const uri = new URL(rawUri, globalThis.location.href).href;
+         const { protocol } = new URL(uri);
+         const player = get().player;
+ 
+diff --git a/packages/suite-base/src/context/SharedRootContext.ts b/packages/suite-base/src/context/SharedRootContext.ts
+index 2c7f901..fdc7931 100644
+--- a/packages/suite-base/src/context/SharedRootContext.ts
++++ b/packages/suite-base/src/context/SharedRootContext.ts
+@@ -14,6 +14,7 @@ import { AppParametersInput } from "@lichtblick/suite-base/context/AppParameters
+ import { INativeAppMenu } from "@lichtblick/suite-base/context/NativeAppMenuContext";
+ import { INativeWindow } from "@lichtblick/suite-base/context/NativeWindowContext";
+ import { IDataSourceFactory } from "@lichtblick/suite-base/context/PlayerSelectionContext";
++import { LayoutLoader } from "@lichtblick/suite-base/services/ILayoutLoader";
+ import { IExtensionLoader } from "@lichtblick/suite-base/services/extension/IExtensionLoader";
+ 
+ interface ISharedRootContext {
+@@ -22,6 +23,7 @@ interface ISharedRootContext {
+   appParameters?: AppParametersInput;
+   dataSources: IDataSourceFactory[];
+   extensionLoaders: readonly IExtensionLoader[];
++  layoutLoaders?: readonly LayoutLoader[];
+   nativeAppMenu?: INativeAppMenu;
+   nativeWindow?: INativeWindow;
+   enableLaunchPreferenceScreen?: boolean;
+diff --git a/packages/suite-base/src/providers/WorkspaceContextProvider.tsx b/packages/suite-base/src/providers/WorkspaceContextProvider.tsx
+index 23aa933..396bd9b 100644
+--- a/packages/suite-base/src/providers/WorkspaceContextProvider.tsx
++++ b/packages/suite-base/src/providers/WorkspaceContextProvider.tsx
+@@ -46,7 +46,8 @@ export function makeWorkspaceContextInitialState(): WorkspaceContextStore {
+     sidebars: {
+       left: {
+         item: "panel-settings",
+-        open: true,
++        // Closed by default in this static deployment, so the replay's layout gets the whole window.
++        open: false,
+         size: undefined,
+       },
+       right: {
+diff --git a/packages/suite-web/src/WebRoot.tsx b/packages/suite-web/src/WebRoot.tsx
+index 8c176d4..e54f41f 100644
+--- a/packages/suite-web/src/WebRoot.tsx
++++ b/packages/suite-web/src/WebRoot.tsx
+@@ -27,6 +27,7 @@ import {
+ import { APP_CONFIG } from "@lichtblick/suite-base/constants/config";
+ import { AppParametersInput } from "@lichtblick/suite-base/context/AppParametersContext";
+ 
++import { StaticExtensionLoader, StaticLayoutLoader } from "./StaticSiteLoaders";
+ import LocalStorageAppConfiguration from "./services/LocalStorageAppConfiguration";
+ 
+ const isDevelopment = process.env.NODE_ENV === "development";
+@@ -50,7 +51,9 @@ export function WebRoot(props: {
+   const defaultExtensionLoaders: IExtensionLoader[] = [
+     new IdbExtensionLoader("org"),
+     new IdbExtensionLoader("local"),
++    new StaticExtensionLoader(),
+   ];
++  const [layoutLoaders] = useState(() => [new StaticLayoutLoader()]);
+   const url = new URL(globalThis.location.href);
+   const workspace = url.searchParams.get("workspace");
+ 
+@@ -85,7 +88,8 @@ export function WebRoot(props: {
+ 
+   return (
+     <SharedRoot
+-      enableLaunchPreferenceScreen
++      enableLaunchPreferenceScreen={false}
++      layoutLoaders={layoutLoaders}
+       deepLinks={[globalThis.location.href]}
+       dataSources={dataSources}
+       appConfiguration={appConfiguration}
+diff --git a/packages/suite-web/src/StaticSiteLoaders.ts b/packages/suite-web/src/StaticSiteLoaders.ts
+new file mode 100644
+index 0000000..ebdfaf7
+--- /dev/null
++++ b/packages/suite-web/src/StaticSiteLoaders.ts
+@@ -0,0 +1,136 @@
++// SPDX-License-Identifier: MPL-2.0
++
++// This Source Code Form is subject to the terms of the Mozilla Public
++// License, v2.0. If a copy of the MPL was not distributed with this
++// file, You can obtain one at http://mozilla.org/MPL/2.0/
++
++// Read-only extension and layout loaders for a static deployment. They read
++// `static/manifest.json`, next to index.html:
++//
++//   { "extensions": ["panels.foxe"], "layouts": [{ "name": "My layout", "file": "my-layout.json" }] }
++//
++// so a hosted copy can ship its own panels and layouts without a server or any
++// setup by the visitor. Without a manifest both loaders return nothing.
++
++import Log from "@lichtblick/log";
++import { LayoutData, LayoutLoader } from "@lichtblick/suite-base";
++import {
++  IExtensionLoader,
++  InstallExtensionProps,
++  LoadedExtension,
++  TypeExtensionLoader,
++} from "@lichtblick/suite-base/services/extension/IExtensionLoader";
++import { ALLOWED_FILES } from "@lichtblick/suite-base/services/extension/types";
++import decompressFile from "@lichtblick/suite-base/services/extension/utils/decompressFile";
++import extractFoxeFileContent from "@lichtblick/suite-base/services/extension/utils/extractFoxeFileContent";
++import validatePackageInfo from "@lichtblick/suite-base/services/extension/utils/validatePackageInfo";
++import { Namespace } from "@lichtblick/suite-base/types";
++import { ExtensionInfo } from "@lichtblick/suite-base/types/Extensions";
++import { LayoutInfo } from "@lichtblick/suite-base/types/layouts";
++
++const log = Log.getLogger(__filename);
++
++type Manifest = {
++  extensions?: string[];
++  layouts?: { name: string; file: string }[];
++};
++
++const BASE = new URL("static/", globalThis.location.href);
++let manifestPromise: Promise<Manifest> | undefined;
++
++async function manifest(): Promise<Manifest> {
++  manifestPromise ??= (async () => {
++    try {
++      const res = await fetch(new URL("manifest.json", BASE));
++      return res.ok ? ((await res.json()) as Manifest) : {};
++    } catch (err: unknown) {
++      log.debug("No static manifest", err);
++      return {};
++    }
++  })();
++  return await manifestPromise;
++}
++
++type Loaded = { info: ExtensionInfo; raw: string };
++
++export class StaticExtensionLoader implements IExtensionLoader {
++  public readonly namespace: Namespace = "local";
++  public readonly type: TypeExtensionLoader = "filesystem";
++  #loaded?: Promise<Map<string, Loaded>>;
++
++  async #all(): Promise<Map<string, Loaded>> {
++    this.#loaded ??= (async () => {
++      const out = new Map<string, Loaded>();
++      for (const file of (await manifest()).extensions ?? []) {
++        try {
++          const res = await fetch(new URL(file, BASE));
++          const data = await decompressFile(new Uint8Array(await res.arrayBuffer()));
++          const pkg = await extractFoxeFileContent(data, ALLOWED_FILES.PACKAGE);
++          const raw = await extractFoxeFileContent(data, ALLOWED_FILES.EXTENSION);
++          if (!pkg || !raw) {
++            throw new Error(`${file} is missing package.json or its entry point`);
++          }
++          const info = validatePackageInfo(JSON.parse(pkg) as Partial<ExtensionInfo>);
++          const publisher = info.publisher.replace(/[^A-Za-z0-9_\s]+/g, "");
++          const id = `${publisher}.${info.name}`;
++          out.set(id, {
++            raw,
++            info: {
++              ...info,
++              id,
++              namespace: this.namespace,
++              qualifiedName: info.displayName || info.name,
++              readme: (await extractFoxeFileContent(data, ALLOWED_FILES.README)) ?? "",
++              changelog: (await extractFoxeFileContent(data, ALLOWED_FILES.CHANGELOG)) ?? "",
++            },
++          });
++        } catch (err: unknown) {
++          log.error(`Failed to load static extension ${file}`, err);
++        }
++      }
++      return out;
++    })();
++    return await this.#loaded;
++  }
++
++  public async getExtension(id: string): Promise<ExtensionInfo | undefined> {
++    return (await this.#all()).get(id)?.info;
++  }
++
++  public async getExtensions(): Promise<ExtensionInfo[]> {
++    return [...(await this.#all()).values()].map(({ info }) => info);
++  }
++
++  public async loadExtension(id: string): Promise<LoadedExtension> {
++    const ext = (await this.#all()).get(id);
++    if (!ext) {
++      throw new Error("Extension not found");
++    }
++    return { raw: ext.raw };
++  }
++
++  public async installExtension(_props: InstallExtensionProps): Promise<ExtensionInfo> {
++    throw new Error("Static extensions are read-only");
++  }
++
++  public async uninstallExtension(_id: string): Promise<void> {
++    // Read-only: nothing to remove.
++  }
++}
++
++export class StaticLayoutLoader implements LayoutLoader {
++  public readonly namespace = "local";
++
++  public fetchLayouts = async (): Promise<LayoutInfo[]> => {
++    const out: LayoutInfo[] = [];
++    for (const { name, file } of (await manifest()).layouts ?? []) {
++      try {
++        const res = await fetch(new URL(file, BASE));
++        out.push({ from: `static/${file}`, name, data: (await res.json()) as LayoutData });
++      } catch (err: unknown) {
++        log.error(`Failed to load static layout ${file}`, err);
++      }
++    }
++    return out;
++  };
++}

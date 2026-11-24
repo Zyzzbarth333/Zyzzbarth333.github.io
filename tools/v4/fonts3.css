@@ -1,0 +1,9 @@
+/* Three fonts, the Live v4 default since 19 Nov (ui-ux-pro-max check, Isaac's pick): Barlow Condensed dropped; its labels, buttons and panel titles move to
+   Chivo Mono caps. Mono runs wider than a condensed face, so these sit a step smaller with a little tracking. */
+:root { --head: 'Chivo Mono', ui-monospace, monospace; }
+header.top .nm { font-size: 1.1rem; letter-spacing: .01em; }
+.btn { font-size: 13px; letter-spacing: .04em; }
+.pcard .pill { font-size: 11px; letter-spacing: .03em; }
+.pv-cap b { font-size: 1.3rem; letter-spacing: 0; }
+.full h3 { font-size: 1.75rem; letter-spacing: -.01em; }
+.prow h3, .exp b, .tip b, .placard b, .status-panel b { letter-spacing: 0; }

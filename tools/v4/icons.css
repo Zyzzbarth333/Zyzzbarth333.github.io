@@ -1,0 +1,112 @@
+/* Card icons: Anatomy-kit models recoloured to the site palette (needs iso-kit.css). */
+.card .icon.iso {
+    --anatomy-paper: #ffffff; --anatomy-face: #ffffff; --anatomy-top: #ffffff;
+    --anatomy-shade-0: #cfc7ec; --anatomy-shade-1: #ddd7f2; --anatomy-shade-2: #e9e5f7; --anatomy-shade-3: #f4f2fb;
+    --anatomy-lit-top: #fff3f0; --anatomy-lit-shade: #f6d8d2;
+    --anatomy-hi: #2E1499; --anatomy-mid: #6E5CC4; --anatomy-lo: #A99EDB; --anatomy-faint: #D9D3F0; --anatomy-lit: #BB0700;
+    --anatomy-halo: #2E1499; --anatomy-halo-opacity: .22; --anatomy-dot: #2E1499;
+}
+.card .icon .ic-bg { fill: #FFF7DA; }
+.card .icon .or-sun .iso-top, .card .icon .or-sun .iso-shade, .card .icon .or-sun .iso-fill { fill: #FFC908; }
+.card .icon .rk-flame, .card .icon .ev-flame { fill: #FF5102; }
+.card .icon .os-led { fill: #BB0700; }
+.card .icon .ev-jet-core { fill: none; stroke: #7E9BE6; stroke-width: 2.8; stroke-linecap: round; opacity: 0.85; }
+.card .icon .ev-jet-flow { fill: none; stroke: #EAF0FF; stroke-width: 1.1; stroke-linecap: round; stroke-dasharray: 3 6; }
+.card .icon .ev-drop, .card .icon .ev-splash { fill: #7E9BE6; }
+.card .icon .ev-spray, .card .icon .ev-steam .ev-puff { opacity: 0; }
+.card .icon .ev-puff { fill: #FFFFFF; stroke: #A99EDB; stroke-width: 0.8; }
+.card .icon .ev-flame-in { fill: #FFC908; }
+.card .icon .ev-water .iso-fill, .card .icon .ev-water .iso-top, .card .icon .ev-water .iso-shade { fill: #9FB6F0; fill-opacity: 0.55; }
+.card .icon .ev-water { transform-box: fill-box; transform-origin: 50% 100%; }
+.card .icon .rk-flame { opacity: 0; transform-box: fill-box; transform-origin: 50% 0%; }
+.card .icon .et-fault { fill: none; stroke: #BB0700; stroke-width: 1.4; }
+.card .icon .et-led { fill: #BB0700; }
+.card .icon .et-lead { fill: none; stroke: #BB0700; stroke-width: 1.6; stroke-linecap: round; }
+.card .icon .cm-dark .iso-fill, .card .icon .cm-dark .iso-top, .card .icon .cm-dark .iso-shade { fill: #5B4BB0; }
+.card .icon .cm-glass .iso-fill, .card .icon .cm-glass .iso-top, .card .icon .cm-glass .iso-shade { fill: #2E1499; }
+.card .icon .ws-arm { stroke: #6E5CC4; stroke-width: 1.4; stroke-linecap: round; }
+.card .icon .ws-fin { fill: #ffffff; stroke: #2E1499; stroke-width: 1; stroke-linejoin: round; }
+.card .icon .ws-shaft { stroke: #2E1499; stroke-width: 1.5; stroke-linecap: round; }
+.card .icon .ws-head { fill: #BB0700; stroke: #2E1499; stroke-width: 0.8; stroke-linejoin: round; }
+.card .icon .ws-cap { fill: #ffffff; stroke: #2E1499; stroke-width: 1; }
+.card .icon .ev-glass .iso-fill, .card .icon .ev-glass .iso-top, .card .icon .ev-glass .iso-shade { fill-opacity: 0.3; }
+.card .icon .ev-dark .iso-fill, .card .icon .ev-dark .iso-top, .card .icon .ev-dark .iso-shade { fill: #4B3BA8; }
+.card .icon .ev-tyre .iso-fill, .card .icon .ev-tyre .iso-top, .card .icon .ev-tyre .iso-shade { fill: #3B2C8F; }
+.card .icon .ev-hub .iso-fill, .card .icon .ev-hub .iso-top, .card .icon .ev-hub .iso-shade { fill: #FFC908; }
+.card .icon .ev-red .iso-fill, .card .icon .ev-red .iso-top, .card .icon .ev-red .iso-shade { fill: #E8584F; }
+.card .icon .ev-blue .iso-fill, .card .icon .ev-blue .iso-top, .card .icon .ev-blue .iso-shade { fill: #6E5CC4; }
+.card .icon .ev-hose-o { fill: none; stroke: #2E1499; stroke-width: 3.6; stroke-linecap: round; }
+.card .icon .ev-hose { fill: none; stroke: #EDEAF8; stroke-width: 2; stroke-linecap: round; }
+.card .icon .rv-tyre .iso-fill, .card .icon .rv-tyre .iso-top, .card .icon .rv-tyre .iso-shade { fill: #3B2C8F; }
+.card .icon .rv-mount .iso-fill, .card .icon .rv-mount .iso-top, .card .icon .rv-mount .iso-shade { fill: #E8584F; }
+.card .icon .er-ring { fill: none; stroke: #BB0700; stroke-width: 1.2; opacity: 0; }   /* Errol: LiDAR scan rings, hidden at rest */
+.card .icon .er-head { fill: #FFC908; } .card .icon .er-tail { fill: #BB0700; } .card .icon .er-lidar-dot { fill: #ffffff; }
+.card .icon .er-seam { fill: none; stroke: #A99EDB; stroke-width: 0.8; }
+.card .icon .er-handle { fill: none; stroke: #6E5CC4; stroke-width: 1.4; stroke-linecap: round; }
+/* METR4810: a cutaway of the three foam blocks. At rest (and under reduced motion, and on a phone) it shows the outcome
+   with the pod parked at the first face: pass 1's groove running wide in the bend, pass 2 from the far end, a red cross
+   where they missed. On hover it replays: a clean start, the pod boring in step by step, then the miss. */
+.card .icon .mt-bore { fill: none; stroke: #BB0700; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: .8; }
+.card .icon .mt-p1, .card .icon .mt-p2, .card .icon .mt-p3, .card .icon .mt-g1, .card .icon .mt-g2 { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {      /* paused at rest by the hover-loops rule, on the outcome */
+    .card .icon .mt-p0 { animation: mt-p0 5s steps(1, end) infinite; }
+    .card .icon .mt-p1, .card .icon .mt-g1 { animation: mt-s1 5s steps(1, end) infinite; }
+    .card .icon .mt-p2, .card .icon .mt-g2 { animation: mt-s2 5s steps(1, end) infinite; }
+    .card .icon .mt-p3 { animation: mt-s3 5s steps(1, end) infinite; }
+    .card .icon .mt-g3 { animation: mt-g3 5s steps(1, end) infinite; }
+}
+@keyframes mt-p0 { 0% { opacity: 1; } 28% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s1 { 0% { opacity: 0; } 28% { opacity: 1; } 48% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s2 { 0% { opacity: 0; } 48% { opacity: 1; } 68% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes mt-s3 { 0% { opacity: 0; } 68% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes mt-g3 { 0% { opacity: 1; } 8% { opacity: 0; } 68% { opacity: 1; } 100% { opacity: 1; } }
+.card .icon .mt-chip { opacity: 0; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {      /* foam chips fly off the cutter while it bores (hover replay only) */
+    .card .icon .mt-chip { animation: mt-chip .9s cubic-bezier(.2, .7, .4, 1) var(--dl, 0s) infinite; }
+}
+@keyframes mt-chip { 0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(220deg) scale(.6); } }
+/* Theseus VI: the LiDAR plate shows 15 degrees at rest and steps through 10, 15 and 20 on hover, 1.5 s each (motion only) */
+.card .icon .tv-base .iso-fill, .card .icon .tv-base .iso-top, .card .icon .tv-base .iso-shade { fill: #FFC908; }
+.card .icon .tv-p10, .card .icon .tv-p20 { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+    .card:hover .icon .tv-p10, .card:focus-within .icon .tv-p10 { animation: tv-a 4.5s infinite; }
+    .card:hover .icon .tv-p15, .card:focus-within .icon .tv-p15 { animation: tv-b 4.5s infinite; }
+    .card:hover .icon .tv-p20, .card:focus-within .icon .tv-p20 { animation: tv-c 4.5s infinite; }
+}
+@keyframes tv-a { 0%, 30% { opacity: 1; } 33.4%, 100% { opacity: 0; } }
+@keyframes tv-b { 0%, 30% { opacity: 0; } 33.4%, 63.4% { opacity: 1; } 66.7%, 100% { opacity: 0; } }
+@keyframes tv-c { 0%, 63.4% { opacity: 0; } 66.7%, 97% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Copied verbatim from assets/css/style.css (19 Nov): the hover loops and their keyframes were missing here, so the
+   HAVOC-2 flame, weather-station antenna, ENGG1100 run and Errol scan rings never moved in the prototypes. */
+/* Hover loops: paused at rest, running on hover or keyboard focus, never under reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+    .card .icon .rk-flame  { animation: ic-flicker 0.22s ease-in-out infinite alternate; }
+    .card .icon .ws-ant    { animation: ic-pulse 1s ease-in-out infinite; }
+    /* ENGG1100: drive in, stop, spray until the flame is out, reverse away (one 4.4 s cycle) */
+    .card .icon .ev-drive  { animation: ev-run 4.4s ease-in-out infinite; }
+    .card .icon .ev-spray  { animation: ev-jet-on 4.4s linear infinite; }
+    .card .icon .ev-jet-flow { animation: ev-flow 0.3s linear infinite; }
+    .card .icon .ev-water  { animation: ev-drain 4.4s ease-in-out infinite; }
+    .card .icon .ev-puff   { transform-box: fill-box; transform-origin: 50% 50%; animation: ev-steam 4.4s ease-out infinite; }
+    .card .icon .ev-puff-1 { animation-delay: 0.18s !important; } .card .icon .ev-puff-2 { animation-delay: 0.36s !important; }
+    .card .icon .ev-fire   { transform-box: fill-box; transform-origin: 50% 100%; animation: ev-douse 4.4s ease-in infinite; }
+    .card .icon .ev-flame  { transform-box: fill-box; transform-origin: 50% 100%; animation: ic-flicker 0.3s ease-in-out infinite alternate; }
+    /* Errol: three LiDAR scan rings ripple out from under the car */
+    .card .icon .er-ring   { animation: er-scan 2.4s ease-out infinite; }
+    .card .icon .er-ring-1 { animation-delay: 0.8s; } .card .icon .er-ring-2 { animation-delay: 1.6s; }
+    /* more specific than the loops above, so the loops stay parked until hover or focus */
+    .card:not(:hover):not(:focus-within) .icon * { animation-play-state: paused; }
+}
+@keyframes ic-drive   { to { transform: translate(7.2px, 4.6px); } }
+@keyframes er-scan    { 0% { transform: scale(0.12); opacity: 0; } 8% { opacity: 0.9; } 100% { transform: scale(1); opacity: 0; } }
+@keyframes ic-pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes ic-module  { 0%, 100% { transform: none; } 50% { transform: translate(0, -28px); } }
+@keyframes ic-flicker { from { transform: scale(1, 1); } to { transform: scale(0.85, 1.3); } }
+@keyframes ic-blink   { 50% { opacity: 0.2; } }
+@keyframes ev-run     { 0%, 100% { transform: translate(-13.49px, -9.28px); } 28%, 84% { transform: none; } }
+@keyframes ev-jet-on  { 0%, 29% { opacity: 0; } 32%, 76% { opacity: 1; } 80%, 100% { opacity: 0; } }
+@keyframes ev-flow    { to { stroke-dashoffset: -18; } }
+@keyframes ev-douse   { 0%, 36% { transform: scale(1); } 70%, 93% { transform: scale(0); } 100% { transform: scale(1); } }
+@keyframes ev-drain   { 0%, 32% { transform: none; } 76%, 90% { transform: scaleY(0.62); } 100% { transform: none; } }
+@keyframes ev-steam   { 0%, 64% { opacity: 0; transform: none; } 70% { opacity: 0.85; transform: none; } 92% { opacity: 0; transform: translate(0, -16px) scale(2.2); } 100% { opacity: 0; transform: translate(0, -16px) scale(2.2); } }
