@@ -9,8 +9,8 @@
 
   /* ---------- shared: full-size project dialog ---------- */
   const dlg = document.querySelector('dialog.full');
-  function openProject(slug) {
-    const p = BY[slug]; if (!p) return;
+  function openProject(slug) {   // every Open goes to the project's own page (it opened a dialog with no address)
+    const p = BY[slug]; if (!p) return; location.href = 'projects/' + slug + '.html'; return;
     document.getElementById('f-m').textContent = p.meta;
     document.getElementById('f-t').textContent = p.title;
     document.getElementById('f-r').textContent = p.result;

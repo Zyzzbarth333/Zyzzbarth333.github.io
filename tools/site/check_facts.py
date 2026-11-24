@@ -76,6 +76,22 @@ tracked = [f for f in r_git.stdout.split() if not f.startswith('tools/')]   # bu
 if r_git.returncode or not tracked:   # not a checkout, or no pages added to git: nothing would be scanned, so say so and fail
     print(f'no tracked HTML pages to scan in {repo} ({(r_git.stderr.strip() or "git ls-files found none")[:160]})'); sys.exit(2)
 texts = {f: visible((Path(repo) / f).read_text(errors='replace')) for f in tracked}
+# The home page's cards, result cubes and rover read their words from a JSON block and from the v4 scripts, which the
+# visible-text pass skips; scan those too, so a dropped claim cannot come back through the data (code audit, 19 Nov).
+_home = (Path(repo) / 'index.html').read_text(errors='replace')
+_data = re.search(r'<script type="application/json" id="data">(.*?)</script>', _home, re.S)
+def _strings(o):   # only the words: the data's number arrays (flight logs) would match number patterns by accident
+    if isinstance(o, str):
+        yield o
+    elif isinstance(o, (dict, list)):
+        for v in (o.values() if isinstance(o, dict) else o):
+            yield from _strings(v)
+if _data:
+    import json as _json0
+    texts['index.html (data)'] = ' | '.join(htmllib.unescape(x) for x in _strings(_json0.loads(_data.group(1))))
+for js in sorted((Path(repo) / 'assets/js/v4').glob('*.js')):   # the scripts' string literals, not their code
+    lits = re.findall(r"'((?:[^'\\\n]|\\.){6,})'|\"((?:[^\"\\\n]|\\.){6,})\"|`((?:[^`\\]|\\.){6,})`", js.read_text(errors='replace'))
+    texts[str(js.relative_to(repo))] = ' | '.join(a or b or c for a, b, c in lits)
 for path, pat, why in do_not_claim(facts_all):
     try:
         rx = re.compile(pat, re.I)
@@ -106,6 +122,34 @@ for path, why, terms in pending(facts_all):
         hits = [t for t in terms if re.search(r'\b' + re.escape(t) + r'\b', text, re.I)]
         if hits:
             print(f'{name[:-5]}: note: names {", ".join(hits)}, whose wording waits on Isaac\'s answer (facts.yaml {path.strip("/")}{": " + str(why)[:80] if why else ""}). Add no new "designed" claims here until it is settled.')
+
+# Every number the home page states as a result (the card results and the result cubes) must appear in facts.yaml, so a
+# corrected figure there cannot leave a stale one on the home page.
+if _data:
+    import json as _json
+    d = _json.loads(_data.group(1))
+    raw = re.sub(r'(?<=\d),(?=\d{3})', '', facts_path.read_text())
+    def scope(slug):   # the project's own entries in facts.yaml (site.<slug>, and projects whose id starts with its stem)
+        site, proj = facts_all.get('site') or {}, facts_all.get('projects') or {}
+        words = [w for w in slug.split('-') if len(w) > 3] or [slug]
+        items = proj.items() if isinstance(proj, dict) else [(x.get('id', ''), x) for x in proj if isinstance(x, dict)]
+        parts = [site.get(slug)] + [v for k, v in items if k == slug or any(w in str(k) for w in words)]
+        txt = '\n'.join(yaml.safe_dump(x, allow_unicode=True) for x in parts if x)
+        return re.sub(r'(?<=\d),(?=\d{3})', '', txt) or raw
+    shown = [(p.get('slug', '?'), p.get('result') or '', scope(p.get('slug', ''))) for p in d.get('projects', [])]
+    shown += [(c.get('key', 'cube'), f"{c.get('label', '')} {c.get('sub', '')}", raw) for c in d.get('cubes', [])]
+    norm = lambda t: re.sub(r'\s+', ' ', re.sub(r'(?<=\d),(?=\d{3})', '', t)).lower()
+    for who, text, where in shown:
+        words, w = norm(text).split(' '), norm(where)
+        for i, tok in enumerate(words):
+            if not re.match(r'[~≈$a-z]{0,2}\d', tok) or re.match(r'[a-z]{3,}', tok) or re.fullmatch(r'0+', tok):   # figures only (not names like HAVOC-2); a zero is a claim the words carry
+                continue
+            prev, nxt = (words[i - 1] if i else ''), (words[i + 1] if i + 1 < len(words) else '')
+            # the number with a neighbouring word must appear in the project's own facts, so a stray "19" in a date
+            # cannot stand in for "of 19"; a long, distinctive number may appear on its own
+            ok = any(ph and ph in w for ph in (f'{prev} {tok}'.strip(), f'{tok} {nxt}'.strip())) or (len(re.sub(r'\D', '', tok)) >= 4 and re.sub(r'[^\d.]', '', tok) in w)
+            if not ok:
+                print(f'index: home number "{tok}" ({who}: "{text.strip()[:60]}") is not in facts.yaml with its context'); problems += 1
 
 print('ok' if not problems else f'{problems} to look at')
 sys.exit(1 if problems else 0)

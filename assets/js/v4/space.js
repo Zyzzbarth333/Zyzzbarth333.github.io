@@ -10,7 +10,8 @@ const mini = document.getElementById("mini"), mx = mini.getContext("2d"), MW = m
 const $ = (id) => document.getElementById(id), dep = $("sp-dep"), tof = $("sp-tof"), depL = $("sp-dep-l"), tofL = $("sp-tof-l"), dvL = $("sp-dv"), bar = $("sp-bar"), msg = $("sp-msg"), go = $("sp-go");
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MU_SUN = 132712440018, MU_EARTH = 398600.4418, AU = 149597870.7, AUD = AU / 86400, DAY = 86400;
-const DEST = { mars: { mu: 42828.39, rPeri: 3639.5000619343314, name: "Mars", year: 687.0, start: [2026, 6, 1], span: 240, step: 2, tof: [100, 450, 2], col: "#E8590C" },
+// start is a calendar date, month 1 to 12 (Date.UTC counts months from 0, hence the - 1 where it is read)
+const DEST = { mars: { mu: 42828.39, rPeri: 3639.5000619343314, name: "Mars", year: 687.0, start: [2026, 6, 1], span: 240, step: 2, tof: [100, 450, 2], col: "#FF5102" },
                venus: { mu: 324858.6, rPeri: 6551.797441824649, name: "Venus", year: 224.7, start: [2026, 2, 1], span: 360, step: 3, tof: [70, 250, 2], col: "#E0B44A" } };
 const R = A.Rotation_EQJ_ECL(), BODY = { venus: A.Body.Venus, earth: A.Body.Earth, mars: A.Body.Mars };
 const stateOf = (k, d) => { const s = A.RotateState(R, A.HelioState(BODY[k], d)); return { r: [s.x * AU, s.y * AU, s.z * AU], v: [s.vx * AUD, s.vy * AUD, s.vz * AUD] }; };
@@ -26,7 +27,7 @@ const ramp = (dv) => { const f = Math.max(0, Math.min(1, (dv - best.dv) / 5)); c
   return `rgb(${c[k].map((v, n) => Math.round(v + (c[k + 1][n] - v) * u))})`; };
 
 function setup() {
-  B = DEST[key]; t0 = Date.UTC(B.start[0], B.start[1], B.start[2]); depDays = range(0, B.span, B.step); tofDays = range(B.tof[0], B.tof[1], B.tof[2]);
+  B = DEST[key]; t0 = Date.UTC(B.start[0], B.start[1] - 1, B.start[2]); depDays = range(0, B.span, B.step); tofDays = range(B.tof[0], B.tof[1], B.tof[2]);
   dep.max = depDays.length - 1; tof.min = B.tof[0]; tof.max = B.tof[1]; tof.step = B.tof[2];
   msg.textContent = `Working out ${(depDays.length * tofDays.length).toLocaleString("en-AU")} transfers to ${B.name} with the orrery's solver...`;
   setTimeout(() => {
